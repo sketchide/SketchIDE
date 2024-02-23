@@ -31,32 +31,8 @@ public class MainActivity extends AppCompatActivity {
         toolbar = binding.toolbar;
         setSupportActionBar(toolbar);
 
-
-        // Testing inProgress
-        createNewProjectFloatingBtn = binding.createNewProject;
-        binding.createNewProject.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Dialog dialog = new Dialog(MainActivity.this);
-                dialog.setContentView(R.layout.myproject_dialog);
-                EditText edittextName = dialog.findViewById(R.id.nameInput);
-                EditText edittextTitle = dialog.findViewById(R.id.titleInput);
-                Button button1 = dialog.findViewById(R.id.cancelButton);
-                Button button2 = dialog.findViewById(R.id.createButton);
-                button2.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        // Your code to handle button click goes here
-                       Toast.makeText(v.getContext(),"Button Clicked",Toast.LENGTH_SHORT).show();
-                       dialog.dismiss();
-                    }
-                });
-                dialog.show();
-            }
-        });
-
-
-
+        // Find and initialize the FloatingActionButton
+        createProjectFloatingBtn = findViewById(R.id.create_new_project);
 
         // Set click listener for the navigation icon
         binding.toolbar.setNavigationOnClickListener(v -> binding.drawerLayout.open());
