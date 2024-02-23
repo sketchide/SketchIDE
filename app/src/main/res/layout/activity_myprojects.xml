@@ -16,6 +16,4 @@
             tools:listitem="@layout/layout_myprojects_item"
             />
 
-
-
 </LinearLayout>

@@ -12,19 +12,19 @@
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:id="@+id/layout_coordinator"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            >
+            android:layout_height="match_parent">
 
             <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/colorPrimary">
-
-                <androidx.appcompat.widget.Toolbar
+                android:layout_height="wrap_content">
+                <com.google.android.material.appbar.MaterialToolbar
                     android:id="@+id/toolbar"
+                    android:elevation="0dp"
+                    app:titleCentered="true"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/app_name"
+                    android:background="@color/darkBlue"
                     app:titleTextColor="@color/white"
                     app:menu="@menu/menu_items"
                     app:navigationIcon="@drawable/drawer_menu" />

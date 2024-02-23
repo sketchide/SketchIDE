@@ -6,9 +6,13 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
 
+        <!-- Custom Font & Font Weight For Whole App -->
+        <item name="android:fontFamily">@font/poppins_regular</item>
+
         <!-- Add this line to customize the three-dot menu icon color -->
         <item name="android:textColorSecondary">@color/white</item>
     </style>
-
     <style name="Theme.SketchIDE" parent="Base.Theme.SketchIDE" />
+
+
 </resources>

@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(toolbar);
 
+
         // Testing inProgress
         createNewProjectFloatingBtn = binding.createNewProject;
         binding.createNewProject.setOnClickListener(new View.OnClickListener() {
