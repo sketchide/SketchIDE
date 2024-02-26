@@ -1,11 +1,20 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- res/drawable/drawer_background.xml -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="@android:color/white" />
-    <corners android:radius="16dp" /> <!-- Adjust the radius to change the corner roundness -->
-    <stroke
-        android:width="10dp"
-        android:color="?attr/colorControlNormal" />
-</shape>
+<!-- Enhanced Mobile Frame Design -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer border of the mobile frame with rounded corners -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/colorControlNormal" /> <!-- Background color of the frame -->
+            <stroke
+                android:width="3dp"
+                android:color="#FFFFFF" /> <!-- Border color with increased width for better visibility -->
+            <corners android:radius="16dp" /> <!-- Corner radius of the frame -->
+        </shape>
+    </item>
 
+    <!-- Inner screen area of the mobile frame with adjusted padding -->
+    <item android:left="16dp" android:right="16dp" android:top="26dp" android:bottom="24dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/light_onSecondary" /> <!-- Screen color inside the frame -->
+        </shape>
+    </item>
+</layer-list>
