@@ -12,10 +12,10 @@ import com.rajendra.sketchide.R;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link LogicFragmentActivity#newInstance} factory method to
+ * Use the {@link LogicFragmentComponent#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class LogicFragment extends Fragment {
+public class LogicFragmentComponent extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -26,7 +26,7 @@ public class LogicFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    public LogicFragment() {
+    public LogicFragmentComponent() {
         // Required empty public constructor
     }
 
@@ -36,11 +36,11 @@ public class LogicFragment extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment LogicFragmentActivity.
+     * @return A new instance of fragment LogicFragmentComponent.
      */
     // TODO: Rename and change types and number of parameters
-    public static LogicFragmentActivity newInstance(String param1, String param2) {
-        LogicFragmentActivity fragment = new LogicFragmentActivity();
+    public static LogicFragmentComponent newInstance(String param1, String param2) {
+        LogicFragmentComponent fragment = new LogicFragmentComponent();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -61,6 +61,6 @@ public class LogicFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_logic, container, false);
+        return inflater.inflate(R.layout.fragment_logic_component, container, false);
     }
 }

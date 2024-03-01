@@ -15,7 +15,7 @@ import com.rajendra.sketchide.R;
  * Use the {@link LogicFragmentActivity#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class LogicFragment extends Fragment {
+public class LogicFragmentActivity extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -26,7 +26,7 @@ public class LogicFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    public LogicFragment() {
+    public LogicFragmentActivity() {
         // Required empty public constructor
     }
 
@@ -61,6 +61,6 @@ public class LogicFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_logic, container, false);
+        return inflater.inflate(R.layout.fragment_logic_activity, container, false);
     }
 }

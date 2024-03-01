@@ -33,5 +33,10 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="select_arg_type">Select argument type</string>
+    <string name="activity">Activity</string>
+    <string name="view">View</string>
+    <string name="component">Component</string>
+    <string name="drawer">Drawer</string>
+    <string name="moreblock">More Block</string>
 
 </resources>

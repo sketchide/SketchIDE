@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation_logic_fragment_graph"
+    app:startDestination="@layout/fragment_logic_activity"
+    >
+    <fragment
+        android:name="com.rajendra.sketchide.fragments.LogicFragmentActivity"
+        android:id="@+id/nav_logic_fragment_activity"
+        android:label="@string/activity"
+        tools:layout="@layout/fragment_logic_activity"
+       />
+
+
+
+</navigation>
