@@ -1,4 +1,4 @@
-package com.rajendra.sketchide;
+package com.rajendra.sketchide.fragments;
 
 import android.app.Dialog;
 import android.os.Bundle;
@@ -15,10 +15,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.rajendra.sketchide.R;
 import com.rajendra.sketchide.activities.MainActivity;
-import com.rajendra.sketchide.activities.ProjectModel;
 import com.rajendra.sketchide.adapters.MyProjectsAdapter;
+import com.rajendra.sketchide.managers.SourceManager;
+import com.rajendra.sketchide.models.ProjectModel;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -48,7 +51,7 @@ public class MyProjectsFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // Adding dummy data to the ArrayList
-        addDummyData();
+        arrProjectModel.add(getDummyData(1, "My"));
 
         // Creating adapter and setting it to the RecyclerView
         adapter = new MyProjectsAdapter(getActivity(), arrProjectModel);
@@ -74,13 +77,13 @@ public class MyProjectsFragment extends Fragment {
 
             dialogOkay.setOnClickListener(v12 -> {
                 // Your code to handle button click goes here
-                String appName = edittextAppName.getText().toString();
+                String appName = edittextAppName.getText().toString().trim();
                 if (!appName.isEmpty()) {
                     // Calculate the next projectId
                     int nextProjectId = arrProjectModel.size() + 1;
 
                     // Add items in RecyclerView
-                    arrProjectModel.add(0, new ProjectModel(R.drawable.android_icon, appName, "Demo_App", "com.demo.app", "0.1", String.valueOf(nextProjectId)));
+                    arrProjectModel.add(0, getDummyData(nextProjectId, appName));
                     adapter.notifyItemInserted(0);
                     recyclerView.scrollToPosition(0);
                 } else {
@@ -103,8 +106,13 @@ public class MyProjectsFragment extends Fragment {
     }
 
     // Method to add dummy data to the ArrayList
-    private void addDummyData() {
+    private ProjectModel getDummyData(int projectId, String prefix) {
         // Add more dummy data as needed
-        arrProjectModel.add(new ProjectModel(R.drawable.android_icon,"My App","My_App","com.my.app", "0.1", "01"));
+        prefix = prefix.trim();
+        String id = String.format("%04d", projectId);
+        String pathToIcon = String.format("%2$s%1$s%3$s%1$s%4$s", File.pathSeparator, SourceManager.DIR_PROJECTS_INFO, id, "icon.png");
+        ProjectModel projectModel = new ProjectModel(pathToIcon, prefix + " App", prefix.replaceAll("\\s+", "_") + "_App", "com." + prefix.toLowerCase().replaceAll("\\s+", ".") + ".app", "0.1", id);
+        SourceManager.initProject(getActivity(), projectModel);
+        return projectModel;
     }
 }

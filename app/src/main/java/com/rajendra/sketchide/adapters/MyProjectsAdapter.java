@@ -3,6 +3,7 @@ package com.rajendra.sketchide.adapters;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.rajendra.sketchide.R;
 import com.rajendra.sketchide.activities.EditorActivity;
-import com.rajendra.sketchide.activities.ProjectModel;
+import com.rajendra.sketchide.models.ProjectModel;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -41,12 +42,12 @@ public class MyProjectsAdapter extends RecyclerView.Adapter<MyProjectsAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ProjectModel project = arrProjectModel.get(position);
-        holder.projectIcon.setImageResource(project.projectIcon);
-        holder.appName.setText(project.appName);
-        holder.projectName.setText(project.projectName);
-        holder.packageName.setText(project.packageName);
-        holder.projectVersion.setText(String.valueOf(project.projectVersion));
-        holder.projectId.setText(String.valueOf(project.projectId));
+        holder.projectIcon.setImageDrawable(Drawable.createFromPath(project.getProjectIcon()));
+        holder.appName.setText(project.getAppName());
+        holder.projectName.setText(project.getProjectName());
+        holder.packageName.setText(project.getPackageName());
+        holder.projectVersion.setText(String.valueOf(project.getProjectVersion()));
+        holder.projectId.setText(String.valueOf(project.getProjectId()));
 
         // Long-press listener for RecyclerView items
         holder.LayoutProjectItem.setOnLongClickListener(new View.OnLongClickListener() {

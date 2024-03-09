@@ -1,10 +1,24 @@
 package com.rajendra.sketchide.managers;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Environment;
 import android.util.Log;
 
+import androidx.annotation.DrawableRes;
+
+import com.rajendra.sketchide.R;
+import com.rajendra.sketchide.models.ProjectModel;
+import com.rajendra.sketchide.utils.StorageUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,6 +31,7 @@ import java.util.Map;
  */
 public class SourceManager {
 
+    public static final String DIR_PROJECTS_INFO = "info";
     public static final String DIR_PROJECTS = "projects";
     public static final String DIR_BACKUPS = "backups";
     public static final String DIR_SOURCE_JAVA = "app/src/main/java";
@@ -101,5 +116,28 @@ public class SourceManager {
                 Files.write(path, (line + "\n").getBytes(), StandardOpenOption.WRITE);
             }
         }
+    }
+
+    public static String saveIconFromDrawable(Context context, @DrawableRes int res, String pathToFile) {
+        String fullPathTo = context.getExternalFilesDir(null) + File.pathSeparator + pathToFile;
+
+        Drawable drawable = context.getResources().getDrawable(res, null);
+        BitmapDrawable bitmapDrawable = ((BitmapDrawable) drawable);
+        Bitmap bitmap = bitmapDrawable.getBitmap();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream); //use the compression format of your need
+
+        try (InputStream is = new ByteArrayInputStream(stream.toByteArray());
+             FileOutputStream fos = new FileOutputStream(fullPathTo)) {
+            StorageUtils.copyFile(is, fos);
+            return fullPathTo;
+        } catch (IOException e) {
+            Log.e("SAVE_ICON_FROM_DRAWABLE", e.getMessage());
+        }
+        return null;
+    }
+
+    public static void initProject(Context context, ProjectModel projectModel) {
+        projectModel.setProjectIcon(saveIconFromDrawable(context, R.drawable.android_icon, projectModel.getProjectIcon()));
     }
 }

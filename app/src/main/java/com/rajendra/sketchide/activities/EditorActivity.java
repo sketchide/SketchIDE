@@ -8,7 +8,6 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,10 +30,9 @@ import com.rajendra.sketchide.managers.UndoRedoManager;
 import com.rajendra.sketchide.utils.Constants;
 import com.rajendra.sketchide.utils.StorageUtils;
 
+import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class EditorActivity extends BaseActivity {
     private ViewPagerEditorAdapter adapter;
@@ -245,15 +243,19 @@ public class EditorActivity extends BaseActivity {
 //    }
 
     public void saveProject() {
+        String projectId = "test";
+
+        String pathToProject = SourceManager.DIR_PROJECTS + File.separator + projectId;
+        StorageUtils.makeDirs(this, pathToProject);
+
         List<String> lines = new ArrayList<>();
         lines.add("line 1");
         lines.add("line 2");
 
-        StorageUtils.writeToFile(this, "test.txt", lines);
+        StorageUtils.writeToFile(this, pathToProject + File.separator + "test.txt", lines);
         Log.e("SAVING", lines.toString());
 
-        List<String> answer = StorageUtils.readFromFile(this, "test.txt");
+        List<String> answer = StorageUtils.readFromFile(this, pathToProject + File.separator + "test.txt");
         Log.e("SAVED", answer.toString());
-
     }
 }
