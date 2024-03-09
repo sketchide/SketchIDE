@@ -57,9 +57,6 @@ public class MainActivity extends BaseActivity {
             return true;
         });
 
-        // MyProjectFragment Call
-        Fragment fragment = getSupportFragmentManager().findFragmentById(androidx.fragment.R.id.fragment_container_view_tag);
-
         requestOrUpdatePermissions();
     }
 
@@ -75,6 +72,9 @@ public class MainActivity extends BaseActivity {
         }
         if (!permissions.isEmpty()) {
             requestPermissions(permissions.toArray(new String[0]), 1000);
+        } else {
+            // MyProjectFragment Call
+            Fragment fragment = getSupportFragmentManager().findFragmentById(androidx.fragment.R.id.fragment_container_view_tag);
         }
     }
 

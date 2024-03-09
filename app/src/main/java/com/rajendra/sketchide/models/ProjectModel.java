@@ -1,5 +1,12 @@
 package com.rajendra.sketchide.models;
 
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
 public class ProjectModel {
@@ -55,6 +62,32 @@ public class ProjectModel {
             }
         }
         this.projectId = String.valueOf(maxProjectId + 1);
+    }
+
+    public ProjectModel(JSONObject jsonObject) {
+        projectIcon = jsonObject.optString("projectIcon", "");
+        appName = jsonObject.optString("appName", "");
+        projectName = jsonObject.optString("projectName", "");
+        packageName = jsonObject.optString("packageName", "");
+        projectVersion = jsonObject.optString("projectVersion", "");
+        projectId = jsonObject.optString("projectId", "");
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        try {
+            JSONObject jo = new JSONObject();
+            jo.put("projectIcon", projectIcon);
+            jo.put("appName", appName);
+            jo.put("projectName", projectName);
+            jo.put("packageName", packageName);
+            jo.put("projectVersion", projectVersion);
+            return jo.toString();
+        } catch (JSONException e) {
+            Log.e("PROJECT_TO_JSON", e.getMessage());
+        }
+        return "{}";
     }
 
     public String getProjectIcon() {

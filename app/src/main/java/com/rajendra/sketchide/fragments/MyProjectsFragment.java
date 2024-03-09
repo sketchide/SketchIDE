@@ -24,11 +24,12 @@ import com.rajendra.sketchide.utils.StorageUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class MyProjectsFragment extends Fragment {
     // Array to store ProjectModel objects
-    private final ArrayList<ProjectModel> arrProjectModel = new ArrayList<>();
+    private final List<ProjectModel> arrProjectModel = new ArrayList<>();
     private MyProjectsAdapter adapter;
 
     public MyProjectsFragment() {
@@ -52,9 +53,10 @@ public class MyProjectsFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // Adding dummy data to the ArrayList
-        arrProjectModel.add(getDummyData(1, "My"));
+//        arrProjectModel.add(getDummyData(1, "My"));
 
         // Creating adapter and setting it to the RecyclerView
+        arrProjectModel.addAll(StorageUtils.getProjectsInfo(getContext()));
         adapter = new MyProjectsAdapter(getActivity(), arrProjectModel);
         recyclerView.setAdapter(adapter);
 
@@ -84,7 +86,7 @@ public class MyProjectsFragment extends Fragment {
                     int nextProjectId = arrProjectModel.size() + 1;
 
                     // Add items in RecyclerView
-                    arrProjectModel.add(0, getDummyData(nextProjectId, appName));
+                    arrProjectModel.add(0, getNewProject(nextProjectId, appName));
                     adapter.notifyItemInserted(0);
                     recyclerView.scrollToPosition(0);
                 } else {
@@ -107,7 +109,15 @@ public class MyProjectsFragment extends Fragment {
     }
 
     // Method to add dummy data to the ArrayList
-    private ProjectModel getDummyData(int projectId, String prefix) {
+
+    /**
+     * Template for a new project
+     *
+     * @param projectId
+     * @param prefix
+     * @return
+     */
+    private ProjectModel getNewProject(int projectId, String prefix) {
         // Add more dummy data as needed
         prefix = prefix.trim();
         String id = String.format("%04d", projectId);
@@ -115,7 +125,7 @@ public class MyProjectsFragment extends Fragment {
         String path = String.format("%2$s%1$s%3$s", File.separator, SourceManager.DIR_PROJECTS_INFO, id);
         StorageUtils.makeDirs(getContext(), path);
 
-        String pathToIcon = String.format("%2$s%1$s%3$s", File.separator, path, "icon.png");
+        String pathToIcon = String.format("%2$s%1$s%3$s", File.separator, path, SourceManager.FILE_ICON);
         ProjectModel projectModel = new ProjectModel(pathToIcon, prefix + " App", prefix.replaceAll("\\s+", "_") + "_App", "com." + prefix.toLowerCase().replaceAll("\\s+", ".") + ".app", "0.1", id);
         SourceManager.initProject(getContext(), projectModel);
         return projectModel;

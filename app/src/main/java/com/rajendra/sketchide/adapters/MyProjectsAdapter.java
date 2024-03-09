@@ -19,15 +19,15 @@ import com.rajendra.sketchide.R;
 import com.rajendra.sketchide.activities.EditorActivity;
 import com.rajendra.sketchide.models.ProjectModel;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class MyProjectsAdapter extends RecyclerView.Adapter<MyProjectsAdapter.ViewHolder> {
 
     private final Context context;
-    private final ArrayList<ProjectModel> arrProjectModel;
+    private final List<ProjectModel> arrProjectModel;
 
-    public MyProjectsAdapter(Context context, ArrayList<ProjectModel> arrProjectModel) {
+    public MyProjectsAdapter(Context context, List<ProjectModel> arrProjectModel) {
         this.context = context;
         this.arrProjectModel = arrProjectModel;
     }

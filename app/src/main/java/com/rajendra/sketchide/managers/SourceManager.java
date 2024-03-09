@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,6 +33,8 @@ import java.util.Map;
 public class SourceManager {
 
     public static final String DIR_PROJECTS_INFO = "info";
+    public static final String FILE_INFO = "info.json";
+    public static final String FILE_ICON = "icon.png";
     public static final String DIR_PROJECTS = "projects";
     public static final String DIR_BACKUPS = "backups";
     public static final String DIR_SOURCE_JAVA = "app/src/main/java";
@@ -125,7 +128,7 @@ public class SourceManager {
         BitmapDrawable bitmapDrawable = ((BitmapDrawable) drawable);
         Bitmap bitmap = bitmapDrawable.getBitmap();
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream); //use the compression format of your need
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream); //use the compression format of your need
 
         try (InputStream is = new ByteArrayInputStream(stream.toByteArray());
              FileOutputStream fos = new FileOutputStream(fullPathTo)) {
@@ -139,5 +142,9 @@ public class SourceManager {
 
     public static void initProject(Context context, ProjectModel projectModel) {
         projectModel.setProjectIcon(saveIconFromDrawable(context, R.drawable.android_icon, projectModel.getProjectIcon()));
+        String path = DIR_PROJECTS_INFO + File.separator + projectModel.getProjectId();
+        StorageUtils.makeDirs(context, path);
+        path += File.separator + FILE_INFO;
+        StorageUtils.writeToFile(context, path, List.of(projectModel.toString()));
     }
 }
