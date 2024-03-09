@@ -5,6 +5,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -28,8 +29,11 @@ import com.rajendra.sketchide.managers.ProjectManager;
 import com.rajendra.sketchide.managers.SourceManager;
 import com.rajendra.sketchide.managers.UndoRedoManager;
 import com.rajendra.sketchide.utils.Constants;
+import com.rajendra.sketchide.utils.StorageUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class EditorActivity extends BaseActivity {
@@ -216,27 +220,40 @@ public class EditorActivity extends BaseActivity {
         return undoRedoManager;
     }
 
-    /**
-     * Project saving process
-     */
-    public void saveProject() {
-        // ---
-        // fixme for example
-        Map<String, String[]> parts = new HashMap<>();
-        parts.put(SourceManager.DIR_SOURCE_JAVA + SourceManager.getProjectPackageName() + "Main.java", new String[]{
-                "public class Main {",
-                "   public static void main(String[] args) {",
-                "       System.out.println(\"Hello World!\");",
-                "   }",
-                "}"
-        });
-        // ---
+//    /**
+//     * Project saving process
+//     */
+//    public void saveProject() {
+//        // ---
+//        // fixme for example
+//        Map<String, String[]> parts = new HashMap<>();
+//        parts.put(SourceManager.DIR_SOURCE_JAVA + SourceManager.getProjectPackageName() + "Main.java", new String[]{
+//                "public class Main {",
+//                "   public static void main(String[] args) {",
+//                "       System.out.println(\"Hello World!\");",
+//                "   }",
+//                "}"
+//        });
+//        // ---
+//
+//        try {
+//            SourceManager.saveSource("testId", parts);
+//            Toast.makeText(this, "SAVED", Toast.LENGTH_LONG).show();
+//        } catch (Exception ignored) {
+//            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG).show();
+//        }
+//    }
 
-        try {
-            SourceManager.saveSource("testId", parts);
-            Toast.makeText(this, "SAVED", Toast.LENGTH_LONG).show();
-        } catch (Exception ignored) {
-            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG).show();
-        }
+    public void saveProject() {
+        List<String> lines = new ArrayList<>();
+        lines.add("line 1");
+        lines.add("line 2");
+
+        StorageUtils.writeToFile(this, "test.txt", lines);
+        Log.e("SAVING", lines.toString());
+
+        List<String> answer = StorageUtils.readFromFile(this, "test.txt");
+        Log.e("SAVED", answer.toString());
+
     }
 }

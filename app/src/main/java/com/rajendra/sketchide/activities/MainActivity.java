@@ -1,7 +1,10 @@
 package com.rajendra.sketchide.activities;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,6 +18,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.rajendra.sketchide.R;
 import com.rajendra.sketchide.databinding.ActivityMainBinding;
 
+import java.util.ArrayList;
+
 public class MainActivity extends BaseActivity {
 
     private ActivityMainBinding binding;
@@ -22,6 +27,9 @@ public class MainActivity extends BaseActivity {
     Toolbar toolbar;
     FloatingActionButton createProjectFloatingBtn;
 
+    private boolean minSdk29 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
+    private boolean read, write;
+    private ArrayList<String> permissions = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +57,35 @@ public class MainActivity extends BaseActivity {
 
         // MyProjectFragment Call
         Fragment fragment = getSupportFragmentManager().findFragmentById(androidx.fragment.R.id.fragment_container_view_tag);
+
+        requestOrUpdatePermissions();
     }
+
+    public void requestOrUpdatePermissions() {
+        read = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        write = minSdk29 || checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        permissions = new ArrayList<>();
+        if (!read) {
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+        if (!write) {
+            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        if (!permissions.isEmpty()) {
+            requestPermissions(permissions.toArray(new String[0]), 1000);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1000) {
+            int res = 0;
+            for (int r : grantResults) res += r;
+            if (res < 0) requestOrUpdatePermissions();
+        }
+    }
+
 
     // Method to return the FloatingActionButton instance
     public FloatingActionButton getCreateProjectFloatingBtn() {
