@@ -32,11 +32,6 @@ public class StorageUtils {
     }
 
     public static void writeToFile(Context context, String filename, List<String> lines) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
-                ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-
         Log.e("Storage Util", "SDK = " + Build.VERSION.SDK_INT);
 
 //        if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
@@ -65,10 +60,6 @@ public class StorageUtils {
 
     public static List<String> readFromFile(Context context, String filename) {
         List<String> result = new ArrayList<>();
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
-                ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            return result;
-        }
 
 //        if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
 //                || Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED_READ_ONLY) {

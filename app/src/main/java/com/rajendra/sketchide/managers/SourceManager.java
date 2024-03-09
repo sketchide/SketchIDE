@@ -119,7 +119,7 @@ public class SourceManager {
     }
 
     public static String saveIconFromDrawable(Context context, @DrawableRes int res, String pathToFile) {
-        String fullPathTo = context.getExternalFilesDir(null) + File.pathSeparator + pathToFile;
+        String fullPathTo = context.getExternalFilesDir(null) + File.separator + pathToFile;
 
         Drawable drawable = context.getResources().getDrawable(res, null);
         BitmapDrawable bitmapDrawable = ((BitmapDrawable) drawable);

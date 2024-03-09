@@ -20,6 +20,7 @@ import com.rajendra.sketchide.activities.MainActivity;
 import com.rajendra.sketchide.adapters.MyProjectsAdapter;
 import com.rajendra.sketchide.managers.SourceManager;
 import com.rajendra.sketchide.models.ProjectModel;
+import com.rajendra.sketchide.utils.StorageUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -110,9 +111,13 @@ public class MyProjectsFragment extends Fragment {
         // Add more dummy data as needed
         prefix = prefix.trim();
         String id = String.format("%04d", projectId);
-        String pathToIcon = String.format("%2$s%1$s%3$s%1$s%4$s", File.pathSeparator, SourceManager.DIR_PROJECTS_INFO, id, "icon.png");
+
+        String path = String.format("%2$s%1$s%3$s", File.separator, SourceManager.DIR_PROJECTS_INFO, id);
+        StorageUtils.makeDirs(getContext(), path);
+
+        String pathToIcon = String.format("%2$s%1$s%3$s", File.separator, path, "icon.png");
         ProjectModel projectModel = new ProjectModel(pathToIcon, prefix + " App", prefix.replaceAll("\\s+", "_") + "_App", "com." + prefix.toLowerCase().replaceAll("\\s+", ".") + ".app", "0.1", id);
-        SourceManager.initProject(getActivity(), projectModel);
+        SourceManager.initProject(getContext(), projectModel);
         return projectModel;
     }
 }

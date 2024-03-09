@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -19,6 +20,7 @@ import com.rajendra.sketchide.R;
 import com.rajendra.sketchide.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainActivity extends BaseActivity {
 
@@ -80,6 +82,7 @@ public class MainActivity extends BaseActivity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 1000) {
+            Log.e("PERMISSIONS", Arrays.toString(permissions) + " -- " + Arrays.toString(grantResults));
             int res = 0;
             for (int r : grantResults) res += r;
             if (res < 0) requestOrUpdatePermissions();
