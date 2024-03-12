@@ -1,11 +1,8 @@
 package com.rajendra.sketchide.activities
 
 import android.Manifest.permission
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -25,7 +22,7 @@ open class BaseActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     window.statusBarColor = SurfaceColors.SURFACE_0.getColor(this)
-    if (Utils.isPermissionGranted(this).not()) showPermissionDialog()
+    askPermission()
   }
 
   private fun showPermissionDialog() {
@@ -33,21 +30,15 @@ open class BaseActivity : AppCompatActivity() {
       .setCancelable(false)
       .setTitle(string.file_access_title)
       .setMessage(string.file_access_message)
-      .setPositiveButton(string.grant_permission) { _, _ ->
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-          val uri = Uri.parse("package:$packageName")
-          permissionLauncher.launch(
-            Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri)
-          )
-        } else {
-          ActivityCompat.requestPermissions(
-            this,
-            arrayOf(
-              permission.READ_EXTERNAL_STORAGE,
-              permission.WRITE_EXTERNAL_STORAGE
-            ), PERMISSION_CODE
-          )
-        }
+      .setPositiveButton(string.grant_permission) { d, _ ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) d.dismiss()
+        ActivityCompat.requestPermissions(
+          this,
+          arrayOf(
+            permission.READ_EXTERNAL_STORAGE,
+            permission.WRITE_EXTERNAL_STORAGE
+          ), PERMISSION_CODE
+        )
       }
       .setNegativeButton(string.exit) { _, _ ->
         finishAffinity()
@@ -62,9 +53,15 @@ open class BaseActivity : AppCompatActivity() {
     grantResults: IntArray
   ) {
     super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    if (requestCode == PERMISSION_CODE) {
-      if (Utils.isPermissionGranted(this).not()) showPermissionDialog()
-    }
+    if (requestCode == PERMISSION_CODE) askPermission()
+  }
+
+  private fun askPermission() {
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R)
+      if (
+        Utils.isPermissionGranted(this).not()
+      ) showPermissionDialog()
+    // TODO: implement for greater version of android
   }
 
   companion object {

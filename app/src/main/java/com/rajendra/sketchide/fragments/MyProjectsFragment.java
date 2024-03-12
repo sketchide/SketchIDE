@@ -109,11 +109,11 @@ public class MyProjectsFragment extends Fragment {
     String id = String.valueOf(projectId);
 
     String path = String.format("%2$s%1$s%3$s", File.separator, SourceManager.DIR_PROJECTS_INFO, id);
-    StorageUtils.makeDirs(getContext(), path);
+    StorageUtils.makeDirs(requireContext(), path);
 
     String pathToIcon = String.format("%2$s%1$s%3$s", File.separator, path, SourceManager.FILE_ICON);
     ProjectModel projectModel = new ProjectModel(pathToIcon, prefix + " App", prefix.replaceAll("\\s+", "_") + "_App", "com." + prefix.toLowerCase().replaceAll("\\s+", ".") + ".app", "0.1", id);
-    SourceManager.initProject(getContext(), projectModel);
+    SourceManager.initProject(requireContext(), projectModel);
     return projectModel;
   }
 }
