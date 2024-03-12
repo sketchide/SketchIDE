@@ -42,9 +42,7 @@ open class BaseActivity : AppCompatActivity() {
         } else {
           ActivityCompat.requestPermissions(
             this,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-              arrayOf(permission.MANAGE_EXTERNAL_STORAGE)
-            } else arrayOf(
+            arrayOf(
               permission.READ_EXTERNAL_STORAGE,
               permission.WRITE_EXTERNAL_STORAGE
             ), PERMISSION_CODE
