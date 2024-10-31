@@ -74,6 +74,12 @@
       "languageVersion": "3.3"
     },
     {
+      "name": "file_picker",
+      "rootUri": "file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/file_picker-6.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.19"
+    },
+    {
       "name": "flutter",
       "rootUri": "file:///C:/flutter_windows_3.24.4-stable/flutter/packages/flutter",
       "packageUri": "lib/",
@@ -90,6 +96,12 @@
       "rootUri": "file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_native_splash-2.4.2",
       "packageUri": "lib/",
       "languageVersion": "3.0"
+    },
+    {
+      "name": "flutter_plugin_android_lifecycle",
+      "rootUri": "file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.23",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
     },
     {
       "name": "flutter_test",
@@ -284,6 +296,12 @@
       "languageVersion": "3.3"
     },
     {
+      "name": "win32",
+      "rootUri": "file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/win32-5.7.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
       "name": "xdg_directories",
       "rootUri": "file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/xdg_directories-1.1.0",
       "packageUri": "lib/",
@@ -308,7 +326,7 @@
       "languageVersion": "3.5"
     }
   ],
-  "generated": "2024-10-31T17:04:41.872793Z",
+  "generated": "2024-10-31T17:24:22.806971Z",
   "generator": "pub",
   "generatorVersion": "3.5.4",
   "flutterRoot": "file:///C:/flutter_windows_3.24.4-stable/flutter",

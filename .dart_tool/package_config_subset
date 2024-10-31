@@ -46,6 +46,10 @@ ffi
 3.3
 file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/ffi-2.1.3/
 file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/ffi-2.1.3/lib/
+file_picker
+2.19
+file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/file_picker-6.2.1/
+file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/file_picker-6.2.1/lib/
 flutter_lints
 3.1
 file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_lints-4.0.0/
@@ -54,6 +58,10 @@ flutter_native_splash
 3.0
 file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_native_splash-2.4.2/
 file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_native_splash-2.4.2/lib/
+flutter_plugin_android_lifecycle
+3.5
+file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.23/
+file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.23/lib/
 html
 3.2
 file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/html-0.15.5/
@@ -170,6 +178,10 @@ vm_service
 3.3
 file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/vm_service-14.2.5/
 file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/vm_service-14.2.5/lib/
+win32
+3.5
+file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/win32-5.7.2/
+file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/win32-5.7.2/lib/
 xdg_directories
 3.3
 file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/xdg_directories-1.1.0/
