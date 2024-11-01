@@ -79,3 +79,5 @@ local.properties
 
 # VS Code
 .vscode
+.flutter-plugins-dependencies
+.flutter-plugins-dependencies
