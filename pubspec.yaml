@@ -11,11 +11,17 @@ dependencies:
     sdk: flutter
   path_provider: ^2.0.11 # Scope Storage path
   flutter_native_splash: ^2.0.4 # Splash Screen
-
+  logging: ^1.2.0 # file serve
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.1
+
+flutter_icons: # Moved outside of the 'flutter' section
+  android: true
+  ios: true
+  image_path: "assets/icon.png" # Path to your main icon image
 
 flutter:
   uses-material-design: true
