@@ -64,6 +64,19 @@ class _CreateProjectState extends State<CreateProject> {
 
   @override
   Widget build(BuildContext context) {
+import 'package:sketchide/data/local/db_handler.dart';
+import 'package:sketchide/projects_screen.dart';
+
+class CreateProject extends StatelessWidget {
+  const CreateProject({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final TextEditingController appNameController = TextEditingController();
+    final TextEditingController packageNameController = TextEditingController();
+    final TextEditingController projectNameController = TextEditingController();
+
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Create Project"),
@@ -99,6 +112,8 @@ class _CreateProjectState extends State<CreateProject> {
               ),
               const SizedBox(height: 32),
               const Text(
+
+
                 "Enter Application Name",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -136,21 +151,66 @@ class _CreateProjectState extends State<CreateProject> {
                   hintText: "Project Name",
                 ),
               ),
+
               const SizedBox(height: 16),
+
+              const SizedBox(height: 32),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ElevatedButton(
                     onPressed: () {
+
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey,
+
+                      Navigator.pop(context); // Cancel button action
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey, // Cancel button color
+
                     ),
                     child: const Text("Cancel"),
                   ),
                   ElevatedButton(
+
                     onPressed: _createProject,
+
+                    onPressed: () async {
+                      final appName = appNameController.text;
+                      final packageName = packageNameController.text;
+                      final projectName = projectNameController.text;
+
+                      // Validate input fields
+                      if (appName.isEmpty || packageName.isEmpty || projectName.isEmpty) {
+                        Get.snackbar("Warning", "Please fill in all fields.",
+                          snackPosition: SnackPosition.BOTTOM);
+                        return; // Exit if validation fails
+                      }
+
+                      // Add the project to the database
+                      DbHandler dbHandler = DbHandler.getInstence;
+                      bool success = await dbHandler.addProject(
+                        appName: appName,
+                        projectName: projectName,
+                        appPackageName: packageName,
+                      );
+
+                      if (success) {
+                        // Show a success message
+                        Get.snackbar("Success", "Project created successfully!");
+
+                        // Navigate back to ProjectsScreen and refresh it
+                        Navigator.pop(context); // Pop CreateProject screen
+                        Get.offAll(() => const ProjectsScreen(title: "Projects")); // Navigate back to ProjectsScreen
+                      } else {
+                        Get.snackbar("Error", "Failed to create project.");
+                      }
+                    },
+
                     child: const Text("Create Project"),
                   ),
                 ],
