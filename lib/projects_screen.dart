@@ -77,6 +77,19 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                         fontSize: 16.0,
                       ),
                     ),
+
+                final appLogoPath = allproject[index][DbHandler.COLUMN_APP_LOGO_PATH];
+                
+                return ListTile(
+                  trailing: Text(allproject[index][DbHandler.COLUMN_PROJECT_ID]
+                        .toString()),
+                    leading:  appLogoPath != null
+      ? appLogoPath.isNotEmpty
+          ? Image.file(File(appLogoPath)) // Load image if path exists
+          : const SizedBox.shrink()
+      : const SizedBox.shrink(),
+                    title: Text(allproject[index][DbHandler.COLUMN_APP_NAME]),
+
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
