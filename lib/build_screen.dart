@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'view_screen.dart';       // Import the view screen
+import 'view_screen/view_screen.dart';       // Import the view screen
 import 'event_screen.dart';      // Import the event screen
 import 'component_screen.dart';  // Import the component screen
 
