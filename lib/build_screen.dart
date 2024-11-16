@@ -122,6 +122,7 @@ class _BuildScreenState extends State<BuildScreen> with SingleTickerProviderStat
           child: Row(
             children: [
               const Icon(Icons.mobile_friendly_rounded, size: 24.0), // Small icon on the left
+              Icon(Icons.mobile_friendly_rounded, size: 24.0), // Small icon on the left
               const SizedBox(width: 8.0),
               Expanded(
                 child: DropdownButtonHideUnderline(

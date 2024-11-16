@@ -14,11 +14,13 @@ class BuildNavigationScreen extends StatelessWidget {
           // Drawer Header with reduced height
           Container(
             height: 100, // Set the desired height here
+            height: 40, // Set the desired height here
             color: Colors.blue,
             child: const Padding(
               padding: EdgeInsets.all(8.0), // Padding inside the header
               child: Align(
                 alignment: Alignment.centerLeft,
+                alignment: Alignment.center,
                 child: Text(
                   'Configuration',
                   style: TextStyle(color: Colors.white, fontSize: 18), // Reduced font size
@@ -31,6 +33,7 @@ class BuildNavigationScreen extends StatelessWidget {
             leading: const Icon(Icons.library_books),
             title: const Text('Library'),
             subtitle: const Text('Explore components'),
+            subtitle: const Text('component Settings'),
             onTap: () {
               Navigator.push(
                 context,
@@ -87,6 +90,7 @@ class BuildNavigationScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(builder: (context) => const SourceCodeScreen()), // Navigate to SourceCodeScreen
               );
+              // Add action for viewing source cod
             },
           ),
         ],
