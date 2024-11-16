@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'event_screen.dart'; // Import the event screen
 import 'component_screen.dart'; // Import the component screen
+import 'source_code_screen.dart'; // Import the source code screen
 
 class BuildNavigationScreen extends StatelessWidget {
   const BuildNavigationScreen({super.key});
@@ -12,12 +13,12 @@ class BuildNavigationScreen extends StatelessWidget {
         children: [
           // Drawer Header with reduced height
           Container(
-            height: 40, // Set the desired height here
+            height: 100, // Set the desired height here
             color: Colors.blue,
             child: const Padding(
               padding: EdgeInsets.all(8.0), // Padding inside the header
               child: Align(
-                alignment: Alignment.center,
+                alignment: Alignment.centerLeft,
                 child: Text(
                   'Configuration',
                   style: TextStyle(color: Colors.white, fontSize: 18), // Reduced font size
@@ -29,7 +30,7 @@ class BuildNavigationScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.library_books),
             title: const Text('Library'),
-            subtitle: const Text('component Settings'),
+            subtitle: const Text('Explore components'),
             onTap: () {
               Navigator.push(
                 context,
@@ -82,7 +83,10 @@ class BuildNavigationScreen extends StatelessWidget {
             title: const Text('Show Source Code'),
             subtitle: const Text('View all types of code (e.g., Dart, JavaScript)'),
             onTap: () {
-              // Add action for viewing source code
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SourceCodeScreen()), // Navigate to SourceCodeScreen
+              );
             },
           ),
         ],

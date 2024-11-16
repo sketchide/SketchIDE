@@ -121,7 +121,7 @@ class _BuildScreenState extends State<BuildScreen> with SingleTickerProviderStat
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           child: Row(
             children: [
-              Icon(Icons.mobile_friendly_rounded, size: 24.0), // Small icon on the left
+              const Icon(Icons.mobile_friendly_rounded, size: 24.0), // Small icon on the left
               const SizedBox(width: 8.0),
               Expanded(
                 child: DropdownButtonHideUnderline(
