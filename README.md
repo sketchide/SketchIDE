@@ -175,6 +175,23 @@ SketchIDE/
 └── fastlane/                       # Play Store Metadata
 
 ```
+=======
+│   ├── core/                # Constants, utils, error handling
+│   ├── data/                # Hive/SQLite models and persistence
+│   ├── features/
+│   │   ├── project/         # Project create/edit/export
+│   │   ├── builder/         # UI drag & drop editor
+│   │   ├── blocks/          # Visual programming engine
+│   │   ├── preview/         # Live preview renderer
+│   │   ├── settings/        # App settings & theme
+│   │   └── cloud_build/     # CI/CD integration
+│   └── main.dart            # Entry point
+├── assets/                  # Icons, templates
+├── export_templates/        # Flutter boilerplate
+└── fastlane/                # Play Store metadata
+```
+
+---
 
 ## 🧰 Contributor Workflow
 
