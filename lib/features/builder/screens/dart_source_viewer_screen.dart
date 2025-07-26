@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import '../../../domain/models/project.dart';
+import '../../../models/sketchide_project.dart';
 
 class DartSourceViewerScreen extends StatefulWidget {
-  final Project project;
+  final SketchIDEProject project;
 
   const DartSourceViewerScreen({
     super.key,
@@ -33,7 +33,9 @@ class _DartSourceViewerScreenState extends State<DartSourceViewerScreen> {
     });
 
     try {
-      final libDir = Directory('${widget.project.projectPath}/lib');
+      // For now, use a default path since SketchIDEProject doesn't have projectPath
+      // This will need to be updated when we implement project file structure
+      final libDir = Directory('lib');
       if (await libDir.exists()) {
         _dartFiles = await _scanDartFiles(libDir);
         if (_dartFiles.isNotEmpty) {
@@ -51,13 +53,13 @@ class _DartSourceViewerScreenState extends State<DartSourceViewerScreen> {
 
   Future<List<DartSourceFile>> _scanDartFiles(Directory dir) async {
     final List<DartSourceFile> files = [];
-    
+
     try {
       await for (final entity in dir.list(recursive: true)) {
         if (entity is File && path.extension(entity.path) == '.dart') {
           final relativePath = path.relative(entity.path, from: dir.path);
           final content = await entity.readAsString();
-          
+
           files.add(DartSourceFile(
             fileName: relativePath,
             fullPath: entity.path,
@@ -65,13 +67,13 @@ class _DartSourceViewerScreenState extends State<DartSourceViewerScreen> {
           ));
         }
       }
-      
+
       // Sort files alphabetically
       files.sort((a, b) => a.fileName.compareTo(b.fileName));
     } catch (e) {
       print('Error scanning Dart files: $e');
     }
-    
+
     return files;
   }
 
@@ -126,7 +128,7 @@ class _DartSourceViewerScreenState extends State<DartSourceViewerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Dart Source Code - ${widget.project.name}'),
+        title: Text('Dart Source Code - ${widget.project.projectInfo.appName}'),
         backgroundColor: Colors.grey.shade800,
         elevation: 2,
         leading: IconButton(
@@ -162,7 +164,8 @@ class _DartSourceViewerScreenState extends State<DartSourceViewerScreen> {
                           // File selector dropdown
                           Expanded(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
                               decoration: BoxDecoration(
                                 border: Border.all(color: Colors.grey.shade300),
                                 borderRadius: BorderRadius.circular(4),
@@ -187,7 +190,8 @@ class _DartSourceViewerScreenState extends State<DartSourceViewerScreen> {
                                             child: Text(
                                               file.fileName,
                                               overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(fontSize: 14),
+                                              style:
+                                                  const TextStyle(fontSize: 14),
                                             ),
                                           ),
                                         ],
@@ -339,21 +343,80 @@ class _DartSourceViewerScreenState extends State<DartSourceViewerScreen> {
 
   Color _getDartSyntaxColor(String line) {
     final keywords = [
-      'import', 'export', 'class', 'void', 'int', 'String', 'bool', 'double',
-      'var', 'final', 'const', 'static', 'abstract', 'extends', 'implements',
-      'super', 'this', 'new', 'return', 'if', 'else', 'for', 'while', 'do',
-      'switch', 'case', 'default', 'break', 'continue', 'try', 'catch',
-      'finally', 'throw', 'async', 'await', 'Future', 'Stream', 'Widget',
-      'StatefulWidget', 'StatelessWidget', 'BuildContext', 'MaterialApp',
-      'Scaffold', 'AppBar', 'Container', 'Column', 'Row', 'Text', 'Icon',
-      'ElevatedButton', 'TextField', 'ListView', 'setState', 'initState',
-      'dispose', 'build', 'context', 'child', 'children', 'mainAxisAlignment',
-      'crossAxisAlignment', 'padding', 'margin', 'decoration', 'color',
-      'fontSize', 'fontWeight', 'onPressed', 'onChanged', 'controller',
+      'import',
+      'export',
+      'class',
+      'void',
+      'int',
+      'String',
+      'bool',
+      'double',
+      'var',
+      'final',
+      'const',
+      'static',
+      'abstract',
+      'extends',
+      'implements',
+      'super',
+      'this',
+      'new',
+      'return',
+      'if',
+      'else',
+      'for',
+      'while',
+      'do',
+      'switch',
+      'case',
+      'default',
+      'break',
+      'continue',
+      'try',
+      'catch',
+      'finally',
+      'throw',
+      'async',
+      'await',
+      'Future',
+      'Stream',
+      'Widget',
+      'StatefulWidget',
+      'StatelessWidget',
+      'BuildContext',
+      'MaterialApp',
+      'Scaffold',
+      'AppBar',
+      'Container',
+      'Column',
+      'Row',
+      'Text',
+      'Icon',
+      'ElevatedButton',
+      'TextField',
+      'ListView',
+      'setState',
+      'initState',
+      'dispose',
+      'build',
+      'context',
+      'child',
+      'children',
+      'mainAxisAlignment',
+      'crossAxisAlignment',
+      'padding',
+      'margin',
+      'decoration',
+      'color',
+      'fontSize',
+      'fontWeight',
+      'onPressed',
+      'onChanged',
+      'controller',
     ];
 
     final words = line.split(' ');
-    
+
     for (final word in words) {
       final cleanWord = word.replaceAll(RegExp(r'[^\w]'), '');
       if (keywords.contains(cleanWord)) {
@@ -390,4 +453,4 @@ class DartSourceFile {
     required this.fullPath,
     required this.content,
   });
-} 
+}

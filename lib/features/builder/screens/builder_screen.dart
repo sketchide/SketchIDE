@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../domain/models/project.dart';
+import '../../../models/sketchide_project.dart';
 import '../widgets/draggable_widget_palette.dart' as palette;
 import '../widgets/droppable_mobile_frame.dart';
 import '../widgets/property_editor_panel.dart';
@@ -13,7 +13,7 @@ import 'project_manager_screen.dart';
 import 'dart_source_viewer_screen.dart';
 
 class BuilderScreen extends StatefulWidget {
-  final Project project;
+  final SketchIDEProject project;
 
   const BuilderScreen({
     super.key,
@@ -31,7 +31,7 @@ class _BuilderScreenState extends State<BuilderScreen>
   late HistoryManager _historyManager;
   int _selectedEventCategory = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  
+
   DartFileBean? _selectedFile;
   List<WidgetData> _currentFileWidgets = [];
   WidgetData? _selectedWidget;
@@ -91,7 +91,7 @@ class _BuilderScreenState extends State<BuilderScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.project.name,
+            widget.project.projectInfo.appName,
             style: const TextStyle(
               color: Colors.black,
               fontSize: 18,
@@ -99,7 +99,7 @@ class _BuilderScreenState extends State<BuilderScreen>
             ),
           ),
           Text(
-            'ID: ${widget.project.id}',
+            'ID: ${widget.project.projectInfo.packageName}',
             style: const TextStyle(
               color: Colors.grey,
               fontSize: 12,
@@ -111,7 +111,8 @@ class _BuilderScreenState extends State<BuilderScreen>
         IconButton(
           icon: Icon(
             Icons.undo,
-            color: _historyManager.canUndo ? Colors.black : Colors.grey.shade400,
+            color:
+                _historyManager.canUndo ? Colors.black : Colors.grey.shade400,
           ),
           onPressed: _historyManager.canUndo ? _onUndo : null,
           tooltip: 'Undo',
@@ -119,7 +120,8 @@ class _BuilderScreenState extends State<BuilderScreen>
         IconButton(
           icon: Icon(
             Icons.redo,
-            color: _historyManager.canRedo ? Colors.black : Colors.grey.shade400,
+            color:
+                _historyManager.canRedo ? Colors.black : Colors.grey.shade400,
           ),
           onPressed: _historyManager.canRedo ? _onRedo : null,
           tooltip: 'Redo',
@@ -176,9 +178,10 @@ class _BuilderScreenState extends State<BuilderScreen>
             color: Colors.grey.shade50,
             child: DroppableMobileFrame(
               onWidgetPlaced: _onWidgetPlaced,
-              onWidgetSelected: (PlacedWidget widget) => _onWidgetSelectedFromFrame(widget),
+              onWidgetSelected: (PlacedWidget widget) =>
+                  _onWidgetSelectedFromFrame(widget),
               onWidgetDeleted: _onWidgetDeleted,
-              projectId: widget.project.id,
+              projectId: widget.project.projectInfo.packageName,
               project: widget.project,
               selectedFile: _selectedFile,
             ),
@@ -233,7 +236,6 @@ class _BuilderScreenState extends State<BuilderScreen>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-
         PropertyEditorPanel(
           selectedWidget: _selectedWidget,
           widgets: _currentFileWidgets,
@@ -249,16 +251,16 @@ class _BuilderScreenState extends State<BuilderScreen>
               top: BorderSide(color: Colors.grey.shade300),
             ),
           ),
-                      child: Row(
-              children: [
-                Expanded(
-                  child: DartFileSelector(
-                    project: widget.project,
-                    selectedFile: _selectedFile,
-                    onFileSelected: _onFileSelected,
-                  ),
+          child: Row(
+            children: [
+              Expanded(
+                child: DartFileSelector(
+                  project: widget.project,
+                  selectedFile: _selectedFile,
+                  onFileSelected: _onFileSelected,
                 ),
-                Container(
+              ),
+              Container(
                 width: 48,
                 height: 48,
                 child: IconButton(
@@ -302,8 +304,7 @@ class _BuilderScreenState extends State<BuilderScreen>
     }
   }
 
-  void _handleHistoryEntry(HistoryEntry entry, {required bool isUndo}) {
-  }
+  void _handleHistoryEntry(HistoryEntry entry, {required bool isUndo}) {}
 
   String _getActionDescription(HistoryActionType actionType) {
     switch (actionType) {
@@ -350,8 +351,6 @@ class _BuilderScreenState extends State<BuilderScreen>
         return Icons.widgets;
     }
   }
-
-
 
   void _onSave() {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -419,10 +418,10 @@ class _BuilderScreenState extends State<BuilderScreen>
     setState(() {
       _selectedFile = file;
     });
-    
+
     // Load widgets for the selected file
     _loadFileWidgets(file);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Switched to ${file.displayName}'),
@@ -434,12 +433,12 @@ class _BuilderScreenState extends State<BuilderScreen>
   Future<void> _loadFileWidgets(DartFileBean file) async {
     try {
       // Load widgets specifically for this file
-      final fileWidgets = await sync.FileSyncService.loadWidgetsForFile(widget.project, file.fileName);
-      
+      final fileWidgets = await sync.FileSyncService.loadWidgetsForFile(
+          widget.project, file.fileName);
+
       setState(() {
         _currentFileWidgets = fileWidgets;
       });
-      
     } catch (e) {
       setState(() {
         _currentFileWidgets = [];
@@ -449,7 +448,7 @@ class _BuilderScreenState extends State<BuilderScreen>
 
   void _onWidgetPlaced(PlacedWidget widget) {
     _historyManager.addWidget(widget);
-    
+
     // Convert to WidgetData and add to current file
     final widgetData = WidgetData(
       id: widget.id,
@@ -459,28 +458,31 @@ class _BuilderScreenState extends State<BuilderScreen>
         'fileId': _selectedFile?.fileName ?? 'unknown',
       },
     );
-    
+
     setState(() {
       _currentFileWidgets.add(widgetData);
     });
-    
+
     // Update the selected file with new widgets
     if (_selectedFile != null) {
       _updateFileWithWidgets(_selectedFile!, _currentFileWidgets);
     }
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Added ${widget.type} widget to ${_selectedFile?.displayName ?? 'current file'}'),
+        content: Text(
+            'Added ${widget.type} widget to ${_selectedFile?.displayName ?? 'current file'}'),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 1),
       ),
     );
   }
 
-  Future<void> _updateFileWithWidgets(DartFileBean file, List<WidgetData> widgets) async {
+  Future<void> _updateFileWithWidgets(
+      DartFileBean file, List<WidgetData> widgets) async {
     try {
-      await DartFileManager.updateFileWithWidgets(widget.project, file, widgets);
+      await DartFileManager.updateFileWithWidgets(
+          widget.project, file, widgets);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -503,10 +505,11 @@ class _BuilderScreenState extends State<BuilderScreen>
 
   void _onWidgetSelectedFromFrame(PlacedWidget widget) {
     // Find the existing WidgetData in the current file widgets list
-    final existingWidgetIndex = _currentFileWidgets.indexWhere((w) => w.id == widget.id);
-    
+    final existingWidgetIndex =
+        _currentFileWidgets.indexWhere((w) => w.id == widget.id);
+
     WidgetData selectedWidgetData;
-    
+
     if (existingWidgetIndex != -1) {
       // Widget exists in the list
       selectedWidgetData = _currentFileWidgets[existingWidgetIndex];
@@ -517,17 +520,15 @@ class _BuilderScreenState extends State<BuilderScreen>
         type: widget.type,
         properties: widget.properties,
       );
-      
+
       setState(() {
         _currentFileWidgets.add(selectedWidgetData);
       });
     }
-    
+
     setState(() {
       _selectedWidget = selectedWidgetData;
     });
-    
-
   }
 
   void _onWidgetSelectedFromPropertyEditor(WidgetData widget) {
@@ -544,7 +545,7 @@ class _BuilderScreenState extends State<BuilderScreen>
         _currentFileWidgets[index] = widget;
       });
     }
-    
+
     // Save changes
     _saveWidgetChanges();
   }
@@ -552,7 +553,7 @@ class _BuilderScreenState extends State<BuilderScreen>
   void _onWidgetDeletedFromPropertyEditor(WidgetData widget) {
     setState(() {
       _currentFileWidgets.removeWhere((w) => w.id == widget.id);
-      
+
       // Auto-select next widget if available
       if (_currentFileWidgets.isNotEmpty) {
         _selectedWidget = _currentFileWidgets.first;
@@ -560,14 +561,15 @@ class _BuilderScreenState extends State<BuilderScreen>
         _selectedWidget = null;
       }
     });
-    
+
     // Save changes
     _saveWidgetChanges();
-    
+
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${WidgetData.getDisplayName(widget.type)} deleted successfully'),
+        content: Text(
+            '${WidgetData.getDisplayName(widget.type)} deleted successfully'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 1),
       ),
@@ -668,7 +670,8 @@ class _BuilderScreenState extends State<BuilderScreen>
                 Icon(
                   icon,
                   size: 20,
-                  color: isSelected ? Colors.blue.shade600 : Colors.grey.shade600,
+                  color:
+                      isSelected ? Colors.blue.shade600 : Colors.grey.shade600,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -676,8 +679,11 @@ class _BuilderScreenState extends State<BuilderScreen>
                     title,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                      color: isSelected ? Colors.blue.shade600 : Colors.grey.shade700,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                      color: isSelected
+                          ? Colors.blue.shade600
+                          : Colors.grey.shade700,
                     ),
                   ),
                 ),
@@ -688,8 +694,6 @@ class _BuilderScreenState extends State<BuilderScreen>
       ),
     );
   }
-
-
 
   Widget _buildEventList() {
     return Stack(
@@ -769,7 +773,8 @@ class _BuilderScreenState extends State<BuilderScreen>
       EventData(
         id: 'onResume',
         name: 'onResume',
-        description: 'Called when the activity starts interacting with the user',
+        description:
+            'Called when the activity starts interacting with the user',
         type: 'activity',
         icon: Icons.auto_awesome,
       ),
@@ -897,13 +902,15 @@ class _BuilderScreenState extends State<BuilderScreen>
         child: ListTile(
           leading: Icon(
             event.icon,
-            color: event.isDefault ? Colors.blue.shade600 : Colors.grey.shade600,
+            color:
+                event.isDefault ? Colors.blue.shade600 : Colors.grey.shade600,
           ),
           title: Text(
             event.name,
             style: TextStyle(
               fontWeight: event.isDefault ? FontWeight.w600 : FontWeight.normal,
-              color: event.isDefault ? Colors.blue.shade600 : Colors.grey.shade800,
+              color:
+                  event.isDefault ? Colors.blue.shade600 : Colors.grey.shade800,
             ),
           ),
           subtitle: Text(
@@ -912,7 +919,8 @@ class _BuilderScreenState extends State<BuilderScreen>
           ),
           trailing: event.isDefault
               ? Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.blue.shade100,
                     borderRadius: BorderRadius.circular(12),
@@ -1201,7 +1209,7 @@ class _BuilderScreenState extends State<BuilderScreen>
 
   void _onDrawerItemSelected(String item) {
     Navigator.of(context).pop(); // Close drawer
-    
+
     if (item == 'project_manager') {
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -1241,4 +1249,4 @@ class EventData {
     required this.icon,
     this.isDefault = false,
   });
-} 
+}

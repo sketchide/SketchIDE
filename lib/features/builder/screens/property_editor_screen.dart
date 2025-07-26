@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/widget_data.dart';
 import '../models/dart_file_bean.dart';
-import '../../../domain/models/project.dart';
+import '../../../models/sketchide_project.dart';
 
 class PropertyEditorScreen extends StatefulWidget {
   final WidgetData widget;
-  final Project project;
+  final SketchIDEProject project;
   final DartFileBean file;
   final Function(WidgetData) onPropertyChanged;
 
@@ -37,7 +37,8 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
   void _initializeControllers() {
     // Initialize controllers for all properties
     for (final entry in editedWidget.properties.entries) {
-      controllers[entry.key] = TextEditingController(text: entry.value?.toString() ?? '');
+      controllers[entry.key] =
+          TextEditingController(text: entry.value?.toString() ?? '');
     }
   }
 
@@ -82,16 +83,19 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
                 Text(
                   'Widget ID: ${editedWidget.id}',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'File: ${widget.file.fileName}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                  ),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.7),
+                      ),
                 ),
               ],
             ),
@@ -153,7 +157,7 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
     final contentProperties = <Widget>[];
 
     // Text-specific properties
-    if (editedWidget.type == WidgetData.TYPE_TEXT || 
+    if (editedWidget.type == WidgetData.TYPE_TEXT ||
         editedWidget.type == WidgetData.TYPE_BUTTON ||
         editedWidget.type == WidgetData.TYPE_EDITTEXT) {
       contentProperties.add(
@@ -229,7 +233,7 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
     final styleProperties = <Widget>[];
 
     // Text styling
-    if (editedWidget.type == WidgetData.TYPE_TEXT || 
+    if (editedWidget.type == WidgetData.TYPE_TEXT ||
         editedWidget.type == WidgetData.TYPE_BUTTON ||
         editedWidget.type == WidgetData.TYPE_EDITTEXT) {
       styleProperties.addAll([
@@ -307,7 +311,7 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
     }
 
     // Checkbox/Switch properties
-    if (editedWidget.type == WidgetData.TYPE_CHECKBOX || 
+    if (editedWidget.type == WidgetData.TYPE_CHECKBOX ||
         editedWidget.type == WidgetData.TYPE_SWITCH) {
       behaviorProperties.add(
         _buildPropertyField(
@@ -385,9 +389,9 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
                 ),
               ],
             ),
@@ -421,9 +425,9 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
           Text(
             label,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -443,8 +447,8 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
               ),
             ),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontSize: 14,
-            ),
+                  fontSize: 14,
+                ),
             onChanged: (value) {
               setState(() {
                 if (value.isEmpty) {
@@ -529,7 +533,8 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Widget'),
-        content: Text('Are you sure you want to delete this ${_getWidgetDisplayName(editedWidget.type)} widget?'),
+        content: Text(
+            'Are you sure you want to delete this ${_getWidgetDisplayName(editedWidget.type)} widget?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -550,4 +555,4 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
       ),
     );
   }
-} 
+}

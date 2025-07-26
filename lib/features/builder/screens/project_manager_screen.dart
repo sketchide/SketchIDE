@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import '../../../domain/models/project.dart';
+import '../../../models/sketchide_project.dart';
 import 'code_editor_screen.dart';
 
 class ProjectManagerScreen extends StatefulWidget {
-  final Project project;
+  final SketchIDEProject project;
 
   const ProjectManagerScreen({
     super.key,
@@ -25,7 +25,9 @@ class _ProjectManagerScreenState extends State<ProjectManagerScreen> {
   @override
   void initState() {
     super.initState();
-    _currentPath = widget.project.projectPath;
+    // For now, use a default path since SketchIDEProject doesn't have projectPath
+    // This will need to be updated when we implement project file structure
+    _currentPath = 'projects';
     _loadCurrentDirectory();
   }
 
@@ -50,87 +52,87 @@ class _ProjectManagerScreenState extends State<ProjectManagerScreen> {
 
   Future<List<ProjectFileItem>> _scanDirectory(Directory dir) async {
     final List<ProjectFileItem> items = [];
-    
+
     try {
       final List<FileSystemEntity> entities = await dir.list().toList();
-      
+
       // Separate directories and files
       final List<Directory> directories = [];
       final List<File> files = [];
-      
+
       for (final entity in entities) {
         final name = path.basename(entity.path);
-        
+
         // Skip hidden files and directories
         if (name.startsWith('.')) continue;
-        
+
         if (entity is Directory) {
           directories.add(entity);
         } else if (entity is File) {
           files.add(entity);
         }
       }
-      
+
       // Sort directories in specific order
       directories.sort((a, b) {
         final aName = path.basename(a.path).toLowerCase();
         final bName = path.basename(b.path).toLowerCase();
-        
+
         // Define priority order for directories
         final order = [
           'android',
-          'ios', 
+          'ios',
           'assets',
           'build',
           'lib',
           'logic',
           'ui',
         ];
-        
+
         final aIndex = order.indexOf(aName);
         final bIndex = order.indexOf(bName);
-        
+
         // If both are in the order list, sort by their position
         if (aIndex != -1 && bIndex != -1) {
           return aIndex.compareTo(bIndex);
         }
-        
+
         // If only one is in the order list, prioritize it
         if (aIndex != -1) return -1;
         if (bIndex != -1) return 1;
-        
+
         // If neither is in the order list, sort alphabetically
         return aName.compareTo(bName);
       });
-      
+
       // Sort files in specific order
       files.sort((a, b) {
         final aName = path.basename(a.path).toLowerCase();
         final bName = path.basename(b.path).toLowerCase();
-        
+
         // Define priority order for files
         final order = [
           'meta.json',
           'pubspec.yaml',
           'icon.png',
         ];
-        
+
         final aIndex = order.indexOf(aName);
         final bIndex = order.indexOf(bName);
-        
+
         // If both are in the order list, sort by their position
         if (aIndex != -1 && bIndex != -1) {
           return aIndex.compareTo(bIndex);
         }
-        
+
         // If only one is in the order list, prioritize it
         if (aIndex != -1) return -1;
         if (bIndex != -1) return 1;
-        
+
         // If neither is in the order list, sort alphabetically
         return aName.compareTo(bName);
       });
-      
+
       // Add directories first
       for (final directory in directories) {
         final name = path.basename(directory.path);
@@ -141,7 +143,7 @@ class _ProjectManagerScreenState extends State<ProjectManagerScreen> {
           icon: _getIconForDirectory(name),
         ));
       }
-      
+
       // Then add files
       for (final file in files) {
         final name = path.basename(file.path);
@@ -156,7 +158,7 @@ class _ProjectManagerScreenState extends State<ProjectManagerScreen> {
     } catch (e) {
       print('Error scanning directory ${dir.path}: $e');
     }
-    
+
     return items;
   }
 
@@ -207,7 +209,7 @@ class _ProjectManagerScreenState extends State<ProjectManagerScreen> {
 
   IconData _getIconForFile(String name) {
     final extension = path.extension(name).toLowerCase();
-    
+
     switch (extension) {
       case '.dart':
         return Icons.code;
@@ -275,7 +277,8 @@ class _ProjectManagerScreenState extends State<ProjectManagerScreen> {
   }
 
   String _getRelativePath() {
-    final projectPath = widget.project.projectPath;
+    // For now, use a default path since SketchIDEProject doesn't have projectPath
+    final projectPath = 'projects';
     if (_currentPath == projectPath) {
       return 'Root';
     }
@@ -289,7 +292,7 @@ class _ProjectManagerScreenState extends State<ProjectManagerScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Project Manager - ${widget.project.name}'),
+            Text('Project Manager - ${widget.project.projectInfo.appName}'),
             Text(
               _getRelativePath(),
               style: const TextStyle(fontSize: 12, color: Colors.white70),
@@ -345,14 +348,14 @@ class _ProjectManagerScreenState extends State<ProjectManagerScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              widget.project.name,
+                              widget.project.projectInfo.appName,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
-                              '${widget.project.appName} (${widget.project.packageName})',
+                              '${widget.project.projectInfo.appName} (${widget.project.projectInfo.packageName})',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade600,
@@ -389,8 +392,19 @@ class _ProjectManagerScreenState extends State<ProjectManagerScreen> {
   Widget _buildFileItem(ProjectFileItem item) {
     final extension = path.extension(item.name).toLowerCase();
     final isCodeFile = [
-      '.dart', '.json', '.yaml', '.yml', '.xml', '.kt', '.java', 
-      '.swift', '.gradle', '.md', '.txt', '.plist', '.podfile'
+      '.dart',
+      '.json',
+      '.yaml',
+      '.yml',
+      '.xml',
+      '.kt',
+      '.java',
+      '.swift',
+      '.gradle',
+      '.md',
+      '.txt',
+      '.plist',
+      '.podfile'
     ].contains(extension);
 
     return Card(
@@ -399,10 +413,10 @@ class _ProjectManagerScreenState extends State<ProjectManagerScreen> {
       child: ListTile(
         leading: Icon(
           item.icon,
-          color: item.isDirectory 
-              ? Colors.blue.shade600 
-              : isCodeFile 
-                  ? Colors.green.shade600 
+          color: item.isDirectory
+              ? Colors.blue.shade600
+              : isCodeFile
+                  ? Colors.green.shade600
                   : Colors.grey.shade600,
           size: 24,
         ),
@@ -411,10 +425,10 @@ class _ProjectManagerScreenState extends State<ProjectManagerScreen> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: item.isDirectory ? FontWeight.w500 : FontWeight.normal,
-            color: item.isDirectory 
-                ? Colors.blue.shade700 
-                : isCodeFile 
-                    ? Colors.green.shade700 
+            color: item.isDirectory
+                ? Colors.blue.shade700
+                : isCodeFile
+                    ? Colors.green.shade700
                     : Colors.grey.shade800,
           ),
         ),
@@ -440,8 +454,19 @@ class _ProjectManagerScreenState extends State<ProjectManagerScreen> {
   void _handleFileTap(ProjectFileItem item) {
     final extension = path.extension(item.name).toLowerCase();
     final isCodeFile = [
-      '.dart', '.json', '.yaml', '.yml', '.xml', '.kt', '.java', 
-      '.swift', '.gradle', '.md', '.txt', '.plist', '.podfile'
+      '.dart',
+      '.json',
+      '.yaml',
+      '.yml',
+      '.xml',
+      '.kt',
+      '.java',
+      '.swift',
+      '.gradle',
+      '.md',
+      '.txt',
+      '.plist',
+      '.podfile'
     ].contains(extension);
 
     if (isCodeFile) {
@@ -513,4 +538,4 @@ class ProjectFileItem {
     required this.icon,
     this.fileSize,
   });
-} 
+}

@@ -1,28 +1,30 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:path/path.dart' as path;
-import '../../../domain/models/project.dart';
+import '../../../models/sketchide_project.dart';
 import '../models/widget_data.dart';
 import 'code_generator.dart';
 
 class FileSyncService {
-  static Future<void> syncWidgetsToCode(Project project, List<WidgetData> widgets) async {
+  static Future<void> syncWidgetsToCode(
+      SketchIDEProject project, List<WidgetData> widgets) async {
     try {
-      final projectPath = project.projectPath;
-      
+      final projectPath =
+          'projects'; // Temporary path since SketchIDEProject doesn't have projectPath
+
       // Generate updated code
-      final mainDartCode = CodeGenerator.generateMainDartCode(widgets, project.appName);
-      final homePageCode = CodeGenerator.generateHomePageCode(widgets, project.appName);
-      
+      final mainDartCode = CodeGenerator.generateMainDartCode(
+          widgets, project.projectInfo.appName);
+      final homePageCode = CodeGenerator.generateHomePageCode(
+          widgets, project.projectInfo.appName);
+
       // Update main.dart
       await _updateFile('$projectPath/lib/main.dart', mainDartCode);
-      
-      
-      
+
       // Save widgets data to JSON for persistence
       final widgetsJson = CodeGenerator.generateWidgetsJson(widgets);
       await _updateFile('$projectPath/ui/main.json', widgetsJson);
-      
+
       print('Successfully synced ${widgets.length} widgets to code files');
     } catch (e) {
       print('Error syncing widgets to code: $e');
@@ -34,12 +36,12 @@ class FileSyncService {
     try {
       final file = File(filePath);
       final directory = file.parent;
-      
+
       // Create directory if it doesn't exist
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       }
-      
+
       // Write the content
       await file.writeAsString(content);
       print('Updated file: $filePath');
@@ -49,20 +51,23 @@ class FileSyncService {
     }
   }
 
-  static Future<List<WidgetData>> loadWidgetsFromProject(Project project) async {
+  static Future<List<WidgetData>> loadWidgetsFromProject(
+      SketchIDEProject project) async {
     try {
-      final uiDir = Directory('${project.projectPath}/ui');
+      final uiDir = Directory(
+          'projects/ui'); // Temporary path since SketchIDEProject doesn't have projectPath
       if (!await uiDir.exists()) {
         return [];
       }
-      
+
       final List<WidgetData> allWidgets = [];
-      
+
       // Load all widget files
-      final files = await uiDir.list().where((entity) => 
-        entity is File && entity.path.endsWith('.json')
-      ).toList();
-      
+      final files = await uiDir
+          .list()
+          .where((entity) => entity is File && entity.path.endsWith('.json'))
+          .toList();
+
       for (final file in files) {
         try {
           final content = await File(file.path).readAsString();
@@ -72,7 +77,7 @@ class FileSyncService {
           print('Error loading widgets from ${file.path}: $e');
         }
       }
-      
+
       return allWidgets;
     } catch (e) {
       print('Error loading widgets from project: $e');
@@ -80,15 +85,17 @@ class FileSyncService {
     }
   }
 
-  static Future<List<WidgetData>> loadWidgetsForFile(Project project, String fileName) async {
+  static Future<List<WidgetData>> loadWidgetsForFile(
+      SketchIDEProject project, String fileName) async {
     try {
-      final widgetsFile = File('${project.projectPath}/ui/${fileName.replaceAll('.dart', '.json')}');
-      
+      final widgetsFile = File(
+          'projects/ui/${fileName.replaceAll('.dart', '.json')}'); // Temporary path since SketchIDEProject doesn't have projectPath
+
       if (await widgetsFile.exists()) {
         final content = await widgetsFile.readAsString();
         return CodeGenerator.parseWidgetsFromJson(content);
       }
-      
+
       return [];
     } catch (e) {
       print('Error loading widgets for file $fileName: $e');
@@ -96,11 +103,12 @@ class FileSyncService {
     }
   }
 
-  static Future<void> saveWidgetsToProject(Project project, List<WidgetData> widgets) async {
+  static Future<void> saveWidgetsToProject(
+      SketchIDEProject project, List<WidgetData> widgets) async {
     try {
       // Group widgets by file
       final Map<String, List<WidgetData>> widgetsByFile = {};
-      
+
       for (final widget in widgets) {
         final fileId = widget.properties['fileId'] ?? 'main.dart';
         if (!widgetsByFile.containsKey(fileId)) {
@@ -108,15 +116,17 @@ class FileSyncService {
         }
         widgetsByFile[fileId]!.add(widget);
       }
-      
+
       // Save each file's widgets separately
       for (final entry in widgetsByFile.entries) {
         final fileName = entry.key;
         final fileWidgets = entry.value;
         final widgetsJson = CodeGenerator.generateWidgetsJson(fileWidgets);
-        await _updateFile('${project.projectPath}/ui/${fileName.replaceAll('.dart', '.json')}', widgetsJson);
+        await _updateFile(
+            'projects/ui/${fileName.replaceAll('.dart', '.json')}', // Temporary path since SketchIDEProject doesn't have projectPath
+            widgetsJson);
       }
-      
+
       print('Successfully saved widgets to ${widgetsByFile.length} files');
     } catch (e) {
       print('Error saving widgets to project: $e');
@@ -125,7 +135,8 @@ class FileSyncService {
   }
 
   // Update the mobile frame's widget storage to use the new system
-  static Future<void> updateMobileFrameWidgets(String projectId, List<WidgetData> widgets) async {
+  static Future<void> updateMobileFrameWidgets(
+      String projectId, List<WidgetData> widgets) async {
     try {
       final widgetsJson = CodeGenerator.generateWidgetsJson(widgets);
       await _updateFile('projects/$projectId/widgets.json', widgetsJson);
@@ -137,15 +148,16 @@ class FileSyncService {
   }
 
   // Load widgets from mobile frame storage
-  static Future<List<WidgetData>> loadMobileFrameWidgets(String projectId) async {
+  static Future<List<WidgetData>> loadMobileFrameWidgets(
+      String projectId) async {
     try {
       final widgetsFile = File('projects/$projectId/widgets.json');
-      
+
       if (await widgetsFile.exists()) {
         final content = await widgetsFile.readAsString();
         return CodeGenerator.parseWidgetsFromJson(content);
       }
-      
+
       return [];
     } catch (e) {
       print('Error loading mobile frame widgets: $e');
@@ -183,4 +195,4 @@ class PlacedWidget {
     required this.type,
     required this.properties,
   });
-} 
+}

@@ -1,0 +1,343 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/design_viewmodel.dart';
+import '../widgets/widget_palette.dart';
+import '../widgets/flutter_device_frame.dart';
+import '../widgets/property_panel.dart';
+import '../widgets/design_drawer.dart';
+
+class DesignActivityScreen extends StatefulWidget {
+  final String projectId;
+
+  const DesignActivityScreen({
+    Key? key,
+    required this.projectId,
+  }) : super(key: key);
+
+  @override
+  State<DesignActivityScreen> createState() => _DesignActivityScreenState();
+}
+
+class _DesignActivityScreenState extends State<DesignActivityScreen>
+    with TickerProviderStateMixin {
+  late TabController _tabController;
+  late PageController _pageController;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _pageController = PageController();
+
+    // Load project data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DesignViewModel>().loadProject(widget.projectId);
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<DesignViewModel>(
+      builder: (context, viewModel, child) {
+        return Scaffold(
+          key: _scaffoldKey,
+          appBar: _buildAppBar(viewModel),
+          body: _buildBody(viewModel),
+          endDrawer: _buildRightDrawer(),
+          bottomNavigationBar: _buildBottomBar(viewModel),
+        );
+      },
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(DesignViewModel viewModel) {
+    return AppBar(
+      title: Text(viewModel.projectName ?? 'Project'),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      elevation: 0,
+      actions: [
+        // Save button
+        IconButton(
+          icon: const Icon(Icons.save),
+          onPressed: () => viewModel.saveProject(),
+          tooltip: 'Save Project',
+        ),
+        // Undo button
+        IconButton(
+          icon: const Icon(Icons.undo),
+          onPressed: viewModel.canUndo ? () => viewModel.undo() : null,
+          tooltip: 'Undo',
+        ),
+        // Redo button
+        IconButton(
+          icon: const Icon(Icons.redo),
+          onPressed: viewModel.canRedo ? () => viewModel.redo() : null,
+          tooltip: 'Redo',
+        ),
+        // Open drawer button
+        IconButton(
+          icon: const Icon(Icons.more_vert),
+          onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+          tooltip: 'Open Drawer',
+        ),
+      ],
+      bottom: TabBar(
+        controller: _tabController,
+        onTap: (index) {
+          viewModel.setTab(DesignTab.values[index]);
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        },
+        tabs: const [
+          Tab(text: 'View'),
+          Tab(text: 'Event'),
+          Tab(text: 'Component'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(DesignViewModel viewModel) {
+    return Column(
+      children: [
+        // Main content area
+        Expanded(
+          child: PageView(
+            controller: _pageController,
+            onPageChanged: (index) {
+              _tabController.animateTo(index);
+              viewModel.setTab(DesignTab.values[index]);
+            },
+            children: [
+              _buildViewTab(viewModel),
+              _buildEventTab(),
+              _buildComponentTab(),
+            ],
+          ),
+        ),
+        // Property panel (slides up from bottom)
+        if (viewModel.selectedWidget != null) _buildPropertyPanel(viewModel),
+      ],
+    );
+  }
+
+  Widget _buildViewTab(DesignViewModel viewModel) {
+    return Row(
+      children: [
+        // Left palette - fixed 120dp width
+        Container(
+          width: 120,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              right: BorderSide(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              ),
+            ),
+          ),
+          child: WidgetPalette(
+            onWidgetSelected: (widget) {
+              viewModel.addWidget(widget);
+            },
+          ),
+        ),
+        // Center mobile frame
+        Expanded(
+          child: Container(
+            color: Theme.of(context).colorScheme.surface,
+            child: FlutterDeviceFrame(
+              widgets: viewModel.widgets,
+              selectedWidget: viewModel.selectedWidget,
+              onWidgetSelected: (widget) => viewModel.selectWidget(widget),
+              onWidgetMoved: (widget) => viewModel.moveWidget(widget),
+              onWidgetAdded: (widget) => viewModel.addWidget(widget),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEventTab() {
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.code, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'Event Editor',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Logic blocks and event handling',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildComponentTab() {
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.widgets, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'Component Manager',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Manage custom components and libraries',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPropertyPanel(DesignViewModel viewModel) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      height: 170,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+      ),
+      child: PropertyPanel(
+        selectedWidget: viewModel.selectedWidget!,
+        onPropertyChanged: (widget) {
+          viewModel.updateWidget(widget);
+        },
+        allWidgets: viewModel.widgets,
+        onWidgetDeleted: (widget) {
+          viewModel.deleteSelectedWidget();
+        },
+      ),
+    );
+  }
+
+  Widget _buildRightDrawer() {
+    return DesignDrawer(
+      onItemSelected: (item) {
+        // Handle drawer item selection
+        Scaffold.of(context).closeEndDrawer();
+        // TODO: Navigate to appropriate screen
+      },
+    );
+  }
+
+  Widget _buildBottomBar(DesignViewModel viewModel) {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          // File selector
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.all(8),
+              child: Material(
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(8),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () {
+                    // TODO: Show file selector
+                  },
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.screen_rotation,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'main',
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_drop_down,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Run button
+          Container(
+            margin: const EdgeInsets.only(right: 4),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                // TODO: Build and run project
+              },
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('Run'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              ),
+            ),
+          ),
+          // Options button
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              onPressed: () {
+                // TODO: Show options menu
+              },
+              icon: const Icon(Icons.tune),
+              tooltip: 'Options',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

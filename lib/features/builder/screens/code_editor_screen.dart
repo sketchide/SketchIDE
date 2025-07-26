@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:path/path.dart' as path;
-import '../../../domain/models/project.dart';
+import '../../../models/sketchide_project.dart';
 
 class CodeEditorScreen extends StatefulWidget {
-  final Project project;
+  final SketchIDEProject project;
   final String filePath;
   final String fileName;
 
@@ -81,7 +81,7 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
         _isModified = false;
         _originalContent = _codeController.text;
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -153,21 +153,80 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
 
   Color _getDartSyntaxColor(String line, int index) {
     final keywords = [
-      'import', 'export', 'class', 'void', 'int', 'String', 'bool', 'double',
-      'var', 'final', 'const', 'static', 'abstract', 'extends', 'implements',
-      'super', 'this', 'new', 'return', 'if', 'else', 'for', 'while', 'do',
-      'switch', 'case', 'default', 'break', 'continue', 'try', 'catch',
-      'finally', 'throw', 'async', 'await', 'Future', 'Stream', 'Widget',
-      'StatefulWidget', 'StatelessWidget', 'BuildContext', 'MaterialApp',
-      'Scaffold', 'AppBar', 'Container', 'Column', 'Row', 'Text', 'Icon',
-      'ElevatedButton', 'TextField', 'ListView', 'setState', 'initState',
-      'dispose', 'build', 'context', 'child', 'children', 'mainAxisAlignment',
-      'crossAxisAlignment', 'padding', 'margin', 'decoration', 'color',
-      'fontSize', 'fontWeight', 'onPressed', 'onChanged', 'controller',
+      'import',
+      'export',
+      'class',
+      'void',
+      'int',
+      'String',
+      'bool',
+      'double',
+      'var',
+      'final',
+      'const',
+      'static',
+      'abstract',
+      'extends',
+      'implements',
+      'super',
+      'this',
+      'new',
+      'return',
+      'if',
+      'else',
+      'for',
+      'while',
+      'do',
+      'switch',
+      'case',
+      'default',
+      'break',
+      'continue',
+      'try',
+      'catch',
+      'finally',
+      'throw',
+      'async',
+      'await',
+      'Future',
+      'Stream',
+      'Widget',
+      'StatefulWidget',
+      'StatelessWidget',
+      'BuildContext',
+      'MaterialApp',
+      'Scaffold',
+      'AppBar',
+      'Container',
+      'Column',
+      'Row',
+      'Text',
+      'Icon',
+      'ElevatedButton',
+      'TextField',
+      'ListView',
+      'setState',
+      'initState',
+      'dispose',
+      'build',
+      'context',
+      'child',
+      'children',
+      'mainAxisAlignment',
+      'crossAxisAlignment',
+      'padding',
+      'margin',
+      'decoration',
+      'color',
+      'fontSize',
+      'fontWeight',
+      'onPressed',
+      'onChanged',
+      'controller',
     ];
 
     final words = line.split(' ');
-    
+
     for (final word in words) {
       final cleanWord = word.replaceAll(RegExp(r'[^\w]'), '');
       if (keywords.contains(cleanWord)) {
@@ -198,22 +257,22 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
     if (line.contains('"') && line.contains(':')) {
       return Colors.purple.shade700;
     }
-    
+
     // String values
     if (line.contains('"') && !line.contains(':')) {
       return Colors.green.shade700;
     }
-    
+
     // Numbers
     if (RegExp(r'\d+').hasMatch(line)) {
       return Colors.orange.shade700;
     }
-    
+
     // Booleans
     if (line.contains('true') || line.contains('false')) {
       return Colors.blue.shade700;
     }
-    
+
     return Colors.black87;
   }
 
@@ -222,17 +281,17 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
     if (line.contains(':') && !line.trim().startsWith('#')) {
       return Colors.purple.shade700;
     }
-    
+
     // Comments
     if (line.trim().startsWith('#')) {
       return Colors.grey.shade600;
     }
-    
+
     // Numbers
     if (RegExp(r'\d+').hasMatch(line)) {
       return Colors.orange.shade700;
     }
-    
+
     return Colors.black87;
   }
 
@@ -241,30 +300,66 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
     if (line.contains('<') && line.contains('>')) {
       return Colors.blue.shade700;
     }
-    
+
     // Attributes
     if (line.contains('=')) {
       return Colors.purple.shade700;
     }
-    
+
     // Comments
     if (line.contains('<!--') || line.contains('-->')) {
       return Colors.grey.shade600;
     }
-    
+
     return Colors.black87;
   }
 
   Color _getKotlinSyntaxColor(String line, int index) {
     final keywords = [
-      'fun', 'val', 'var', 'class', 'object', 'interface', 'enum', 'data',
-      'sealed', 'open', 'abstract', 'final', 'override', 'init', 'constructor',
-      'companion', 'object', 'when', 'if', 'else', 'for', 'while', 'do',
-      'try', 'catch', 'finally', 'throw', 'return', 'break', 'continue',
-      'import', 'package', 'public', 'private', 'protected', 'internal',
-      'suspend', 'coroutineScope', 'launch', 'async', 'await', 'withContext',
+      'fun',
+      'val',
+      'var',
+      'class',
+      'object',
+      'interface',
+      'enum',
+      'data',
+      'sealed',
+      'open',
+      'abstract',
+      'final',
+      'override',
+      'init',
+      'constructor',
+      'companion',
+      'object',
+      'when',
+      'if',
+      'else',
+      'for',
+      'while',
+      'do',
+      'try',
+      'catch',
+      'finally',
+      'throw',
+      'return',
+      'break',
+      'continue',
+      'import',
+      'package',
+      'public',
+      'private',
+      'protected',
+      'internal',
+      'suspend',
+      'coroutineScope',
+      'launch',
+      'async',
+      'await',
+      'withContext',
     ];
-    
+
     final words = line.split(' ');
     for (final word in words) {
       final cleanWord = word.replaceAll(RegExp(r'[^\w]'), '');
@@ -272,25 +367,60 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
         return Colors.blue.shade700;
       }
     }
-    
+
     // Comments
     if (line.trim().startsWith('//') || line.trim().startsWith('/*')) {
       return Colors.grey.shade600;
     }
-    
+
     return Colors.black87;
   }
 
   Color _getSwiftSyntaxColor(String line, int index) {
     final keywords = [
-      'func', 'var', 'let', 'class', 'struct', 'enum', 'protocol', 'extension',
-      'import', 'public', 'private', 'internal', 'fileprivate', 'open',
-      'final', 'override', 'init', 'deinit', 'guard', 'if', 'else', 'switch',
-      'case', 'default', 'for', 'while', 'repeat', 'do', 'try', 'catch',
-      'throw', 'return', 'break', 'continue', 'fallthrough', 'defer',
-      'async', 'await', 'actor', 'Task', 'withTaskGroup',
+      'func',
+      'var',
+      'let',
+      'class',
+      'struct',
+      'enum',
+      'protocol',
+      'extension',
+      'import',
+      'public',
+      'private',
+      'internal',
+      'fileprivate',
+      'open',
+      'final',
+      'override',
+      'init',
+      'deinit',
+      'guard',
+      'if',
+      'else',
+      'switch',
+      'case',
+      'default',
+      'for',
+      'while',
+      'repeat',
+      'do',
+      'try',
+      'catch',
+      'throw',
+      'return',
+      'break',
+      'continue',
+      'fallthrough',
+      'defer',
+      'async',
+      'await',
+      'actor',
+      'Task',
+      'withTaskGroup',
     ];
-    
+
     final words = line.split(' ');
     for (final word in words) {
       final cleanWord = word.replaceAll(RegExp(r'[^\w]'), '');
@@ -298,27 +428,29 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
         return Colors.blue.shade700;
       }
     }
-    
+
     // Comments
     if (line.trim().startsWith('//') || line.trim().startsWith('/*')) {
       return Colors.grey.shade600;
     }
-    
+
     return Colors.black87;
   }
 
   Color _getGradleSyntaxColor(String line, int index) {
     // Dependencies
-    if (line.contains('implementation') || line.contains('compileOnly') || 
-        line.contains('runtimeOnly') || line.contains('testImplementation')) {
+    if (line.contains('implementation') ||
+        line.contains('compileOnly') ||
+        line.contains('runtimeOnly') ||
+        line.contains('testImplementation')) {
       return Colors.green.shade700;
     }
-    
+
     // Comments
     if (line.trim().startsWith('//') || line.trim().startsWith('/*')) {
       return Colors.grey.shade600;
     }
-    
+
     return Colors.black87;
   }
 
@@ -495,7 +627,8 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
                 children: [
                   // File info bar
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       border: Border(
@@ -542,13 +675,14 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
                         padding: const EdgeInsets.all(8),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _codeController.text.isEmpty 
+                          children: _codeController.text.isEmpty
                               ? [const SizedBox(height: 20)]
                               : _codeController.text
                                   .split('\n')
                                   .asMap()
                                   .entries
-                                  .map((entry) => _buildCodeLine(entry.value, entry.key + 1))
+                                  .map((entry) => _buildCodeLine(
+                                      entry.value, entry.key + 1))
                                   .toList(),
                         ),
                       ),
@@ -685,7 +819,7 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
   void _formatCode() {
     // Basic code formatting
     String formattedCode = _codeController.text;
-    
+
     // Add proper indentation for different file types
     switch (_fileExtension) {
       case '.json':
@@ -705,7 +839,7 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
         // XML formatting would be implemented here
         break;
     }
-    
+
     setState(() {
       _codeController.text = formattedCode;
       _isModified = true;
@@ -732,4 +866,4 @@ class _CodeEditorScreenState extends State<CodeEditorScreen> {
       ),
     );
   }
-} 
+}

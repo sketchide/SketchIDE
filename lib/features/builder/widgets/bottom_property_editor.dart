@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/widget_data.dart';
 import '../models/dart_file_bean.dart';
-import '../../../domain/models/project.dart';
+import '../../../models/sketchide_project.dart';
 import '../screens/property_editor_screen.dart';
 
 class BottomPropertyEditor extends StatefulWidget {
   final List<WidgetData> widgets;
-  final Project project;
+  final SketchIDEProject project;
   final DartFileBean file;
   final WidgetData? selectedWidget;
   final Function(WidgetData) onWidgetSelected;
@@ -37,7 +37,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
   final ScrollController _scrollController = ScrollController();
 
   final List<String> _propertyGroups = ['Basic', 'Recent', 'Event'];
-  
+
   // Performance optimization
   final Map<String, List<Map<String, dynamic>>> _propertyCache = {};
   bool _isLoading = false;
@@ -70,7 +70,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
   void _onScroll() {
     final scrollX = _scrollController.offset;
     final maxScrollX = _scrollController.position.maxScrollExtent;
-    
+
     if (scrollX > 100 && scrollX < maxScrollX - 100) {
       if (scrollX > _scrollController.position.pixels) {
         // Scrolling right
@@ -126,7 +126,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
                     child: DropdownButtonFormField<String>(
                       value: widget.selectedWidget?.id,
                       decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(4),
                           borderSide: BorderSide(
@@ -154,9 +155,12 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
                               Expanded(
                                 child: Text(
                                   '${_getWidgetDisplayName(widget.type)} (${widget.id})',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontSize: 12,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        fontSize: 12,
+                                      ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -166,13 +170,14 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
                       }).toList(),
                       onChanged: (widgetId) {
                         if (widgetId != null) {
-                          final selectedWidget = widget.widgets.firstWhere((w) => w.id == widgetId);
+                          final selectedWidget = widget.widgets
+                              .firstWhere((w) => w.id == widgetId);
                           widget.onWidgetSelected(selectedWidget);
                         }
                       },
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontSize: 12,
-                      ),
+                            fontSize: 12,
+                          ),
                       icon: Icon(
                         Icons.arrow_drop_down,
                         color: Theme.of(context).colorScheme.onSurface,
@@ -227,7 +232,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
                       },
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? Theme.of(context).colorScheme.primary
@@ -241,13 +247,18 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
                         ),
                         child: Text(
                           groupName,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: 12,
-                            color: isSelected
-                                ? Colors.white
-                                : Theme.of(context).colorScheme.onSurface,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                          ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                fontSize: 12,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Theme.of(context).colorScheme.onSurface,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
                         ),
                       ),
                     ),
@@ -302,18 +313,17 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
   void _saveWidget(WidgetData widget) {
     // Save the widget changes
     this.widget.onPropertyChanged(widget);
-    
+
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${_getWidgetDisplayName(widget.type)} widget saved successfully'),
+        content: Text(
+            '${_getWidgetDisplayName(widget.type)} widget saved successfully'),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 2),
       ),
     );
   }
-
-
 
   List<Widget> _buildPropertyBoxes() {
     if (widget.selectedWidget == null) {
@@ -333,17 +343,18 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
             child: Text(
               'No widget selected',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
-                fontSize: 12,
-              ),
+                    color: Colors.grey,
+                    fontSize: 12,
+                  ),
             ),
           ),
         ),
       ];
     }
 
-    final properties = _getPropertiesForGroup(widget.selectedWidget!, _selectedGroupIndex);
-    
+    final properties =
+        _getPropertiesForGroup(widget.selectedWidget!, _selectedGroupIndex);
+
     return properties.map((property) {
       return Container(
         width: 120,
@@ -406,10 +417,10 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
                       child: Text(
                         label,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -437,9 +448,9 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
         return Text(
           value,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontSize: 11,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
+                fontSize: 11,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         );
@@ -460,9 +471,9 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
               child: Text(
                 value,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: 10,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                      fontSize: 10,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -477,9 +488,9 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
               child: Text(
                 value,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
               ),
             ),
           ],
@@ -493,9 +504,9 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
               child: Text(
                 value,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
               ),
             ),
           ],
@@ -503,15 +514,16 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
       case 'indent':
         return Row(
           children: [
-            Icon(Icons.format_indent_increase, size: 12, color: Colors.grey.shade600),
+            Icon(Icons.format_indent_increase,
+                size: 12, color: Colors.grey.shade600),
             const SizedBox(width: 4),
             Expanded(
               child: Text(
                 value,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
               ),
             ),
           ],
@@ -520,18 +532,22 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
         return Row(
           children: [
             Icon(
-              value.toLowerCase() == 'true' ? Icons.check_circle : Icons.radio_button_unchecked,
+              value.toLowerCase() == 'true'
+                  ? Icons.check_circle
+                  : Icons.radio_button_unchecked,
               size: 12,
-              color: value.toLowerCase() == 'true' ? Colors.green : Colors.grey.shade600,
+              color: value.toLowerCase() == 'true'
+                  ? Colors.green
+                  : Colors.grey.shade600,
             ),
             const SizedBox(width: 4),
             Expanded(
               child: Text(
                 value,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
               ),
             ),
           ],
@@ -549,9 +565,9 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
               child: Text(
                 value,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
               ),
             ),
           ],
@@ -565,9 +581,9 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
               child: Text(
                 value,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -577,9 +593,9 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
         return Text(
           value,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontSize: 11,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
+                fontSize: 11,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
         );
     }
   }
@@ -635,7 +651,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
     final value = property['value'] as String;
     final type = property['type'] as String;
     final key = property['key'] as String;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -655,7 +671,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
             onPressed: () {
               _updateProperty(key, _getEditedValue(type, key));
               Navigator.pop(context);
-              
+
               // Show success message
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -674,7 +690,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
 
   Widget _buildPropertyEditor(String type, String key, String currentValue) {
     final controller = TextEditingController(text: currentValue);
-    
+
     switch (type) {
       case 'text':
         return TextField(
@@ -685,7 +701,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
           ),
           onChanged: (value) => _setEditedValue(key, value),
         );
-        
+
       case 'number':
         return TextField(
           controller: controller,
@@ -696,7 +712,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
           ),
           onChanged: (value) => _setEditedValue(key, value),
         );
-        
+
       case 'color':
         return Column(
           children: [
@@ -724,7 +740,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
             ),
           ],
         );
-        
+
       case 'boolean':
         return StatefulBuilder(
           builder: (context, setState) {
@@ -741,7 +757,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
             );
           },
         );
-        
+
       case 'selector':
         return DropdownButtonFormField<String>(
           value: currentValue,
@@ -761,7 +777,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
             }
           },
         );
-        
+
       case 'measure':
         return TextField(
           controller: controller,
@@ -772,7 +788,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
           ),
           onChanged: (value) => _setEditedValue(key, value),
         );
-        
+
       case 'indent':
         return TextField(
           controller: controller,
@@ -783,7 +799,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
           ),
           onChanged: (value) => _setEditedValue(key, value),
         );
-        
+
       default:
         return TextField(
           controller: controller,
@@ -924,10 +940,10 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
               Text(
                 'See All',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: 10,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+                      fontSize: 10,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ],
           ),
@@ -936,7 +952,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
     );
   }
 
-  List<Map<String, dynamic>> _getPropertiesForGroup(WidgetData widget, int groupIndex) {
+  List<Map<String, dynamic>> _getPropertiesForGroup(
+      WidgetData widget, int groupIndex) {
     switch (groupIndex) {
       case 0: // Basic
         return _getBasicProperties(widget);
@@ -1010,7 +1027,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
           },
           {
             'label': 'Font Weight',
-            'value': _getPropertyValue(widget, 'fontWeight', 'FontWeight.normal'),
+            'value':
+                _getPropertyValue(widget, 'fontWeight', 'FontWeight.normal'),
             'type': 'selector',
             'key': 'fontWeight',
           },
@@ -1027,7 +1045,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
           },
           {
             'label': 'On Pressed',
-            'value': widget.properties.containsKey('onPressed') ? 'Set' : 'Not Set',
+            'value':
+                widget.properties.containsKey('onPressed') ? 'Set' : 'Not Set',
             'type': 'event',
             'key': 'onPressed',
           },
@@ -1068,7 +1087,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
           },
           {
             'label': 'Input Type',
-            'value': _getPropertyValue(widget, 'inputType', 'TextInputType.text'),
+            'value':
+                _getPropertyValue(widget, 'inputType', 'TextInputType.text'),
             'type': 'selector',
             'key': 'inputType',
           },
@@ -1120,7 +1140,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
           },
           {
             'label': 'On Changed',
-            'value': widget.properties.containsKey('onChanged') ? 'Set' : 'Not Set',
+            'value':
+                widget.properties.containsKey('onChanged') ? 'Set' : 'Not Set',
             'type': 'event',
             'key': 'onChanged',
           },
@@ -1143,7 +1164,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
           },
           {
             'label': 'On Changed',
-            'value': widget.properties.containsKey('onChanged') ? 'Set' : 'Not Set',
+            'value':
+                widget.properties.containsKey('onChanged') ? 'Set' : 'Not Set',
             'type': 'event',
             'key': 'onChanged',
           },
@@ -1183,7 +1205,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
           },
           {
             'label': 'Background Color',
-            'value': _getPropertyValue(widget, 'backgroundColor', 'Theme.of(context).colorScheme.inversePrimary'),
+            'value': _getPropertyValue(widget, 'backgroundColor',
+                'Theme.of(context).colorScheme.inversePrimary'),
             'type': 'color',
             'key': 'backgroundColor',
           },
@@ -1201,19 +1224,22 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
         properties.addAll([
           {
             'label': 'Main Axis Alignment',
-            'value': _getPropertyValue(widget, 'mainAxisAlignment', 'MainAxisAlignment.start'),
+            'value': _getPropertyValue(
+                widget, 'mainAxisAlignment', 'MainAxisAlignment.start'),
             'type': 'selector',
             'key': 'mainAxisAlignment',
           },
           {
             'label': 'Cross Axis Alignment',
-            'value': _getPropertyValue(widget, 'crossAxisAlignment', 'CrossAxisAlignment.center'),
+            'value': _getPropertyValue(
+                widget, 'crossAxisAlignment', 'CrossAxisAlignment.center'),
             'type': 'selector',
             'key': 'crossAxisAlignment',
           },
           {
             'label': 'Main Axis Size',
-            'value': _getPropertyValue(widget, 'mainAxisSize', 'MainAxisSize.max'),
+            'value':
+                _getPropertyValue(widget, 'mainAxisSize', 'MainAxisSize.max'),
             'type': 'selector',
             'key': 'mainAxisSize',
           },
@@ -1224,7 +1250,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
         properties.addAll([
           {
             'label': 'Alignment',
-            'value': _getPropertyValue(widget, 'alignment', 'Alignment.topLeft'),
+            'value':
+                _getPropertyValue(widget, 'alignment', 'Alignment.topLeft'),
             'type': 'selector',
             'key': 'alignment',
           },
@@ -1246,7 +1273,7 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
   List<Map<String, dynamic>> _getRecentProperties(WidgetData widget) {
     // Show recently modified properties
     final properties = <Map<String, dynamic>>[];
-    
+
     // For now, show some common properties
     if (widget.properties.containsKey('margin')) {
       properties.add({
@@ -1274,7 +1301,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
       case WidgetData.TYPE_BUTTON:
         properties.add({
           'label': 'On Pressed',
-          'value': widget.properties.containsKey('onPressed') ? 'Set' : 'Not Set',
+          'value':
+              widget.properties.containsKey('onPressed') ? 'Set' : 'Not Set',
           'type': 'text',
         });
         break;
@@ -1282,14 +1310,16 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
       case WidgetData.TYPE_SWITCH:
         properties.add({
           'label': 'On Changed',
-          'value': widget.properties.containsKey('onChanged') ? 'Set' : 'Not Set',
+          'value':
+              widget.properties.containsKey('onChanged') ? 'Set' : 'Not Set',
           'type': 'text',
         });
         break;
       case WidgetData.TYPE_EDITTEXT:
         properties.add({
           'label': 'On Changed',
-          'value': widget.properties.containsKey('onChanged') ? 'Set' : 'Not Set',
+          'value':
+              widget.properties.containsKey('onChanged') ? 'Set' : 'Not Set',
           'type': 'text',
         });
         break;
@@ -1333,7 +1363,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
     if (colorString == null) return null;
     if (colorString.startsWith('#')) {
       try {
-        return Color(int.parse(colorString.substring(1), radix: 16) + 0xFF000000);
+        return Color(
+            int.parse(colorString.substring(1), radix: 16) + 0xFF000000);
       } catch (e) {
         return null;
       }
@@ -1362,7 +1393,8 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Widget'),
-        content: Text('Are you sure you want to delete this ${_getWidgetDisplayName(widget.type)} widget?'),
+        content: Text(
+            'Are you sure you want to delete this ${_getWidgetDisplayName(widget.type)} widget?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -1372,11 +1404,12 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
             onPressed: () {
               Navigator.pop(context);
               this.widget.onWidgetDeleted(widget);
-              
+
               // Show success message
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('${_getWidgetDisplayName(widget.type)} widget deleted successfully'),
+                  content: Text(
+                      '${_getWidgetDisplayName(widget.type)} widget deleted successfully'),
                   backgroundColor: Colors.green,
                   duration: const Duration(seconds: 2),
                 ),
@@ -1391,8 +1424,6 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
       ),
     );
   }
-
-
 
   String _getPropertyValue(WidgetData widget, String key, String defaultValue) {
     final value = widget.properties[key];
@@ -1432,4 +1463,4 @@ class _BottomPropertyEditorState extends State<BottomPropertyEditor>
         return 'Widget';
     }
   }
-} 
+}

@@ -8,14 +8,14 @@ import '../models/dart_file_bean.dart';
 import '../services/file_sync_service.dart';
 import '../services/dart_file_manager.dart';
 import '../screens/property_editor_screen.dart';
-import '../../../domain/models/project.dart';
+import '../../../models/sketchide_project.dart';
 
 class DroppableMobileFrame extends StatefulWidget {
   final Function(PlacedWidget) onWidgetPlaced;
   final Function(PlacedWidget) onWidgetSelected;
   final Function(PlacedWidget) onWidgetDeleted;
   final String projectId;
-  final Project project;
+  final SketchIDEProject project;
   final DartFileBean? selectedFile;
 
   const DroppableMobileFrame({
@@ -48,12 +48,11 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
     super.didUpdateWidget(oldWidget);
     // Reload widgets when selected file changes
     if (oldWidget.selectedFile?.fileName != widget.selectedFile?.fileName) {
-      debugPrint('File changed from ${oldWidget.selectedFile?.fileName} to ${widget.selectedFile?.fileName}');
+      debugPrint(
+          'File changed from ${oldWidget.selectedFile?.fileName} to ${widget.selectedFile?.fileName}');
       _loadWidgets();
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -112,11 +111,13 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
                           ),
                           Row(
                             children: [
-                              Icon(Icons.signal_cellular_4_bar, color: Colors.white, size: 12),
+                              Icon(Icons.signal_cellular_4_bar,
+                                  color: Colors.white, size: 12),
                               const SizedBox(width: 2),
                               Icon(Icons.wifi, color: Colors.white, size: 12),
                               const SizedBox(width: 2),
-                              Icon(Icons.battery_full, color: Colors.white, size: 12),
+                              Icon(Icons.battery_full,
+                                  color: Colors.white, size: 12),
                             ],
                           ),
                           const SizedBox(width: 8),
@@ -157,7 +158,9 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
                     bottom: 0,
                     child: Container(
                       color: Colors.grey.shade50,
-                      child: _placedWidgets.isEmpty ? _buildEmptyState() : _buildWidgetsList(),
+                      child: _placedWidgets.isEmpty
+                          ? _buildEmptyState()
+                          : _buildWidgetsList(),
                     ),
                   ),
                   // Drop indicator
@@ -222,7 +225,7 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
 
   Widget _buildPlacedWidget(PlacedWidget widget, int index) {
     final isSelected = _selectedWidget == widget;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
@@ -357,7 +360,7 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
   void _addWidget(palette.WidgetData widgetData) {
     // Generate unique ID like Sketchware Pro
     final widgetId = _generateWidgetId(widgetData.type);
-    
+
     final placedWidget = PlacedWidget(
       id: widgetId,
       type: widgetData.type,
@@ -366,25 +369,26 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
         'fileId': widget.selectedFile?.fileName ?? 'unknown',
       },
     );
-    
+
     setState(() {
       _placedWidgets.add(placedWidget);
       _selectedWidget = placedWidget;
       _isDragOver = false;
     });
-    
+
     widget.onWidgetPlaced(placedWidget);
     _saveWidgets();
-    
+
     // Debug information
-    debugPrint('Added widget: ${widgetData.name} (${widgetData.type}) with ID: $widgetId to file: ${widget.selectedFile?.fileName}');
+    debugPrint(
+        'Added widget: ${widgetData.name} (${widgetData.type}) with ID: $widgetId to file: ${widget.selectedFile?.fileName}');
     debugPrint('Total widgets in frame: ${_placedWidgets.length}');
   }
 
   // Generate sequential widget ID like Sketchware Pro
   String _generateWidgetId(String widgetType) {
     final prefix = _getWidgetTypePrefix(widgetType);
-    
+
     // Count existing widgets of the same type
     int count = 1;
     for (final widget in _placedWidgets) {
@@ -392,7 +396,7 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
         count++;
       }
     }
-    
+
     return '${prefix}$count';
   }
 
@@ -458,7 +462,8 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
           onPropertyChanged: (updatedWidget) {
             // Update the widget in the mobile frame
             setState(() {
-              final widgetIndex = _placedWidgets.indexWhere((w) => w.id == updatedWidget.id);
+              final widgetIndex =
+                  _placedWidgets.indexWhere((w) => w.id == updatedWidget.id);
               if (widgetIndex != -1) {
                 _placedWidgets[widgetIndex] = PlacedWidget(
                   id: updatedWidget.id,
@@ -468,12 +473,13 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
                 _selectedWidget = _placedWidgets[widgetIndex];
               }
             });
-            
+
             // Save changes
             _saveWidgets();
-            
+
             // Notify parent
-            this.widget.onWidgetPlaced(_placedWidgets.firstWhere((w) => w.id == updatedWidget.id));
+            this.widget.onWidgetPlaced(
+                _placedWidgets.firstWhere((w) => w.id == updatedWidget.id));
           },
         ),
       ),
@@ -498,7 +504,8 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Delete Widget', style: TextStyle(color: Colors.red)),
+              title: const Text('Delete Widget',
+                  style: TextStyle(color: Colors.red)),
               onTap: () {
                 Navigator.pop(context);
                 _deleteWidget(index);
@@ -510,13 +517,11 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
     );
   }
 
-
-
   void _deleteWidget(int index) {
     final widget = _placedWidgets[index];
     setState(() {
       _placedWidgets.removeAt(index);
-      
+
       // Auto-select next widget if available
       if (_selectedWidget == widget) {
         if (_placedWidgets.isNotEmpty) {
@@ -528,14 +533,15 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
         }
       }
     });
-    
+
     this.widget.onWidgetDeleted(widget);
     _saveWidgets();
-    
+
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${_getWidgetDisplayName(widget.type)} deleted successfully'),
+        content:
+            Text('${_getWidgetDisplayName(widget.type)} deleted successfully'),
         backgroundColor: Colors.red,
         duration: const Duration(seconds: 1),
       ),
@@ -550,26 +556,28 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
         return;
       }
 
-      debugPrint('Saving ${_placedWidgets.length} widgets to file: ${widget.selectedFile!.fileName}');
+      debugPrint(
+          'Saving ${_placedWidgets.length} widgets to file: ${widget.selectedFile!.fileName}');
 
       // Convert PlacedWidgets to WidgetData
-      final widgetDataList = _placedWidgets.map((placedWidget) => WidgetData(
-        id: placedWidget.id,
-        type: placedWidget.type,
-        properties: placedWidget.properties,
-      )).toList();
-      
+      final widgetDataList = _placedWidgets
+          .map((placedWidget) => WidgetData(
+                id: placedWidget.id,
+                type: placedWidget.type,
+                properties: placedWidget.properties,
+              ))
+          .toList();
+
       // Save widgets to the selected file
       await DartFileManager.updateFileWithWidgets(
-        widget.project, 
-        widget.selectedFile!, 
-        widgetDataList
-      );
-      
+          widget.project, widget.selectedFile!, widgetDataList);
+
       // Also save to project storage for backup
-      await FileSyncService.saveWidgetsToProject(widget.project, widgetDataList);
-      
-      debugPrint('✅ Successfully saved ${widgetDataList.length} widgets to ${widget.selectedFile!.fileName}');
+      await FileSyncService.saveWidgetsToProject(
+          widget.project, widgetDataList);
+
+      debugPrint(
+          '✅ Successfully saved ${widgetDataList.length} widgets to ${widget.selectedFile!.fileName}');
     } catch (e) {
       debugPrint('❌ Error saving widgets: $e');
     }
@@ -586,7 +594,7 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
 
       // Load widgets from the selected file
       final widgetDataList = await _loadWidgetsFromFile(widget.selectedFile!);
-      
+
       setState(() {
         _placedWidgets.clear();
         for (final widgetData in widgetDataList) {
@@ -597,8 +605,9 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
           ));
         }
       });
-      
-      debugPrint('✅ Successfully loaded ${widgetDataList.length} widgets from ${widget.selectedFile!.fileName}');
+
+      debugPrint(
+          '✅ Successfully loaded ${widgetDataList.length} widgets from ${widget.selectedFile!.fileName}');
     } catch (e) {
       debugPrint('❌ Error loading widgets: $e');
     }
@@ -607,7 +616,8 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
   Future<List<WidgetData>> _loadWidgetsFromFile(DartFileBean file) async {
     try {
       // Load widgets specifically for this file
-      final fileWidgets = await FileSyncService.loadWidgetsForFile(widget.project, file.fileName);
+      final fileWidgets = await FileSyncService.loadWidgetsForFile(
+          widget.project, file.fileName);
       return fileWidgets;
     } catch (e) {
       debugPrint('Error loading widgets from file: $e');
@@ -619,7 +629,8 @@ class _DroppableMobileFrameState extends State<DroppableMobileFrame> {
     if (colorString == null) return null;
     if (colorString.startsWith('#')) {
       try {
-        return Color(int.parse(colorString.substring(1), radix: 16) + 0xFF000000);
+        return Color(
+            int.parse(colorString.substring(1), radix: 16) + 0xFF000000);
       } catch (e) {
         return null;
       }
@@ -685,4 +696,4 @@ class PlacedWidget {
       properties: properties ?? this.properties,
     );
   }
-} 
+}

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/dart_file_bean.dart';
-import '../../../domain/models/project.dart';
+import '../../../models/sketchide_project.dart';
 import '../services/dart_file_manager.dart';
 
 class DartFileSelector extends StatefulWidget {
-  final Project project;
+  final SketchIDEProject project;
   final DartFileBean? selectedFile;
   final Function(DartFileBean) onFileSelected;
   final VoidCallback? onAddFile;
@@ -190,7 +190,7 @@ class _DartFileSelectorState extends State<DartFileSelector> {
 }
 
 class _AddFileDialog extends StatefulWidget {
-  final Project project;
+  final SketchIDEProject project;
   final Function(DartFileBean) onFileCreated;
 
   const _AddFileDialog({
