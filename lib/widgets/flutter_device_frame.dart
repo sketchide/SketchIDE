@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/flutter_widget_bean.dart';
+import '../models/view_info.dart';
 import '../services/view_info_service.dart' as view_service;
 import '../services/widget_factory_service.dart';
 import 'view_dummy.dart';
@@ -339,67 +340,296 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     // SKETCHWARE PRO STYLE: Update view highlight with transformed coordinates
     _viewInfoService.updateViewHighlight(transformedCoordinates, widgetSize);
 
+    // SKETCHWARE PRO STYLE: Store current drop position for precise positioning
+    _viewInfoService.setCurrentDropZone(view_service.DropZoneInfo(
+      viewInfo: ViewInfo(
+        rect: Rect.fromLTWH(transformedCoordinates.dx,
+            transformedCoordinates.dy, widgetSize.width, widgetSize.height),
+        view: Container(),
+        index: 0,
+        depth: 0,
+      ),
+      position: transformedCoordinates,
+      size: widgetSize,
+      isValid: true,
+    ));
+
     // SKETCHWARE PRO STYLE: Update ViewDummy for visual feedback
     _updateViewDummy(true, details.offset, details.data);
   }
 
   /// SKETCHWARE PRO STYLE: Handle widget drop with precise positioning
   void _handleWidgetDrop(FlutterWidgetBean widgetData) {
-    // SKETCHWARE PRO STYLE: Get current drop zone info
-    final dropZone = _viewInfoService.currentDropZone;
+    // SKETCHWARE PRO STYLE: Get the actual drop position from the last drag move
+    final dropPosition = _viewInfoService.currentDropZone?.position ??
+        Offset(_viewInfoService.containerSize.width / 2,
+            _viewInfoService.containerSize.height / 2);
 
-    if (dropZone != null) {
-      // SKETCHWARE PRO STYLE: Calculate precise position with margins and padding
-      final precisePosition = _viewInfoService.calculateWidgetPosition(
-        dropPosition: dropZone.position,
-        widgetSize: dropZone.size,
-        margins: const EdgeInsets.all(8), // Default margins
-        padding: const EdgeInsets.all(4), // Default padding
-        gravity: Alignment.center, // Default gravity
-      );
+    final widgetSize = _getWidgetSize(widgetData);
 
-      // SKETCHWARE PRO STYLE: Create widget with precise position
-      final positionedWidget =
-          _createPositionedWidget(widgetData, precisePosition);
+    // SKETCHWARE PRO STYLE: Calculate precise position with bounds checking
+    final precisePosition =
+        _calculatePreciseDropPosition(dropPosition, widgetSize);
 
-      // Add widget to the system
-      widget.onWidgetAdded(positionedWidget);
+    // SKETCHWARE PRO STYLE: Create widget with precise position and default properties
+    final positionedWidget = _createPositionedWidgetWithDefaults(
+      widgetData,
+      precisePosition,
+      widgetSize,
+    );
 
-      // SKETCHWARE PRO STYLE: Provide haptic feedback
-      HapticFeedback.lightImpact();
-
-      // SKETCHWARE PRO STYLE: Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Added ${widgetData.type} widget'),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } else {
-      // SKETCHWARE PRO STYLE: Fallback to center placement
-      final centerPosition = Offset(
-        _viewInfoService.containerSize.width / 2,
-        _viewInfoService.containerSize.height / 2,
-      );
-
-      final positionedWidget =
-          _createPositionedWidget(widgetData, centerPosition);
-      widget.onWidgetAdded(positionedWidget);
-
-      HapticFeedback.lightImpact();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Added ${widgetData.type} widget to center'),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    // SKETCHWARE PRO STYLE: Add widget through the view model for proper history management
+    if (widget.onWidgetAdded != null) {
+      widget.onWidgetAdded!(positionedWidget);
     }
 
-    // SKETCHWARE PRO STYLE: Reset view highlight and hide ViewDummy
-    _viewInfoService.resetViewHighlight();
+    // SKETCHWARE PRO STYLE: Select the newly added widget
+    if (widget.onWidgetSelected != null) {
+      widget.onWidgetSelected!(positionedWidget);
+    }
+
+    // SKETCHWARE PRO STYLE: Hide ViewDummy after successful drop
     _hideViewDummy();
+
+    print('🎯 WIDGET DROPPED: ${widgetData.type} at ${precisePosition}');
+  }
+
+  /// SKETCHWARE PRO STYLE: Calculate precise drop position with bounds checking
+  Offset _calculatePreciseDropPosition(Offset dropPosition, Size widgetSize) {
+    final containerSize = _viewInfoService.containerSize;
+
+    // SKETCHWARE PRO STYLE: Ensure widget fits within container bounds
+    double x = dropPosition.dx;
+    double y = dropPosition.dy;
+
+    // SKETCHWARE PRO STYLE: Adjust for widget size to prevent overflow
+    if (x + widgetSize.width > containerSize.width) {
+      x = containerSize.width - widgetSize.width;
+    }
+    if (y + widgetSize.height > containerSize.height) {
+      y = containerSize.height - widgetSize.height;
+    }
+
+    // SKETCHWARE PRO STYLE: Ensure minimum position
+    x = x.clamp(0.0, containerSize.width - widgetSize.width);
+    y = y.clamp(0.0, containerSize.height - widgetSize.height);
+
+    return Offset(x, y);
+  }
+
+  /// SKETCHWARE PRO STYLE: Create widget with default properties like Sketchware Pro
+  FlutterWidgetBean _createPositionedWidgetWithDefaults(
+    FlutterWidgetBean widgetData,
+    Offset position,
+    Size widgetSize,
+  ) {
+    // SKETCHWARE PRO STYLE: Create new layout with default properties based on widget type
+    LayoutBean layout;
+
+    // SKETCHWARE PRO STYLE: Set default size based on widget type
+    switch (widgetData.type) {
+      case 'Row':
+      case 'Column':
+        // SKETCHWARE PRO STYLE: Layout widgets get MATCH_PARENT by default
+        layout = LayoutBean(
+          marginLeft: position.dx.toDouble(),
+          marginTop: position.dy.toDouble(),
+          marginRight: 0.0,
+          marginBottom: 0.0,
+          width: -1, // MATCH_PARENT
+          height: -2, // WRAP_CONTENT
+          paddingLeft: 8,
+          paddingTop: 8,
+          paddingRight: 8,
+          paddingBottom: 8,
+          backgroundColor: 0xFFFFFFFF,
+          layoutGravity: 0,
+        );
+        break;
+      case 'Stack':
+        // SKETCHWARE PRO STYLE: Stack gets MATCH_PARENT by default
+        layout = LayoutBean(
+          marginLeft: position.dx.toDouble(),
+          marginTop: position.dy.toDouble(),
+          marginRight: 0.0,
+          marginBottom: 0.0,
+          width: -1, // MATCH_PARENT
+          height: -1, // MATCH_PARENT
+          paddingLeft: 8,
+          paddingTop: 8,
+          paddingRight: 8,
+          paddingBottom: 8,
+          backgroundColor: 0xFFFFFFFF,
+          layoutGravity: 0,
+        );
+        break;
+      default:
+        // SKETCHWARE PRO STYLE: Regular widgets get WRAP_CONTENT by default
+        layout = LayoutBean(
+          marginLeft: position.dx.toDouble(),
+          marginTop: position.dy.toDouble(),
+          marginRight: 0.0,
+          marginBottom: 0.0,
+          width: -2, // WRAP_CONTENT
+          height: -2, // WRAP_CONTENT
+          paddingLeft: 8,
+          paddingTop: 8,
+          paddingRight: 8,
+          paddingBottom: 8,
+          backgroundColor: 0xFFFFFFFF,
+          layoutGravity: 0,
+        );
+        break;
+    }
+
+    // SKETCHWARE PRO STYLE: Create new widget with updated layout and default properties
+    final updatedWidget = FlutterWidgetBean(
+      id: widgetData.id,
+      type: widgetData.type,
+      properties: Map.from(widgetData.properties)
+        ..addAll(_getDefaultProperties(widgetData.type)),
+      children: List.from(widgetData.children),
+      position: PositionBean(
+        x: position.dx,
+        y: position.dy,
+        width: widgetSize.width,
+        height: widgetSize.height,
+      ),
+      events: Map.from(widgetData.events),
+      layout: layout,
+    );
+
+    return updatedWidget;
+  }
+
+  /// SKETCHWARE PRO STYLE: Get default properties for widget type
+  Map<String, dynamic> _getDefaultProperties(String widgetType) {
+    switch (widgetType) {
+      case 'Text':
+        return {
+          'text': 'Text',
+          'textSize': '14.0',
+          'textColor': '#000000',
+          'backgroundColor': '#FFFFFF',
+          'textType': 'normal',
+          'lines': '1',
+          'singleLine': 'false',
+        };
+      case 'TextField':
+        return {
+          'text': '',
+          'hint': 'Enter text',
+          'inputType': 'text',
+          'singleLine': 'true',
+          'lines': '1',
+          'textSize': '14.0',
+          'textColor': '#000000',
+          'hintColor': '#757575',
+          'backgroundColor': '#FFFFFF',
+        };
+      case 'Container':
+        return {
+          'backgroundColor': '#FFFFFF',
+          'borderColor': '#000000',
+          'borderWidth': '1.0',
+          'borderRadius': '0.0',
+          'width': '150.0',
+          'height': '80.0',
+        };
+      case 'Icon':
+        return {
+          'iconName': 'star',
+          'iconSize': 24.0, // Fixed: Use double instead of string
+          'iconColor': '#000000',
+          'backgroundColor': '#FFFFFF',
+        };
+      case 'Row':
+        return {
+          'mainAxisAlignment': 'start',
+          'crossAxisAlignment': 'center',
+          'mainAxisSize': 'max',
+          'backgroundColor': '#FFFFFF',
+        };
+      case 'Column':
+        return {
+          'mainAxisAlignment': 'start',
+          'crossAxisAlignment': 'center',
+          'mainAxisSize': 'max',
+          'backgroundColor': '#FFFFFF',
+        };
+      case 'Stack':
+        return {
+          'alignment': 'topLeft',
+          'fit': 'loose',
+          'backgroundColor': '#FFFFFF',
+        };
+      default:
+        return {
+          'backgroundColor': '#FFFFFF',
+        };
+    }
+  }
+
+  /// SKETCHWARE PRO STYLE: Get default layout for widget type
+  LayoutBean _getDefaultLayout(String widgetType) {
+    switch (widgetType) {
+      case 'Text':
+      case 'TextField':
+      case 'Icon':
+        return LayoutBean(
+          width: LayoutBean.WRAP_CONTENT,
+          height: LayoutBean.WRAP_CONTENT,
+          marginLeft: 8,
+          marginTop: 8,
+          marginRight: 8,
+          marginBottom: 8,
+          paddingLeft: 4,
+          paddingTop: 4,
+          paddingRight: 4,
+          paddingBottom: 4,
+        );
+      case 'Container':
+        return LayoutBean(
+          width: LayoutBean.WRAP_CONTENT,
+          height: LayoutBean.WRAP_CONTENT,
+          marginLeft: 8,
+          marginTop: 8,
+          marginRight: 8,
+          marginBottom: 8,
+          paddingLeft: 8,
+          paddingTop: 8,
+          paddingRight: 8,
+          paddingBottom: 8,
+        );
+      case 'Row':
+      case 'Column':
+      case 'Stack':
+        return LayoutBean(
+          width: LayoutBean.MATCH_PARENT,
+          height: LayoutBean.WRAP_CONTENT,
+          marginLeft: 8,
+          marginTop: 8,
+          marginRight: 8,
+          marginBottom: 8,
+          paddingLeft: 8,
+          paddingTop: 8,
+          paddingRight: 8,
+          paddingBottom: 8,
+        );
+      default:
+        return LayoutBean(
+          width: LayoutBean.WRAP_CONTENT,
+          height: LayoutBean.WRAP_CONTENT,
+          marginLeft: 8,
+          marginTop: 8,
+          marginRight: 8,
+          marginBottom: 8,
+          paddingLeft: 4,
+          paddingTop: 4,
+          paddingRight: 4,
+          paddingBottom: 4,
+        );
+    }
   }
 
   /// SKETCHWARE PRO STYLE: Update ViewDummy state for visual feedback
@@ -427,6 +657,8 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       case 'Row':
       case 'Column':
         return const Size(200, 100); // Layout widgets
+      case 'Stack':
+        return const Size(200, 150); // Stack widget with proper dimensions
       case 'Container':
         return const Size(150, 80); // Container widget
       case 'Text':
@@ -438,36 +670,6 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       default:
         return const Size(100, 50); // Default size
     }
-  }
-
-  /// SKETCHWARE PRO STYLE: Create positioned widget with precise coordinates
-  FlutterWidgetBean _createPositionedWidget(
-      FlutterWidgetBean originalWidget, Offset position) {
-    return FlutterWidgetBean(
-      id: _generateWidgetId(originalWidget.type),
-      type: originalWidget.type,
-      properties: Map.from(originalWidget.properties),
-      children: List.from(originalWidget.children),
-      position: PositionBean(
-        x: position.dx,
-        y: position.dy,
-        width: _getWidgetSize(originalWidget).width,
-        height: _getWidgetSize(originalWidget).height,
-      ),
-      events: Map.from(originalWidget.events),
-      layout: LayoutBean(
-        width: LayoutBean.WRAP_CONTENT,
-        height: LayoutBean.WRAP_CONTENT,
-        marginLeft: 8,
-        marginTop: 8,
-        marginRight: 8,
-        marginBottom: 8,
-        paddingLeft: 4,
-        paddingTop: 4,
-        paddingRight: 4,
-        paddingBottom: 4,
-      ),
-    );
   }
 
   /// SKETCHWARE PRO STYLE: Generate unique widget ID
@@ -482,15 +684,16 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
     return Stack(
       children: widget.widgets
-          .map((widgetBean) => _buildSketchwareProWidget(widgetBean, scale))
+          .map((widgetBean) => _buildSketchwareProWidget(widgetBean))
           .toList(),
     );
   }
 
-  // SKETCHWARE PRO STYLE WIDGET
-  Widget _buildSketchwareProWidget(FlutterWidgetBean widgetBean, double scale) {
+  /// SKETCHWARE PRO STYLE: Build widget with selection capability
+  Widget _buildSketchwareProWidget(FlutterWidgetBean widgetBean) {
     final isSelected = widget.selectedWidget?.id == widgetBean.id;
     final widgetKey = GlobalKey();
+    final scale = 1.0; // SKETCHWARE PRO STYLE: Use 1.0 scale for mobile frame
 
     // Calculate position like Sketchware Pro
     final position = _calculateWidgetPosition(widgetBean, scale);
@@ -499,42 +702,37 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       left: position.left,
       top: position.top,
       child: GestureDetector(
-        onTap: () => widget.onWidgetSelected(widgetBean),
+        onTap: () {
+          // SKETCHWARE PRO STYLE: Select widget and show property panel
+          print('🎯 WIDGET SELECTED: ${widgetBean.type} (${widgetBean.id})');
+          if (widget.onWidgetSelected != null) {
+            widget.onWidgetSelected!(widgetBean);
+          }
+        },
         child: Listener(
           onPointerDown: (details) {
-            // Drag detection is now handled by ViewInfoService
+            // SKETCHWARE PRO STYLE: Handle drag start for existing widgets
+            _handleExistingWidgetDragStart(widgetBean, details);
           },
-          onPointerMove: (details) {
-            // Drag detection is now handled by ViewInfoService
-          },
-          onPointerUp: (details) {
-            // Drag detection is now handled by ViewInfoService
-          },
-          onPointerCancel: (details) {
-            // Drag detection is now handled by ViewInfoService
-          },
-          child: RepaintBoundary(
-            key: widgetKey,
-            child: Container(
-              width: position.width,
-              height: position.height,
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.grey.withOpacity(0.3),
-                  width: isSelected ? 2 : 1,
-                ),
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                    : Colors.transparent,
-              ),
-              child: _buildRealWidgetWithScale(widgetBean, scale),
+          child: Container(
+            decoration: BoxDecoration(
+              border:
+                  isSelected ? Border.all(color: Colors.blue, width: 2) : null,
             ),
+            child: _buildRealWidgetWithScale(widgetBean, scale),
           ),
         ),
       ),
     );
+  }
+
+  /// SKETCHWARE PRO STYLE: Handle drag start for existing widgets
+  void _handleExistingWidgetDragStart(
+      FlutterWidgetBean widgetBean, PointerDownEvent details) {
+    // SKETCHWARE PRO STYLE: Allow dragging existing widgets
+    print(
+        '🎯 EXISTING WIDGET DRAG START: ${widgetBean.type} (${widgetBean.id})');
+    // TODO: Implement drag functionality for existing widgets
   }
 
   // SKETCHWARE PRO STYLE POSITION CALCULATION
@@ -557,6 +755,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       height = _calculateWrapContentHeight(widgetBean, scale);
     }
 
+    // SKETCHWARE PRO STYLE: Use position coordinates for positioning (reverted to previous behavior)
     return WidgetPosition(
       left: widgetBean.position.x * scale,
       top: widgetBean.position.y * scale,

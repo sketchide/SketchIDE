@@ -11,14 +11,18 @@ import 'property_items/property_selector_box.dart';
 /// Displays and manages widget properties with real-time updates
 class PropertyPanel extends StatefulWidget {
   final FlutterWidgetBean selectedWidget;
+  final List<FlutterWidgetBean> allWidgets;
   final Function(FlutterWidgetBean) onPropertyChanged;
   final Function(FlutterWidgetBean) onWidgetDeleted;
+  final Function(FlutterWidgetBean)? onWidgetSelected;
 
   const PropertyPanel({
     super.key,
     required this.selectedWidget,
+    required this.allWidgets,
     required this.onPropertyChanged,
     required this.onWidgetDeleted,
+    this.onWidgetSelected,
   });
 
   @override
@@ -105,19 +109,24 @@ class _PropertyPanelState extends State<PropertyPanel> {
                     EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 border: OutlineInputBorder(),
               ),
-              items: [widget.selectedWidget].map((widgetBean) {
+              items: widget.allWidgets.map((widgetBean) {
                 return DropdownMenuItem(
                   value: widgetBean.id,
                   child: Text(
-                    widgetBean.id.startsWith('_')
-                        ? widgetBean.id.substring(1)
-                        : widgetBean.id,
+                    '${widgetBean.type} (${widgetBean.id})',
                     style: const TextStyle(fontSize: 12),
                   ),
                 );
               }).toList(),
               onChanged: (value) {
-                // Handle widget selection
+                // SKETCHWARE PRO STYLE: Handle widget selection from dropdown
+                if (value != null && widget.onWidgetSelected != null) {
+                  final selectedWidget = widget.allWidgets.firstWhere(
+                    (w) => w.id == value,
+                    orElse: () => widget.selectedWidget,
+                  );
+                  widget.onWidgetSelected!(selectedWidget);
+                }
               },
             ),
           ),

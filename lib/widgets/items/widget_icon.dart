@@ -259,7 +259,15 @@ class WidgetIcon extends StatelessWidget {
   }
 
   double _getIconSize() {
-    return (widgetBean.properties['iconSize'] ?? 24.0) * scale;
+    final iconSize = widgetBean.properties['iconSize'];
+    if (iconSize is double) {
+      return iconSize * scale;
+    } else if (iconSize is String) {
+      return (double.tryParse(iconSize) ?? 24.0) * scale;
+    } else if (iconSize is int) {
+      return (iconSize.toDouble()) * scale;
+    }
+    return 24.0 * scale; // Default fallback
   }
 
   Color _getIconColor() {

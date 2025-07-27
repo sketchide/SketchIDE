@@ -207,53 +207,44 @@ class _WidgetPaletteState extends State<WidgetPalette> {
           HapticFeedback.lightImpact();
         },
 
-        // SKETCHWARE PRO STYLE: Child widget - EXACT MATCH
-        child: InkWell(
-          onTap: () {
-            print('🎯 WIDGET TAPPED: $type'); // Debug output
-            _addWidget(type);
-          },
-          onLongPress: () {
-            print('🎯 WIDGET LONG PRESSED: $type'); // Debug output
-          },
-          child: Container(
-            height: 20, // SKETCHWARE PRO: Fixed 20dp height
-            decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .surfaceContainerHigh, // SKETCHWARE PRO: colorSurfaceContainerHigh
-              borderRadius:
-                  BorderRadius.circular(4), // SKETCHWARE PRO: 4dp radius
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                    width:
-                        8), // INCREASED: 8dp left margin (shifted right, no overlap)
-                Icon(
-                  icon,
-                  size: 14, // SKETCHWARE PRO: 14dp icon
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface, // SKETCHWARE PRO: colorOnSurface
-                ),
-                const SizedBox(width: 3), // SKETCHWARE PRO: 3dp marginStart
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 11, // SKETCHWARE PRO: 11sp
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface, // SKETCHWARE PRO: colorOnSurface
-                    ),
-                    textAlign: TextAlign.start,
+        // SKETCHWARE PRO STYLE: Child widget - EXACT MATCH (NO TAP BEHAVIOR)
+        child: Container(
+          height: 20, // SKETCHWARE PRO: Fixed 20dp height
+          decoration: BoxDecoration(
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHigh, // SKETCHWARE PRO: colorSurfaceContainerHigh
+            borderRadius:
+                BorderRadius.circular(4), // SKETCHWARE PRO: 4dp radius
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(
+                  width:
+                      8), // INCREASED: 8dp left margin (shifted right, no overlap)
+              Icon(
+                icon,
+                size: 14, // SKETCHWARE PRO: 14dp icon
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface, // SKETCHWARE PRO: colorOnSurface
+              ),
+              const SizedBox(width: 3), // SKETCHWARE PRO: 3dp marginStart
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11, // SKETCHWARE PRO: 11sp
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface, // SKETCHWARE PRO: colorOnSurface
                   ),
+                  textAlign: TextAlign.start,
                 ),
-                const SizedBox(width: 4), // SKETCHWARE PRO: 4dp marginEnd
-              ],
-            ),
+              ),
+              const SizedBox(width: 4), // SKETCHWARE PRO: 4dp marginEnd
+            ],
           ),
         ),
       ),
@@ -303,7 +294,7 @@ class _WidgetPaletteState extends State<WidgetPalette> {
     );
   }
 
-  // SKETCHWARE PRO STYLE: Add widget on tap
+  // SKETCHWARE PRO STYLE: Add widget on tap (restored for potential use)
   void _addWidget(String type) {
     final widgetBean = _createWidgetBean(type, Icons.widgets, type);
     widget.onWidgetSelected(widgetBean);

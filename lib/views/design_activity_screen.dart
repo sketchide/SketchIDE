@@ -6,6 +6,7 @@ import '../widgets/flutter_device_frame.dart';
 import '../widgets/property_panel.dart';
 import '../widgets/design_drawer.dart';
 import '../controllers/drag_controller.dart';
+import '../models/flutter_widget_bean.dart';
 
 /// Design Activity Screen - Main visual editor screen
 class DesignActivityScreen extends StatefulWidget {
@@ -246,12 +247,38 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
         ),
       ),
       child: PropertyPanel(
-        selectedWidget: viewModel.selectedWidget!,
+        selectedWidget: viewModel.selectedWidget ??
+            FlutterWidgetBean(
+              id: '',
+              type: 'Text',
+              properties: {},
+              children: [],
+              position: PositionBean(x: 0, y: 0, width: 100, height: 50),
+              events: {},
+              layout: LayoutBean(
+                marginLeft: 0,
+                marginTop: 0,
+                marginRight: 0,
+                marginBottom: 0,
+                width: 100,
+                height: 50,
+                paddingLeft: 0,
+                paddingTop: 0,
+                paddingRight: 0,
+                paddingBottom: 0,
+                backgroundColor: 0xFFFFFFFF,
+                layoutGravity: 0,
+              ),
+            ),
+        allWidgets: viewModel.widgets,
         onPropertyChanged: (widget) {
           viewModel.updateWidget(widget);
         },
         onWidgetDeleted: (widget) {
           viewModel.deleteSelectedWidget();
+        },
+        onWidgetSelected: (widget) {
+          viewModel.selectWidget(widget);
         },
       ),
     );
