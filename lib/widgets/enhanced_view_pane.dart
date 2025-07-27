@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import '../models/flutter_widget_bean.dart';
 import '../models/view_info.dart';
 import '../services/view_info_service.dart';
+import 'items/widget_row.dart';
+import 'items/widget_column.dart';
+import 'items/widget_container.dart';
+import 'items/widget_stack.dart';
+import 'items/widget_text.dart';
+import 'items/widget_text_field.dart';
+import 'items/widget_icon.dart';
 
 /// Enhanced View Pane - EXACTLY matches Sketchware Pro's ViewPane
 /// Provides sophisticated drop zone detection and visual feedback during drag operations
@@ -254,161 +261,70 @@ class _ViewPaneItemState extends State<ViewPaneItem> {
 
   Widget _buildWidgetContent(
       FlutterWidgetBean widget, BoxConstraints constraints) {
-    // Build the actual widget content based on type
+    // Build the actual widget content based on type using our new widget classes
     switch (widget.type) {
-      case 'text':
-        return _buildTextWidget(widget);
-      case 'button':
-        return _buildButtonWidget(widget);
-      case 'column':
-        return _buildColumnWidget(widget);
-      case 'row':
-        return _buildRowWidget(widget);
-      case 'stack':
-        return _buildStackWidget(widget);
-      case 'container':
-        return _buildContainerWidget(widget);
-      case 'scaffold':
-        return _buildScaffoldWidget(widget);
+      // Layout Widgets
+      case 'Row':
+        return WidgetRow(
+          widgetBean: widget,
+          isSelected: _isHovered,
+          onTap: () => this.widget.onWidgetSelected(widget),
+          children: _buildChildren(widget),
+        );
+      case 'Column':
+        return WidgetColumn(
+          widgetBean: widget,
+          isSelected: _isHovered,
+          onTap: () => this.widget.onWidgetSelected(widget),
+          children: _buildChildren(widget),
+        );
+      case 'Container':
+        return WidgetContainer(
+          widgetBean: widget,
+          isSelected: _isHovered,
+          onTap: () => this.widget.onWidgetSelected(widget),
+          child:
+              widget.children.isNotEmpty ? _buildChildren(widget).first : null,
+        );
+      case 'Stack':
+        return WidgetStack(
+          widgetBean: widget,
+          isSelected: _isHovered,
+          onTap: () => this.widget.onWidgetSelected(widget),
+          children: _buildChildren(widget),
+        );
+
+      // Text & Input Widgets
+      case 'Text':
+        return WidgetText(
+          widgetBean: widget,
+          isSelected: _isHovered,
+          onTap: () => this.widget.onWidgetSelected(widget),
+        );
+      case 'TextField':
+        return WidgetTextField(
+          widgetBean: widget,
+          isSelected: _isHovered,
+          onTap: () => this.widget.onWidgetSelected(widget),
+        );
+      case 'Icon':
+        return WidgetIcon(
+          widgetBean: widget,
+          isSelected: _isHovered,
+          onTap: () => this.widget.onWidgetSelected(widget),
+        );
+
+      // Fallback for unknown widgets
       default:
         return _buildDefaultWidget(widget);
     }
   }
 
-  Widget _buildTextWidget(FlutterWidgetBean widget) {
-    return Center(
-      child: Text(
-        widget.properties['text'] ?? 'Text',
-        style: TextStyle(
-          fontSize: widget.properties['fontSize']?.toDouble() ?? 16.0,
-          color: _parseColor(widget.properties['color']),
-          fontWeight: _parseFontWeight(widget.properties['fontWeight']),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildButtonWidget(FlutterWidgetBean widget) {
-    return Center(
-      child: ElevatedButton(
-        onPressed: () => this.widget.onWidgetSelected(widget),
-        child: Text(widget.properties['text'] ?? 'Button'),
-      ),
-    );
-  }
-
-  Widget _buildColumnWidget(FlutterWidgetBean widget) {
-    return Column(
-      mainAxisAlignment: _parseMainAxisAlignment(widget.layout.gravity),
-      crossAxisAlignment: _parseCrossAxisAlignment(widget.layout.gravity),
-      children: [
-        // Placeholder for children
-        if (widget.children.isEmpty)
-          Container(
-            width: double.infinity,
-            height: 100,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey, style: BorderStyle.solid),
-              color: Colors.grey.withOpacity(0.1),
-            ),
-            child: const Center(
-              child: Text(
-                'Column\n(Drop widgets here)',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildRowWidget(FlutterWidgetBean widget) {
-    return Row(
-      mainAxisAlignment: _parseMainAxisAlignment(widget.layout.gravity),
-      crossAxisAlignment: _parseCrossAxisAlignment(widget.layout.gravity),
-      children: [
-        // Placeholder for children
-        if (widget.children.isEmpty)
-          Expanded(
-            child: Container(
-              height: 100,
-              decoration: BoxDecoration(
-                border:
-                    Border.all(color: Colors.grey, style: BorderStyle.solid),
-                color: Colors.grey.withOpacity(0.1),
-              ),
-              child: const Center(
-                child: Text(
-                  'Row\n(Drop widgets here)',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildStackWidget(FlutterWidgetBean widget) {
-    return Stack(
-      children: [
-        // Placeholder for children
-        if (widget.children.isEmpty)
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey, style: BorderStyle.solid),
-              color: Colors.grey.withOpacity(0.1),
-            ),
-            child: const Center(
-              child: Text(
-                'Stack\n(Drop widgets here)',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildContainerWidget(FlutterWidgetBean widget) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        color: _parseColor(widget.layout.backgroundColor),
-        border: Border.all(color: Colors.grey, style: BorderStyle.solid),
-      ),
-      child: const Center(
-        child: Text(
-          'Container\n(Drop widgets here)',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildScaffoldWidget(FlutterWidgetBean widget) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.grey, style: BorderStyle.solid),
-      ),
-      child: const Center(
-        child: Text(
-          'Scaffold\n(Drop widgets here)',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey),
-        ),
-      ),
-    );
+  // Build children widgets recursively
+  List<Widget> _buildChildren(FlutterWidgetBean parentWidget) {
+    // For now, return empty list since children are stored as IDs
+    // TODO: Implement proper child widget lookup from widget list
+    return [];
   }
 
   Widget _buildDefaultWidget(FlutterWidgetBean widget) {
@@ -429,38 +345,7 @@ class _ViewPaneItemState extends State<ViewPaneItem> {
     );
   }
 
-  // Helper methods for parsing widget properties
-  Color _parseColor(dynamic color) {
-    if (color is int) {
-      return Color(color);
-    } else if (color is String) {
-      // Handle hex color strings
-      if (color.startsWith('#')) {
-        return Color(int.parse(color.substring(1), radix: 16));
-      }
-    }
-    return Colors.black;
-  }
-
-  FontWeight _parseFontWeight(dynamic weight) {
-    if (weight == 'bold') return FontWeight.bold;
-    if (weight == 'normal') return FontWeight.normal;
-    return FontWeight.normal;
-  }
-
-  MainAxisAlignment _parseMainAxisAlignment(int gravity) {
-    if (gravity == LayoutBean.GRAVITY_CENTER) return MainAxisAlignment.center;
-    if (gravity == LayoutBean.GRAVITY_LEFT) return MainAxisAlignment.start;
-    if (gravity == LayoutBean.GRAVITY_RIGHT) return MainAxisAlignment.end;
-    return MainAxisAlignment.start;
-  }
-
-  CrossAxisAlignment _parseCrossAxisAlignment(int gravity) {
-    if (gravity == LayoutBean.GRAVITY_CENTER) return CrossAxisAlignment.center;
-    if (gravity == LayoutBean.GRAVITY_TOP) return CrossAxisAlignment.start;
-    if (gravity == LayoutBean.GRAVITY_BOTTOM) return CrossAxisAlignment.end;
-    return CrossAxisAlignment.start;
-  }
+  // Helper methods removed - now handled by individual widget classes
 }
 
 /// Drop Zone Overlay - Visual feedback for drop zones

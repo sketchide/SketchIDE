@@ -129,20 +129,10 @@ class _WidgetPaletteState extends State<WidgetPalette> {
   Widget _buildLayoutWidgets() {
     return Column(
       children: [
-        _buildDraggableWidgetCard(
-            'LinearLayout', Icons.view_agenda, 'Linear Layout'),
-        _buildDraggableWidgetCard(
-            'RelativeLayout', Icons.view_quilt, 'Relative Layout'),
-        _buildDraggableWidgetCard(
-            'ScrollView', Icons.vertical_align_center, 'Scroll View'),
-        _buildDraggableWidgetCard(
-            'HorizontalScrollView', Icons.horizontal_rule, 'Horizontal Scroll'),
-        _buildDraggableWidgetCard('ListView', Icons.list, 'List View'),
-        _buildDraggableWidgetCard('GridView', Icons.grid_on, 'Grid View'),
-        _buildDraggableWidgetCard(
-            'RecyclerView', Icons.repeat, 'Recycler View'),
-        _buildDraggableWidgetCard(
-            'ViewPager', Icons.view_carousel, 'View Pager'),
+        _buildDraggableWidgetCard('Row', Icons.view_agenda, 'Row'),
+        _buildDraggableWidgetCard('Column', Icons.view_column, 'Column'),
+        _buildDraggableWidgetCard('Container', Icons.crop_square, 'Container'),
+        _buildDraggableWidgetCard('Stack', Icons.layers, 'Stack'),
       ],
     );
   }
@@ -150,120 +140,118 @@ class _WidgetPaletteState extends State<WidgetPalette> {
   Widget _buildWidgetItems() {
     return Column(
       children: [
-        _buildDraggableWidgetCard('TextView', Icons.text_fields, 'Text View'),
-        _buildDraggableWidgetCard('EditText', Icons.input, 'Edit Text'),
-        _buildDraggableWidgetCard('Button', Icons.smart_button, 'Button'),
-        _buildDraggableWidgetCard('ImageView', Icons.image, 'Image View'),
-        _buildDraggableWidgetCard(
-            'ProgressBar', Icons.trending_up, 'Progress Bar'),
-        _buildDraggableWidgetCard('SeekBar', Icons.tune, 'Seek Bar'),
-        _buildDraggableWidgetCard('Switch', Icons.toggle_on, 'Switch'),
-        _buildDraggableWidgetCard('CheckBox', Icons.check_box, 'Check Box'),
-        _buildDraggableWidgetCard(
-            'RadioButton', Icons.radio_button_checked, 'Radio Button'),
-        _buildDraggableWidgetCard(
-            'Spinner', Icons.arrow_drop_down_circle, 'Spinner'),
-        _buildDraggableWidgetCard(
-            'CalendarView', Icons.calendar_today, 'Calendar'),
-        _buildDraggableWidgetCard('WebView', Icons.web, 'Web View'),
-        _buildDraggableWidgetCard('MapView', Icons.map, 'Map View'),
-        _buildDraggableWidgetCard('AdView', Icons.ads_click, 'Ad View'),
-        _buildDraggableWidgetCard(
-            'FloatingActionButton', Icons.add_circle, 'FAB'),
+        _buildDraggableWidgetCard('Text', Icons.text_fields, 'Text'),
+        _buildDraggableWidgetCard('TextField', Icons.input, 'Text Field'),
+        _buildDraggableWidgetCard('Icon', Icons.star, 'Icon'),
       ],
     );
   }
 
   Widget _buildDraggableWidgetCard(String type, IconData icon, String label) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(4, 0, 4, 4),
-      child: Card(
-        elevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Draggable<FlutterWidgetBean>(
-          // SKETCHWARE PRO STYLE: Create drag data
-          data: _createWidgetBean(type, icon, label),
+      margin:
+          const EdgeInsets.fromLTRB(4, 2, 4, 2), // SKETCHWARE PRO: 4dp H, 2dp V
+      child: Draggable<FlutterWidgetBean>(
+        // SKETCHWARE PRO STYLE: Create drag data
+        data: _createWidgetBean(type, icon, label),
 
-          // SKETCHWARE PRO STYLE: Drag feedback (shadow/parchayi)
-          feedback: Material(
-            elevation: 8,
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              width: 120,
-              height: 60,
-              decoration: BoxDecoration(
-                color: Colors.blue.shade100,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
+        // SKETCHWARE PRO STYLE: Drag feedback (shadow/parchayi)
+        feedback: Material(
+          elevation: 8,
+          borderRadius: BorderRadius.circular(4), // SKETCHWARE PRO: 4dp radius
+          child: Container(
+            width: 120,
+            height: 20, // SKETCHWARE PRO: 20dp height
+            decoration: BoxDecoration(
+              color: Colors.blue.shade100,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: Colors.blue, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon,
+                    size: 14,
+                    color: Colors.blue.shade600), // SKETCHWARE PRO: 14dp
+                const SizedBox(width: 4), // SKETCHWARE PRO: 4dp spacing
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11, // SKETCHWARE PRO: 11sp
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade800,
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 20, color: Colors.blue.shade600),
-                  const SizedBox(width: 8),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade800,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
+        ),
 
-          // SKETCHWARE PRO STYLE: Drag start feedback
-          onDragStarted: () {
-            print('🎯 DRAG STARTED: $type'); // Debug output
-            HapticFeedback.mediumImpact();
+        // SKETCHWARE PRO STYLE: Drag start feedback
+        onDragStarted: () {
+          print('🎯 DRAG STARTED: $type'); // Debug output
+          HapticFeedback.mediumImpact();
+        },
+
+        // SKETCHWARE PRO STYLE: Drag end feedback
+        onDragEnd: (details) {
+          print('🎯 DRAG ENDED: $type at ${details.offset}'); // Debug output
+          HapticFeedback.lightImpact();
+        },
+
+        // SKETCHWARE PRO STYLE: Child widget - EXACT MATCH
+        child: InkWell(
+          onTap: () {
+            print('🎯 WIDGET TAPPED: $type'); // Debug output
+            _addWidget(type);
           },
-
-          // SKETCHWARE PRO STYLE: Drag end feedback
-          onDragEnd: (details) {
-            print('🎯 DRAG ENDED: $type at ${details.offset}'); // Debug output
-            HapticFeedback.lightImpact();
+          onLongPress: () {
+            print('🎯 WIDGET LONG PRESSED: $type'); // Debug output
           },
-
-          // SKETCHWARE PRO STYLE: Child widget
-          child: InkWell(
-            onTap: () {
-              print('🎯 WIDGET TAPPED: $type'); // Debug output
-              _addWidget(type);
-            },
-            onLongPress: () {
-              print('🎯 WIDGET LONG PRESSED: $type'); // Debug output
-            },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    icon,
-                    size: 16,
-                    color: Colors.blue.shade600,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
+          child: Container(
+            height: 20, // SKETCHWARE PRO: Fixed 20dp height
+            decoration: BoxDecoration(
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHigh, // SKETCHWARE PRO: colorSurfaceContainerHigh
+              borderRadius:
+                  BorderRadius.circular(4), // SKETCHWARE PRO: 4dp radius
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
+                    width:
+                        8), // INCREASED: 8dp left margin (shifted right, no overlap)
+                Icon(
+                  icon,
+                  size: 14, // SKETCHWARE PRO: 14dp icon
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface, // SKETCHWARE PRO: colorOnSurface
+                ),
+                const SizedBox(width: 3), // SKETCHWARE PRO: 3dp marginStart
+                Expanded(
+                  child: Text(
                     label,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                    style: TextStyle(
+                      fontSize: 11, // SKETCHWARE PRO: 11sp
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface, // SKETCHWARE PRO: colorOnSurface
                     ),
+                    textAlign: TextAlign.start,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 4), // SKETCHWARE PRO: 4dp marginEnd
+              ],
             ),
           ),
         ),
@@ -288,63 +276,81 @@ class _WidgetPaletteState extends State<WidgetPalette> {
   // SKETCHWARE PRO STYLE: Get default properties for widget type
   Map<String, dynamic> _getDefaultProperties(String type) {
     switch (type) {
-      case 'Button':
+      // Layout Widgets
+      case 'Row':
         return {
-          'text': 'Button',
-          'backgroundColor': '#2196F3',
-          'textColor': '#FFFFFF',
+          'mainAxisAlignment': 'start',
+          'crossAxisAlignment': 'center',
+          'mainAxisSize': 'max',
         };
-      case 'TextView':
+      case 'Column':
         return {
-          'text': 'Text View',
+          'mainAxisAlignment': 'start',
+          'crossAxisAlignment': 'center',
+          'mainAxisSize': 'max',
+        };
+      case 'Container':
+        return {
+          'width': -2, // WRAP_CONTENT
+          'height': -2, // WRAP_CONTENT
+          'backgroundColor': '#FFFFFF',
+          'borderColor': '#CCCCCC',
+          'borderWidth': 1.0,
+          'borderRadius': 0.0,
+          'alignment': 'center',
+        };
+      case 'Stack':
+        return {
+          'alignment': 'topLeft',
+          'fit': 'loose',
+          'clipBehavior': 'hardEdge',
+        };
+
+      // Text & Input Widgets
+      case 'Text':
+        return {
+          'text': 'Text Widget',
+          'fontSize': 14.0,
+          'fontWeight': 'normal',
+          'fontStyle': 'normal',
           'textColor': '#000000',
-          'textSize': 16.0,
+          'backgroundColor': '#FFFFFF',
+          'textAlign': 'left',
+          'maxLines': null,
+          'textOverflow': 'ellipsis',
+          'softWrap': true,
+          'textDecoration': 'none',
+          'decorationColor': '#000000',
+          'decorationThickness': 1.0,
         };
-      case 'EditText':
+      case 'TextField':
         return {
-          'hint': 'Enter text...',
+          'text': '',
+          'hint': 'Enter text',
+          'label': null,
+          'fontSize': 14.0,
+          'fontWeight': 'normal',
           'textColor': '#000000',
-          'backgroundColor': '#FFFFFF',
+          'borderType': 'outline',
+          'borderColor': '#CCCCCC',
+          'focusedBorderColor': '#2196F3',
+          'borderRadius': 4.0,
+          'filled': false,
+          'fillColor': '#F5F5F5',
+          'maxLines': 1,
+          'obscureText': false,
+          'textAlign': 'left',
+          'keyboardType': 'text',
+          'textCapitalization': 'sentences',
+          'prefixIcon': null,
+          'suffixIcon': null,
         };
-      case 'ImageView':
+      case 'Icon':
         return {
-          'src': '',
-          'scaleType': 'centerCrop',
-        };
-      case 'LinearLayout':
-        return {
-          'orientation': 'vertical',
-          'backgroundColor': '#FFFFFF',
-        };
-      case 'RelativeLayout':
-        return {
-          'backgroundColor': '#FFFFFF',
-        };
-      case 'FrameLayout':
-        return {
-          'backgroundColor': '#FFFFFF',
-        };
-      case 'ScrollView':
-        return {
-          'backgroundColor': '#FFFFFF',
-        };
-      case 'HorizontalScrollView':
-        return {
-          'backgroundColor': '#FFFFFF',
-        };
-      case 'GridView':
-        return {
-          'numColumns': 2,
-          'backgroundColor': '#FFFFFF',
-        };
-      case 'ListView':
-        return {
-          'backgroundColor': '#FFFFFF',
-        };
-      case 'FloatingActionButton':
-        return {
-          'icon': 'add',
-          'backgroundColor': '#FF5722',
+          'iconName': 'home',
+          'iconSize': 24.0,
+          'iconColor': '#000000',
+          'semanticLabel': null,
         };
       default:
         return {};
@@ -354,37 +360,72 @@ class _WidgetPaletteState extends State<WidgetPalette> {
   // SKETCHWARE PRO STYLE: Get default layout for widget type
   LayoutBean _getDefaultLayout(String type) {
     switch (type) {
-      case 'LinearLayout':
-      case 'RelativeLayout':
-      case 'FrameLayout':
+      // Layout Widgets
+      case 'Row':
         return LayoutBean(
-          width: LayoutBean.MATCH_PARENT,
-          height: LayoutBean.WRAP_CONTENT,
+          width: -1, // MATCH_PARENT
+          height: -2, // WRAP_CONTENT
+          paddingLeft: 8,
+          paddingTop: 8,
+          paddingRight: 8,
+          paddingBottom: 8,
+        );
+      case 'Column':
+        return LayoutBean(
+          width: -2, // WRAP_CONTENT
+          height: -1, // MATCH_PARENT
+          paddingLeft: 8,
+          paddingTop: 8,
+          paddingRight: 8,
+          paddingBottom: 8,
+        );
+      case 'Container':
+        return LayoutBean(
+          width: -2, // WRAP_CONTENT
+          height: -2, // WRAP_CONTENT
           paddingLeft: 16,
           paddingTop: 16,
           paddingRight: 16,
           paddingBottom: 16,
         );
-      case 'ScrollView':
-      case 'HorizontalScrollView':
+      case 'Stack':
         return LayoutBean(
-          width: LayoutBean.MATCH_PARENT,
-          height: LayoutBean.WRAP_CONTENT,
+          width: -1, // MATCH_PARENT
+          height: -1, // MATCH_PARENT
         );
-      case 'GridView':
+
+      // Text & Input Widgets
+      case 'Text':
         return LayoutBean(
-          width: LayoutBean.MATCH_PARENT,
-          height: LayoutBean.WRAP_CONTENT,
+          width: -2, // WRAP_CONTENT
+          height: -2, // WRAP_CONTENT
+          paddingLeft: 8,
+          paddingTop: 4,
+          paddingRight: 8,
+          paddingBottom: 4,
         );
-      case 'ListView':
+      case 'TextField':
         return LayoutBean(
-          width: LayoutBean.MATCH_PARENT,
-          height: LayoutBean.WRAP_CONTENT,
+          width: -1, // MATCH_PARENT
+          height: -2, // WRAP_CONTENT
+          paddingLeft: 8,
+          paddingTop: 4,
+          paddingRight: 8,
+          paddingBottom: 4,
+        );
+      case 'Icon':
+        return LayoutBean(
+          width: -2, // WRAP_CONTENT
+          height: -2, // WRAP_CONTENT
+          paddingLeft: 8,
+          paddingTop: 8,
+          paddingRight: 8,
+          paddingBottom: 8,
         );
       default:
         return LayoutBean(
-          width: LayoutBean.WRAP_CONTENT,
-          height: LayoutBean.WRAP_CONTENT,
+          width: -2, // WRAP_CONTENT
+          height: -2, // WRAP_CONTENT
         );
     }
   }

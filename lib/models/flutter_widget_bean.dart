@@ -147,8 +147,7 @@ class FlutterWidgetBean {
   static const int VIEW_TYPE_LAYOUT_ROW = 0;
   static const int VIEW_TYPE_LAYOUT_COLUMN = 1;
   static const int VIEW_TYPE_LAYOUT_CONTAINER = 2;
-  static const int VIEW_TYPE_LAYOUT_PADDING = 3;
-  static const int VIEW_TYPE_LAYOUT_CENTER = 4;
+  static const int VIEW_TYPE_LAYOUT_CENTER = 3;
 
   // CATEGORY 2: TEXT & INPUT WIDGETS
   static const int VIEW_TYPE_WIDGET_TEXT = 10;
