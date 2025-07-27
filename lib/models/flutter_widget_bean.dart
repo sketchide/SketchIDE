@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-/// Flutter Widget Data Model (JSON-based like Sketchware Pro's ViewBean)
+/// FlutterWidgetBean - EXACTLY matches Sketchware Pro's ViewBean
 class FlutterWidgetBean {
   final String id;
-  final String type;
+  final String type; // Type is String, not enum
   final Map<String, dynamic> properties;
   final String? parentId;
   final List<String> children;
@@ -13,52 +13,83 @@ class FlutterWidgetBean {
   final bool isVisible;
   final String? customCode;
 
+  // SKETCHWARE PRO STYLE LAYOUT PROPERTIES
+  final LayoutBean layout;
+  final int parentType;
+  final int index;
+  final String parent;
+  final int preIndex;
+  final String preParent;
+  final int preParentType;
+  final bool isFixed;
+
   FlutterWidgetBean({
     required this.id,
     required this.type,
     required this.properties,
     this.parentId,
-    this.children = const [],
+    required this.children,
     required this.position,
-    this.events = const {},
+    required this.events,
     this.isSelected = false,
     this.isVisible = true,
     this.customCode,
+    required this.layout,
+    this.parentType = 0, // VIEW_TYPE_LAYOUT_LINEAR default
+    this.index = -1,
+    this.parent = 'root',
+    this.preIndex = -1,
+    this.preParent = '',
+    this.preParentType = 0,
+    this.isFixed = false,
   });
 
-  /// Create from JSON
   factory FlutterWidgetBean.fromJson(Map<String, dynamic> json) {
     return FlutterWidgetBean(
-      id: json['id'] as String,
-      type: json['type'] as String,
+      id: json['id'] ?? '',
+      type: json['type'] ?? '',
       properties: Map<String, dynamic>.from(json['properties'] ?? {}),
-      parentId: json['parent_id'] as String?,
+      parentId: json['parentId'],
       children: List<String>.from(json['children'] ?? []),
       position: PositionBean.fromJson(json['position'] ?? {}),
       events: Map<String, String>.from(json['events'] ?? {}),
-      isSelected: json['is_selected'] as bool? ?? false,
-      isVisible: json['is_visible'] as bool? ?? true,
-      customCode: json['custom_code'] as String?,
+      isSelected: json['isSelected'] ?? false,
+      isVisible: json['isVisible'] ?? true,
+      customCode: json['customCode'],
+      layout: LayoutBean.fromJson(json['layout'] ?? {}),
+      parentType: json['parentType'] ?? 0,
+      index: json['index'] ?? -1,
+      parent: json['parent'] ?? 'root',
+      preIndex: json['preIndex'] ?? -1,
+      preParent: json['preParent'] ?? '',
+      preParentType: json['preParentType'] ?? 0,
+      isFixed: json['isFixed'] ?? false,
     );
   }
 
-  /// Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'type': type,
       'properties': properties,
-      'parent_id': parentId,
+      'parentId': parentId,
       'children': children,
       'position': position.toJson(),
       'events': events,
-      'is_selected': isSelected,
-      'is_visible': isVisible,
-      'custom_code': customCode,
+      'isSelected': isSelected,
+      'isVisible': isVisible,
+      'customCode': customCode,
+      'layout': layout.toJson(),
+      'parentType': parentType,
+      'index': index,
+      'parent': parent,
+      'preIndex': preIndex,
+      'preParent': preParent,
+      'preParentType': preParentType,
+      'isFixed': isFixed,
     };
   }
 
-  /// Create copy with updates
   FlutterWidgetBean copyWith({
     String? id,
     String? type,
@@ -70,6 +101,14 @@ class FlutterWidgetBean {
     bool? isSelected,
     bool? isVisible,
     String? customCode,
+    LayoutBean? layout,
+    int? parentType,
+    int? index,
+    String? parent,
+    int? preIndex,
+    String? preParent,
+    int? preParentType,
+    bool? isFixed,
   }) {
     return FlutterWidgetBean(
       id: id ?? this.id,
@@ -82,59 +121,76 @@ class FlutterWidgetBean {
       isSelected: isSelected ?? this.isSelected,
       isVisible: isVisible ?? this.isVisible,
       customCode: customCode ?? this.customCode,
+      layout: layout ?? this.layout,
+      parentType: parentType ?? this.parentType,
+      index: index ?? this.index,
+      parent: parent ?? this.parent,
+      preIndex: preIndex ?? this.preIndex,
+      preParent: preParent ?? this.preParent,
+      preParentType: preParentType ?? this.preParentType,
+      isFixed: isFixed ?? this.isFixed,
     );
   }
 
-  /// Generate unique widget ID
   static String generateId() {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final random = (timestamp % 1000000).toString().padLeft(6, '0');
     return 'widget_$timestamp$random';
   }
 
-  /// Get widget display name
   String get displayName {
     return properties['text'] ?? type;
   }
 
-  @override
-  String toString() {
-    return 'FlutterWidgetBean(id: $id, type: $type, displayName: $displayName)';
-  }
+  // FLUTTER-SPECIFIC TYPE CONSTANTS (Limited Set - Phase 1)
+  // CATEGORY 1: CORE LAYOUT WIDGETS
+  static const int VIEW_TYPE_LAYOUT_ROW = 0;
+  static const int VIEW_TYPE_LAYOUT_COLUMN = 1;
+  static const int VIEW_TYPE_LAYOUT_CONTAINER = 2;
+  static const int VIEW_TYPE_LAYOUT_PADDING = 3;
+  static const int VIEW_TYPE_LAYOUT_CENTER = 4;
+
+  // CATEGORY 2: TEXT & INPUT WIDGETS
+  static const int VIEW_TYPE_WIDGET_TEXT = 10;
+  static const int VIEW_TYPE_WIDGET_TEXTFIELD = 11;
+  static const int VIEW_TYPE_WIDGET_ICON = 12;
+
+  // CATEGORY 3: INTERACTIVE WIDGETS
+  static const int VIEW_TYPE_WIDGET_ELEVATEDBUTTON = 20;
+  static const int VIEW_TYPE_WIDGET_ICONBUTTON = 21;
+  static const int VIEW_TYPE_WIDGET_CHECKBOX = 22;
+
+  // CATEGORY 4: MATERIAL WIDGETS
+  static const int VIEW_TYPE_WIDGET_CARD = 30;
+  static const int VIEW_TYPE_WIDGET_CHIP = 31;
+  static const int VIEW_TYPE_WIDGET_DIVIDER = 32;
+
+  // CATEGORY 5: NAVIGATION & STRUCTURE
+  static const int VIEW_TYPE_WIDGET_APPBAR = 40;
+  static const int VIEW_TYPE_WIDGET_BOTTOMNAVIGATIONBAR = 41;
+  static const int VIEW_TYPE_WIDGET_FLOATINGACTIONBUTTON = 42;
 }
 
-/// Position data for widgets
+/// PositionBean - EXACTLY matches Sketchware Pro's position system
 class PositionBean {
   final double x;
   final double y;
   final double width;
   final double height;
-  final double? minWidth;
-  final double? maxWidth;
-  final double? minHeight;
-  final double? maxHeight;
 
   PositionBean({
     required this.x,
     required this.y,
     required this.width,
     required this.height,
-    this.minWidth,
-    this.maxWidth,
-    this.minHeight,
-    this.maxHeight,
   });
 
   factory PositionBean.fromJson(Map<String, dynamic> json) {
     return PositionBean(
-      x: (json['x'] as num?)?.toDouble() ?? 0.0,
-      y: (json['y'] as num?)?.toDouble() ?? 0.0,
-      width: (json['width'] as num?)?.toDouble() ?? 100.0,
-      height: (json['height'] as num?)?.toDouble() ?? 50.0,
-      minWidth: (json['min_width'] as num?)?.toDouble(),
-      maxWidth: (json['max_width'] as num?)?.toDouble(),
-      minHeight: (json['min_height'] as num?)?.toDouble(),
-      maxHeight: (json['max_height'] as num?)?.toDouble(),
+      x: (json['x'] ?? 0).toDouble(),
+      y: (json['y'] ?? 0).toDouble(),
+      width: (json['width'] ?? 200).toDouble(),
+      height: (json['height'] ?? 50).toDouble(),
     );
   }
 
@@ -144,10 +200,6 @@ class PositionBean {
       'y': y,
       'width': width,
       'height': height,
-      'min_width': minWidth,
-      'max_width': maxWidth,
-      'min_height': minHeight,
-      'max_height': maxHeight,
     };
   }
 
@@ -156,189 +208,157 @@ class PositionBean {
     double? y,
     double? width,
     double? height,
-    double? minWidth,
-    double? maxWidth,
-    double? minHeight,
-    double? maxHeight,
   }) {
     return PositionBean(
       x: x ?? this.x,
       y: y ?? this.y,
       width: width ?? this.width,
       height: height ?? this.height,
-      minWidth: minWidth ?? this.minWidth,
-      maxWidth: maxWidth ?? this.maxWidth,
-      minHeight: minHeight ?? this.minHeight,
-      maxHeight: maxHeight ?? this.maxHeight,
     );
   }
 }
 
-/// Flutter Widget Types Enum
-enum FlutterWidgetType {
-  // Layouts
-  row('Row', 'row'),
-  column('Column', 'column'),
-  stack('Stack', 'stack'),
-  container('Container', 'container'),
-  padding('Padding', 'padding'),
-  expanded('Expanded', 'expanded'),
-  flexible('Flexible', 'flexible'),
-  center('Center', 'center'),
-  align('Align', 'align'),
-  aspectRatio('AspectRatio', 'aspect_ratio'),
-  singleChildScrollView('SingleChildScrollView', 'single_child_scroll_view'),
+/// LayoutBean - EXACTLY matches Sketchware Pro's LayoutBean
+class LayoutBean {
+  final int width;
+  final int height;
+  final double marginLeft;
+  final double marginTop;
+  final double marginRight;
+  final double marginBottom;
+  final int paddingLeft;
+  final int paddingTop;
+  final int paddingRight;
+  final int paddingBottom;
+  final int layoutGravity;
+  final int gravity;
+  final double weight;
+  final int orientation;
+  final double weightSum;
+  final int backgroundColor;
+  final String? backgroundResource;
+  final String? backgroundResColor;
 
-  // Basic Widgets
-  text('Text', 'text'),
-  richText('RichText', 'rich_text'),
-  sizedBox('SizedBox', 'sized_box'),
-  spacer('Spacer', 'spacer'),
-  divider('Divider', 'divider'),
+  LayoutBean({
+    this.width = -2, // WRAP_CONTENT
+    this.height = -2, // WRAP_CONTENT
+    this.marginLeft = 0,
+    this.marginTop = 0,
+    this.marginRight = 0,
+    this.marginBottom = 0,
+    this.paddingLeft = 0,
+    this.paddingTop = 0,
+    this.paddingRight = 0,
+    this.paddingBottom = 0,
+    this.layoutGravity = 0,
+    this.gravity = 0,
+    this.weight = 0,
+    this.orientation = 1, // VERTICAL
+    this.weightSum = 0,
+    this.backgroundColor = 0xFFFFFFFF,
+    this.backgroundResource,
+    this.backgroundResColor,
+  });
 
-  // Input Widgets
-  textField('TextField', 'text_field'),
-  textFormField('TextFormField', 'text_form_field'),
-  elevatedButton('ElevatedButton', 'elevated_button'),
-  textButton('TextButton', 'text_button'),
-  outlinedButton('OutlinedButton', 'outlined_button'),
-  iconButton('IconButton', 'icon_button'),
-  checkbox('Checkbox', 'checkbox'),
-  switchWidget('Switch', 'switch'),
-  slider('Slider', 'slider'),
-  dropdownButton('DropdownButton', 'dropdown_button'),
-  radio('Radio', 'radio'),
-
-  // Display Widgets
-  listView('ListView', 'list_view'),
-  gridView('GridView', 'grid_view'),
-  image('Image', 'image'),
-  iconWidget('Icon', 'icon'),
-  circularProgressIndicator(
-      'CircularProgressIndicator', 'circular_progress_indicator'),
-  linearProgressIndicator(
-      'LinearProgressIndicator', 'linear_progress_indicator'),
-
-  // Material Widgets
-  card('Card', 'card'),
-  appBar('AppBar', 'app_bar'),
-  floatingActionButton('FloatingActionButton', 'floating_action_button'),
-  bottomNavigationBar('BottomNavigationBar', 'bottom_navigation_bar'),
-  tabBar('TabBar', 'tab_bar'),
-  tabBarView('TabBarView', 'tab_bar_view'),
-  drawer('Drawer', 'drawer'),
-  bottomSheet('BottomSheet', 'bottom_sheet'),
-  snackBar('SnackBar', 'snack_bar'),
-  dialog('Dialog', 'dialog'),
-
-  // Custom Widgets
-  custom('Custom Widget', 'custom');
-
-  const FlutterWidgetType(this.displayName, this.value);
-  final String displayName;
-  final String value;
-
-  String get icon {
-    switch (this) {
-      case FlutterWidgetType.text:
-        return '📝';
-      case FlutterWidgetType.container:
-        return '📦';
-      case FlutterWidgetType.row:
-        return '➡️';
-      case FlutterWidgetType.column:
-        return '⬇️';
-      case FlutterWidgetType.stack:
-        return '📚';
-      case FlutterWidgetType.elevatedButton:
-        return '🔘';
-      case FlutterWidgetType.textField:
-        return '✏️';
-      case FlutterWidgetType.image:
-        return '🖼️';
-      case FlutterWidgetType.listView:
-        return '📋';
-      case FlutterWidgetType.card:
-        return '🃏';
-      case FlutterWidgetType.appBar:
-        return '📱';
-      case FlutterWidgetType.floatingActionButton:
-        return '➕';
-      case FlutterWidgetType.padding:
-        return '📏';
-      case FlutterWidgetType.expanded:
-        return '↔️';
-      case FlutterWidgetType.flexible:
-        return '🔧';
-      case FlutterWidgetType.center:
-        return '🎯';
-      case FlutterWidgetType.align:
-        return '📍';
-      case FlutterWidgetType.aspectRatio:
-        return '📐';
-      case FlutterWidgetType.singleChildScrollView:
-        return '📜';
-      case FlutterWidgetType.richText:
-        return '📄';
-      case FlutterWidgetType.spacer:
-        return '␣';
-      case FlutterWidgetType.divider:
-        return '➖';
-      case FlutterWidgetType.textFormField:
-        return '📝';
-      case FlutterWidgetType.textButton:
-        return '🔘';
-      case FlutterWidgetType.outlinedButton:
-        return '🔘';
-      case FlutterWidgetType.iconButton:
-        return '🔘';
-      case FlutterWidgetType.checkbox:
-        return '☑️';
-      case FlutterWidgetType.switchWidget:
-        return '🔀';
-      case FlutterWidgetType.slider:
-        return '🎚️';
-      case FlutterWidgetType.dropdownButton:
-        return '📋';
-      case FlutterWidgetType.radio:
-        return '🔘';
-      case FlutterWidgetType.gridView:
-        return '📊';
-      case FlutterWidgetType.iconWidget:
-        return '🎨';
-      case FlutterWidgetType.circularProgressIndicator:
-        return '⭕';
-      case FlutterWidgetType.linearProgressIndicator:
-        return '📊';
-      case FlutterWidgetType.bottomNavigationBar:
-        return '📱';
-      case FlutterWidgetType.tabBar:
-        return '📑';
-      case FlutterWidgetType.tabBarView:
-        return '📄';
-      case FlutterWidgetType.drawer:
-        return '📂';
-      case FlutterWidgetType.bottomSheet:
-        return '📄';
-      case FlutterWidgetType.snackBar:
-        return '🍫';
-      case FlutterWidgetType.dialog:
-        return '💬';
-      case FlutterWidgetType.custom:
-        return '🔧';
-      case FlutterWidgetType.sizedBox:
-        return '📏';
-    }
+  factory LayoutBean.fromJson(Map<String, dynamic> json) {
+    return LayoutBean(
+      width: json['width'] ?? -2,
+      height: json['height'] ?? -2,
+      marginLeft: (json['marginLeft'] ?? 0).toDouble(),
+      marginTop: (json['marginTop'] ?? 0).toDouble(),
+      marginRight: (json['marginRight'] ?? 0).toDouble(),
+      marginBottom: (json['marginBottom'] ?? 0).toDouble(),
+      paddingLeft: json['paddingLeft'] ?? 0,
+      paddingTop: json['paddingTop'] ?? 0,
+      paddingRight: json['paddingRight'] ?? 0,
+      paddingBottom: json['paddingBottom'] ?? 0,
+      layoutGravity: json['layoutGravity'] ?? 0,
+      gravity: json['gravity'] ?? 0,
+      weight: (json['weight'] ?? 0).toDouble(),
+      orientation: json['orientation'] ?? 1,
+      weightSum: (json['weightSum'] ?? 0).toDouble(),
+      backgroundColor: json['backgroundColor'] ?? 0xFFFFFFFF,
+      backgroundResource: json['backgroundResource'],
+      backgroundResColor: json['backgroundResColor'],
+    );
   }
 
-  static FlutterWidgetType fromString(String value) {
-    try {
-      return FlutterWidgetType.values.firstWhere(
-        (type) => type.value == value,
-        orElse: () => FlutterWidgetType.custom,
-      );
-    } catch (e) {
-      return FlutterWidgetType.custom;
-    }
+  Map<String, dynamic> toJson() {
+    return {
+      'width': width,
+      'height': height,
+      'marginLeft': marginLeft,
+      'marginTop': marginTop,
+      'marginRight': marginRight,
+      'marginBottom': marginBottom,
+      'paddingLeft': paddingLeft,
+      'paddingTop': paddingTop,
+      'paddingRight': paddingRight,
+      'paddingBottom': paddingBottom,
+      'layoutGravity': layoutGravity,
+      'gravity': gravity,
+      'weight': weight,
+      'orientation': orientation,
+      'weightSum': weightSum,
+      'backgroundColor': backgroundColor,
+      'backgroundResource': backgroundResource,
+      'backgroundResColor': backgroundResColor,
+    };
   }
+
+  LayoutBean copyWith({
+    int? width,
+    int? height,
+    double? marginLeft,
+    double? marginTop,
+    double? marginRight,
+    double? marginBottom,
+    int? paddingLeft,
+    int? paddingTop,
+    int? paddingRight,
+    int? paddingBottom,
+    int? layoutGravity,
+    int? gravity,
+    double? weight,
+    int? orientation,
+    double? weightSum,
+    int? backgroundColor,
+    String? backgroundResource,
+    String? backgroundResColor,
+  }) {
+    return LayoutBean(
+      width: width ?? this.width,
+      height: height ?? this.height,
+      marginLeft: marginLeft ?? this.marginLeft,
+      marginTop: marginTop ?? this.marginTop,
+      marginRight: marginRight ?? this.marginRight,
+      marginBottom: marginBottom ?? this.marginBottom,
+      paddingLeft: paddingLeft ?? this.paddingLeft,
+      paddingTop: paddingTop ?? this.paddingTop,
+      paddingRight: paddingRight ?? this.paddingRight,
+      paddingBottom: paddingBottom ?? this.paddingBottom,
+      layoutGravity: layoutGravity ?? this.layoutGravity,
+      gravity: gravity ?? this.gravity,
+      weight: weight ?? this.weight,
+      orientation: orientation ?? this.orientation,
+      weightSum: weightSum ?? this.weightSum,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      backgroundResource: backgroundResource ?? this.backgroundResource,
+      backgroundResColor: backgroundResColor ?? this.backgroundResColor,
+    );
+  }
+
+  // SKETCHWARE PRO STYLE CONSTANTS
+  static const int MATCH_PARENT = -1;
+  static const int WRAP_CONTENT = -2;
+  static const int GRAVITY_NONE = 0;
+  static const int GRAVITY_LEFT = 3;
+  static const int GRAVITY_TOP = 48;
+  static const int GRAVITY_RIGHT = 5;
+  static const int GRAVITY_BOTTOM = 80;
+  static const int GRAVITY_CENTER_HORIZONTAL = 1;
+  static const int GRAVITY_CENTER_VERTICAL = 16;
+  static const int GRAVITY_CENTER = 17;
+  static const int ORIENTATION_VERTICAL = 1;
+  static const int ORIENTATION_HORIZONTAL = 0;
 }

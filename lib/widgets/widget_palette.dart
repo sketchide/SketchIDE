@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/flutter_widget_bean.dart';
+import '../controllers/drag_controller.dart';
 
 /// Widget Palette (Left Sidebar) - EXACTLY matches Sketchware Pro's PaletteWidget
 class WidgetPalette extends StatefulWidget {
   final Function(FlutterWidgetBean) onWidgetSelected;
+  final Function(FlutterWidgetBean, Offset)
+      onWidgetDragged; // Add drag callback
+  final DragController? dragController; // Add drag controller
   final bool isVisible;
 
   const WidgetPalette({
     super.key,
     required this.onWidgetSelected,
+    required this.onWidgetDragged, // Add drag callback
+    this.dragController, // Add drag controller
     this.isVisible = true,
   });
 
@@ -122,16 +129,20 @@ class _WidgetPaletteState extends State<WidgetPalette> {
   Widget _buildLayoutWidgets() {
     return Column(
       children: [
-        _buildWidgetCard('LinearLayout', Icons.view_agenda, 'Linear Layout'),
-        _buildWidgetCard('RelativeLayout', Icons.view_quilt, 'Relative Layout'),
-        _buildWidgetCard(
+        _buildDraggableWidgetCard(
+            'LinearLayout', Icons.view_agenda, 'Linear Layout'),
+        _buildDraggableWidgetCard(
+            'RelativeLayout', Icons.view_quilt, 'Relative Layout'),
+        _buildDraggableWidgetCard(
             'ScrollView', Icons.vertical_align_center, 'Scroll View'),
-        _buildWidgetCard(
+        _buildDraggableWidgetCard(
             'HorizontalScrollView', Icons.horizontal_rule, 'Horizontal Scroll'),
-        _buildWidgetCard('ListView', Icons.list, 'List View'),
-        _buildWidgetCard('GridView', Icons.grid_on, 'Grid View'),
-        _buildWidgetCard('RecyclerView', Icons.repeat, 'Recycler View'),
-        _buildWidgetCard('ViewPager', Icons.view_carousel, 'View Pager'),
+        _buildDraggableWidgetCard('ListView', Icons.list, 'List View'),
+        _buildDraggableWidgetCard('GridView', Icons.grid_on, 'Grid View'),
+        _buildDraggableWidgetCard(
+            'RecyclerView', Icons.repeat, 'Recycler View'),
+        _buildDraggableWidgetCard(
+            'ViewPager', Icons.view_carousel, 'View Pager'),
       ],
     );
   }
@@ -139,27 +150,31 @@ class _WidgetPaletteState extends State<WidgetPalette> {
   Widget _buildWidgetItems() {
     return Column(
       children: [
-        _buildWidgetCard('TextView', Icons.text_fields, 'Text View'),
-        _buildWidgetCard('EditText', Icons.input, 'Edit Text'),
-        _buildWidgetCard('Button', Icons.smart_button, 'Button'),
-        _buildWidgetCard('ImageView', Icons.image, 'Image View'),
-        _buildWidgetCard('ProgressBar', Icons.trending_up, 'Progress Bar'),
-        _buildWidgetCard('SeekBar', Icons.tune, 'Seek Bar'),
-        _buildWidgetCard('Switch', Icons.toggle_on, 'Switch'),
-        _buildWidgetCard('CheckBox', Icons.check_box, 'Check Box'),
-        _buildWidgetCard(
+        _buildDraggableWidgetCard('TextView', Icons.text_fields, 'Text View'),
+        _buildDraggableWidgetCard('EditText', Icons.input, 'Edit Text'),
+        _buildDraggableWidgetCard('Button', Icons.smart_button, 'Button'),
+        _buildDraggableWidgetCard('ImageView', Icons.image, 'Image View'),
+        _buildDraggableWidgetCard(
+            'ProgressBar', Icons.trending_up, 'Progress Bar'),
+        _buildDraggableWidgetCard('SeekBar', Icons.tune, 'Seek Bar'),
+        _buildDraggableWidgetCard('Switch', Icons.toggle_on, 'Switch'),
+        _buildDraggableWidgetCard('CheckBox', Icons.check_box, 'Check Box'),
+        _buildDraggableWidgetCard(
             'RadioButton', Icons.radio_button_checked, 'Radio Button'),
-        _buildWidgetCard('Spinner', Icons.arrow_drop_down_circle, 'Spinner'),
-        _buildWidgetCard('CalendarView', Icons.calendar_today, 'Calendar'),
-        _buildWidgetCard('WebView', Icons.web, 'Web View'),
-        _buildWidgetCard('MapView', Icons.map, 'Map View'),
-        _buildWidgetCard('AdView', Icons.ads_click, 'Ad View'),
-        _buildWidgetCard('FloatingActionButton', Icons.add_circle, 'FAB'),
+        _buildDraggableWidgetCard(
+            'Spinner', Icons.arrow_drop_down_circle, 'Spinner'),
+        _buildDraggableWidgetCard(
+            'CalendarView', Icons.calendar_today, 'Calendar'),
+        _buildDraggableWidgetCard('WebView', Icons.web, 'Web View'),
+        _buildDraggableWidgetCard('MapView', Icons.map, 'Map View'),
+        _buildDraggableWidgetCard('AdView', Icons.ads_click, 'Ad View'),
+        _buildDraggableWidgetCard(
+            'FloatingActionButton', Icons.add_circle, 'FAB'),
       ],
     );
   }
 
-  Widget _buildWidgetCard(String type, IconData icon, String label) {
+  Widget _buildDraggableWidgetCard(String type, IconData icon, String label) {
     return Container(
       margin: const EdgeInsets.fromLTRB(4, 0, 4, 4),
       child: Card(
@@ -167,31 +182,88 @@ class _WidgetPaletteState extends State<WidgetPalette> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
-        child: InkWell(
-          onTap: () => _addWidget(type),
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.all(5),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 28,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+        child: Draggable<FlutterWidgetBean>(
+          // SKETCHWARE PRO STYLE: Create drag data
+          data: _createWidgetBean(type, icon, label),
+
+          // SKETCHWARE PRO STYLE: Drag feedback (shadow/parchayi)
+          feedback: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: 120,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade100,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 20, color: Colors.blue.shade600),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // SKETCHWARE PRO STYLE: Drag start feedback
+          onDragStarted: () {
+            print('🎯 DRAG STARTED: $type'); // Debug output
+            HapticFeedback.mediumImpact();
+          },
+
+          // SKETCHWARE PRO STYLE: Drag end feedback
+          onDragEnd: (details) {
+            print('🎯 DRAG ENDED: $type at ${details.offset}'); // Debug output
+            HapticFeedback.lightImpact();
+          },
+
+          // SKETCHWARE PRO STYLE: Child widget
+          child: InkWell(
+            onTap: () {
+              print('🎯 WIDGET TAPPED: $type'); // Debug output
+              _addWidget(type);
+            },
+            onLongPress: () {
+              print('🎯 WIDGET LONG PRESSED: $type'); // Debug output
+            },
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 16,
+                    color: Colors.blue.shade600,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -199,62 +271,121 @@ class _WidgetPaletteState extends State<WidgetPalette> {
     );
   }
 
-  void _addWidget(String type) {
-    final widgetBean = _createWidgetBean(type);
-    widget.onWidgetSelected(widgetBean);
-  }
-
-  FlutterWidgetBean _createWidgetBean(String type) {
+  // SKETCHWARE PRO STYLE: Create widget bean for drag
+  FlutterWidgetBean _createWidgetBean(
+      String type, IconData icon, String label) {
     return FlutterWidgetBean(
       id: FlutterWidgetBean.generateId(),
       type: type,
       properties: _getDefaultProperties(type),
-      position: PositionBean(x: 100, y: 100, width: 200, height: 50),
+      children: [],
+      position: PositionBean(x: 0, y: 0, width: 200, height: 50),
+      events: {},
+      layout: _getDefaultLayout(type),
     );
   }
 
+  // SKETCHWARE PRO STYLE: Get default properties for widget type
   Map<String, dynamic> _getDefaultProperties(String type) {
     switch (type) {
-      case 'TextView':
-        return {'text': 'Text View'};
-      case 'EditText':
-        return {'hint': 'Enter text'};
       case 'Button':
-        return {'text': 'Button'};
+        return {
+          'text': 'Button',
+          'backgroundColor': '#2196F3',
+          'textColor': '#FFFFFF',
+        };
+      case 'TextView':
+        return {
+          'text': 'Text View',
+          'textColor': '#000000',
+          'textSize': 16.0,
+        };
+      case 'EditText':
+        return {
+          'hint': 'Enter text...',
+          'textColor': '#000000',
+          'backgroundColor': '#FFFFFF',
+        };
       case 'ImageView':
-        return {'src': 'default_image'};
+        return {
+          'src': '',
+          'scaleType': 'centerCrop',
+        };
       case 'LinearLayout':
-        return {'orientation': 'vertical'};
+        return {
+          'orientation': 'vertical',
+          'backgroundColor': '#FFFFFF',
+        };
       case 'RelativeLayout':
-        return {};
+        return {
+          'backgroundColor': '#FFFFFF',
+        };
+      case 'FrameLayout':
+        return {
+          'backgroundColor': '#FFFFFF',
+        };
       case 'ScrollView':
-        return {};
+        return {
+          'backgroundColor': '#FFFFFF',
+        };
+      case 'HorizontalScrollView':
+        return {
+          'backgroundColor': '#FFFFFF',
+        };
+      case 'GridView':
+        return {
+          'numColumns': 2,
+          'backgroundColor': '#FFFFFF',
+        };
       case 'ListView':
-        return {};
-      case 'ProgressBar':
-        return {'progress': '0', 'max': '100'};
-      case 'SeekBar':
-        return {'progress': '0', 'max': '100'};
-      case 'Switch':
-        return {'checked': 'false'};
-      case 'CheckBox':
-        return {'text': 'Check Box', 'checked': 'false'};
-      case 'RadioButton':
-        return {'text': 'Radio Button', 'checked': 'false'};
-      case 'Spinner':
-        return {};
-      case 'CalendarView':
-        return {};
-      case 'WebView':
-        return {'url': 'https://example.com'};
-      case 'MapView':
-        return {};
-      case 'AdView':
-        return {'adUnitId': ''};
+        return {
+          'backgroundColor': '#FFFFFF',
+        };
       case 'FloatingActionButton':
-        return {'icon': 'add'};
+        return {
+          'icon': 'add',
+          'backgroundColor': '#FF5722',
+        };
       default:
         return {};
+    }
+  }
+
+  // SKETCHWARE PRO STYLE: Get default layout for widget type
+  LayoutBean _getDefaultLayout(String type) {
+    switch (type) {
+      case 'LinearLayout':
+      case 'RelativeLayout':
+      case 'FrameLayout':
+        return LayoutBean(
+          width: LayoutBean.MATCH_PARENT,
+          height: LayoutBean.WRAP_CONTENT,
+          paddingLeft: 16,
+          paddingTop: 16,
+          paddingRight: 16,
+          paddingBottom: 16,
+        );
+      case 'ScrollView':
+      case 'HorizontalScrollView':
+        return LayoutBean(
+          width: LayoutBean.MATCH_PARENT,
+          height: LayoutBean.WRAP_CONTENT,
+        );
+      case 'GridView':
+        return LayoutBean(
+          width: LayoutBean.MATCH_PARENT,
+          height: LayoutBean.WRAP_CONTENT,
+        );
+      case 'ListView':
+        return LayoutBean(
+          width: LayoutBean.MATCH_PARENT,
+          height: LayoutBean.WRAP_CONTENT,
+        );
+      default:
+        return LayoutBean(
+          width: LayoutBean.WRAP_CONTENT,
+          height: LayoutBean.WRAP_CONTENT,
+        );
     }
   }
 
@@ -279,5 +410,11 @@ class _WidgetPaletteState extends State<WidgetPalette> {
         ],
       ),
     );
+  }
+
+  // SKETCHWARE PRO STYLE: Add widget on tap
+  void _addWidget(String type) {
+    final widgetBean = _createWidgetBean(type, Icons.widgets, type);
+    widget.onWidgetSelected(widgetBean);
   }
 }

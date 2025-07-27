@@ -5,14 +5,16 @@ import '../widgets/widget_palette.dart';
 import '../widgets/flutter_device_frame.dart';
 import '../widgets/property_panel.dart';
 import '../widgets/design_drawer.dart';
+import '../controllers/drag_controller.dart';
 
+/// Design Activity Screen - Main visual editor screen
 class DesignActivityScreen extends StatefulWidget {
   final String projectId;
 
   const DesignActivityScreen({
-    Key? key,
+    super.key,
     required this.projectId,
-  }) : super(key: key);
+  });
 
   @override
   State<DesignActivityScreen> createState() => _DesignActivityScreenState();
@@ -22,82 +24,92 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
   late PageController _pageController;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  late DesignViewModel _viewModel;
+  late DragController _sharedDragController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _pageController = PageController();
+    _viewModel = DesignViewModel();
+    _sharedDragController = DragController();
 
-    // Load project data
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DesignViewModel>().loadProject(widget.projectId);
-    });
+    // Load project
+    _viewModel.loadProject(widget.projectId);
+
+    // Setup shared drag controller
+    _setupSharedDragController();
+  }
+
+  void _setupSharedDragController() {
+    _sharedDragController.setCallbacks(
+      onWidgetMoved: (widget) => _viewModel.moveWidget(widget),
+      onWidgetDeleted: (widget) => _viewModel.deleteSelectedWidget(),
+      onWidgetAdded: (widget) => _viewModel.addWidget(widget),
+      onDragStateChanged: (isDragging) {
+        // Handle global drag state changes
+      },
+      onDeleteZoneActive: (isActive) {
+        // Handle delete zone activation
+      },
+      onViewPaneActive: (isActive) {
+        // Handle view pane activation
+      },
+    );
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     _pageController.dispose();
+    _sharedDragController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<DesignViewModel>(
-      builder: (context, viewModel, child) {
-        return Scaffold(
-          key: _scaffoldKey,
-          appBar: _buildAppBar(viewModel),
-          body: _buildBody(viewModel),
-          endDrawer: _buildRightDrawer(),
-          bottomNavigationBar: _buildBottomBar(viewModel),
-        );
-      },
+    return ChangeNotifierProvider.value(
+      value: _viewModel,
+      child: Consumer<DesignViewModel>(
+        builder: (context, viewModel, child) {
+          return Scaffold(
+            appBar: _buildAppBar(viewModel),
+            body: _buildBody(viewModel),
+            endDrawer: _buildRightDrawer(),
+            bottomNavigationBar: _buildBottomBar(viewModel),
+          );
+        },
+      ),
     );
   }
 
   PreferredSizeWidget _buildAppBar(DesignViewModel viewModel) {
     return AppBar(
-      title: Text(viewModel.projectName ?? 'Project'),
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      elevation: 0,
+      title: Text(viewModel.projectName ?? 'Design'),
       actions: [
-        // Save button
-        IconButton(
-          icon: const Icon(Icons.save),
-          onPressed: () => viewModel.saveProject(),
-          tooltip: 'Save Project',
-        ),
-        // Undo button
         IconButton(
           icon: const Icon(Icons.undo),
-          onPressed: viewModel.canUndo ? () => viewModel.undo() : null,
-          tooltip: 'Undo',
+          onPressed: viewModel.canUndo ? viewModel.undo : null,
         ),
-        // Redo button
         IconButton(
           icon: const Icon(Icons.redo),
-          onPressed: viewModel.canRedo ? () => viewModel.redo() : null,
-          tooltip: 'Redo',
+          onPressed: viewModel.canRedo ? viewModel.redo : null,
         ),
-        // Open drawer button
         IconButton(
-          icon: const Icon(Icons.more_vert),
-          onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-          tooltip: 'Open Drawer',
+          icon: const Icon(Icons.save),
+          onPressed: viewModel.saveProject,
         ),
       ],
       bottom: TabBar(
         controller: _tabController,
         onTap: (index) {
-          viewModel.setTab(DesignTab.values[index]);
           _pageController.animateToPage(
             index,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
           );
+          viewModel.setTab(DesignTab.values[index]);
         },
         tabs: const [
           Tab(text: 'View'),
@@ -149,6 +161,10 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
           child: WidgetPalette(
             onWidgetSelected: (widget) {
               viewModel.addWidget(widget);
+            },
+            onWidgetDragged: (widget, position) {
+              // Start drag from palette using shared drag controller
+              _sharedDragController.startDragFromPalette(widget, position);
             },
           ),
         ),

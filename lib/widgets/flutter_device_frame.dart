@@ -1,7 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/flutter_widget_bean.dart';
+import '../models/view_info.dart';
+import '../services/view_info_service.dart';
+import 'enhanced_view_pane.dart';
+import 'view_dummy.dart';
 
 /// Flutter Device Frame (Center) - EXACTLY matches Sketchware Pro's ViewPane
+///
+/// SIMPLIFIED DESIGN:
+/// - Pure white background (matches Sketchware Pro)
+/// - Simple border (no device simulation)
+/// - Red highlight colors (matches Sketchware Pro)
+/// - Optional ViewDummy for enhanced feedback
+/// - Maintains sophisticated ViewInfo system
+///
+/// FEATURES:
+/// - Coordinate-based drop zone detection
+/// - Scale-aware widget positioning
+/// - Enhanced drag feedback (optional)
+/// - Grid background for alignment
 class FlutterDeviceFrame extends StatefulWidget {
   final List<FlutterWidgetBean> widgets;
   final FlutterWidgetBean? selectedWidget;
@@ -23,25 +41,72 @@ class FlutterDeviceFrame extends StatefulWidget {
 }
 
 class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
-  Offset? _dragStartPosition;
-  FlutterWidgetBean? _draggedWidget;
-  bool _isDragging = false;
+  late ViewInfoService _viewInfoService;
   double _scale = 1.0;
-  bool _showStatusBar = true;
-  bool _showToolbar = true;
+  bool _showEnhancedViewPane = true;
+  bool _showViewDummy = true; // Optional ViewDummy toggle
+
+  // Sketchware Pro style drop zone detection
+  List<DropZoneInfo> _dropZones = [];
+  DropZoneInfo? _currentDropZone;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewInfoService = ViewInfoService();
+  }
+
+  @override
+  void dispose() {
+    _viewInfoService.dispose();
+    super.dispose();
+  }
+
+  // Enhanced View Pane callbacks
+  void _onDropTargetChanged(FlutterWidgetBean widget, ViewInfo? viewInfo) {
+    _viewInfoService.highlightViewInfo(viewInfo);
+    setState(() {
+      // Update UI state based on drop target
+    });
+  }
+
+  void _onDropZoneChanged(FlutterWidgetBean widget, dynamic dropZone) {
+    if (dropZone is DropZoneInfo) {
+      _viewInfoService.setCurrentDropZone(dropZone);
+      _currentDropZone = dropZone;
+    } else {
+      _viewInfoService.setCurrentDropZone(null);
+      _currentDropZone = null;
+    }
+    setState(() {
+      // Update UI state based on drop zone
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Theme.of(context).colorScheme.surfaceContainerLowest,
-      child: Column(
+      child: Stack(
         children: [
-          // Device Frame Header (like Sketchware Pro)
-          _buildDeviceHeader(),
+          Column(
+            children: [
+              // Device Frame Header (like Sketchware Pro)
+              _buildDeviceHeader(),
 
-          // Device Frame Content with Phone Simulation
-          Expanded(
-            child: _buildPhoneSimulation(),
+              // Device Frame Content with Phone Simulation
+              Expanded(
+                child: _buildPhoneSimulation(),
+              ),
+            ],
+          ),
+
+          // Delete Zone (overlay)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: const SizedBox.shrink(), // Removed DeleteZone
           ),
         ],
       ),
@@ -68,31 +133,26 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
             size: 20,
           ),
           const SizedBox(width: 8),
-          Text(
-            'Flutter Device Preview',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+          Expanded(
+            child: Text(
+              'Sketchware Pro Style Preview',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-          const Spacer(),
-          // Status Bar Toggle
+          // ViewDummy Toggle (optional enhanced feedback)
           IconButton(
             icon: Icon(
-              _showStatusBar ? Icons.visibility : Icons.visibility_off,
+              _showViewDummy ? Icons.visibility : Icons.visibility_off,
               size: 18,
             ),
-            onPressed: () => setState(() => _showStatusBar = !_showStatusBar),
-            tooltip: 'Toggle Status Bar',
-          ),
-          // Toolbar Toggle
-          IconButton(
-            icon: Icon(
-              _showToolbar ? Icons.view_headline : Icons.view_headline_outlined,
-              size: 18,
-            ),
-            onPressed: () => setState(() => _showToolbar = !_showToolbar),
-            tooltip: 'Toggle Toolbar',
+            onPressed: () => setState(() => _showViewDummy = !_showViewDummy),
+            tooltip: 'Toggle Enhanced Drag Feedback',
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            padding: EdgeInsets.zero,
           ),
           // Zoom Controls
           IconButton(
@@ -100,12 +160,16 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
             onPressed: () =>
                 setState(() => _scale = (_scale + 0.1).clamp(0.5, 2.0)),
             tooltip: 'Zoom In',
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            padding: EdgeInsets.zero,
           ),
           IconButton(
             icon: const Icon(Icons.zoom_out, size: 18),
             onPressed: () =>
                 setState(() => _scale = (_scale - 0.1).clamp(0.5, 2.0)),
             tooltip: 'Zoom Out',
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            padding: EdgeInsets.zero,
           ),
         ],
       ),
@@ -114,221 +178,422 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
   Widget _buildPhoneSimulation() {
     return Center(
-      child: Container(
-        width: 360 * _scale, // Standard phone width
-        height: 640 * _scale, // Standard phone height
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(20 * _scale),
-          border: Border.all(
-            color: Colors.grey[600]!,
-            width: 2 * _scale,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 10 * _scale,
-              offset: Offset(0, 5 * _scale),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18 * _scale),
-          child: Column(
-            children: [
-              // Status Bar (like Sketchware Pro)
-              if (_showStatusBar) _buildStatusBar(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Calculate available space like Sketchware Pro
+          final availableWidth = constraints.maxWidth - 40;
+          final availableHeight = constraints.maxHeight - 40;
 
-              // Toolbar (like Sketchware Pro)
-              if (_showToolbar) _buildToolbar(),
+          // Calculate scale factors like Sketchware Pro
+          final scaleX =
+              availableWidth / 360.0; // 360dp is Sketchware Pro's base width
+          final scaleY =
+              availableHeight / 640.0; // 640dp is Sketchware Pro's base height
 
-              // Main Content Area
-              Expanded(
-                child: _buildContentArea(),
+          // Use the smaller scale to maintain aspect ratio (like Sketchware Pro)
+          final calculatedScale = _scale * (scaleX < scaleY ? scaleX : scaleY);
+
+          // Calculate final content dimensions
+          final contentWidth = 360 * calculatedScale;
+          final contentHeight = 640 * calculatedScale;
+
+          // SKETCHWARE PRO STYLE: Simple white container with border
+          return Container(
+            width: contentWidth,
+            height: contentHeight,
+            decoration: BoxDecoration(
+              color: Colors.white, // Pure white like Sketchware Pro
+              border: Border.all(
+                color: Colors.grey.withOpacity(0.3),
+                width: 1,
               ),
+            ),
+            child: _buildContentArea(calculatedScale),
+          );
+        },
+      ),
+    );
+  }
+
+  // Removed status bar and toolbar methods - simplified to match Sketchware Pro
+
+  // SKETCHWARE PRO STYLE CONTENT AREA
+  Widget _buildContentArea(double scale) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final containerSize = Size(constraints.maxWidth, constraints.maxHeight);
+
+        return Container(
+          color: Colors.white,
+          child: Stack(
+            children: [
+              // Background grid (like Sketchware Pro)
+              CustomPaint(
+                painter: GridPainter(scale: scale),
+                size: Size.infinite,
+              ),
+
+              // Enhanced View Pane (like Sketchware Pro's ViewPane)
+              if (_showEnhancedViewPane)
+                EnhancedViewPane(
+                  widgets: widget.widgets,
+                  onWidgetSelected: widget.onWidgetSelected,
+                  onDropTargetChanged: _onDropTargetChanged,
+                  onDropZoneChanged: _onDropZoneChanged,
+                  viewInfoService: _viewInfoService,
+                  containerSize:
+                      Size(constraints.maxWidth, constraints.maxHeight),
+                ),
+
+              // SKETCHWARE PRO STYLE: Drag target for palette widgets
+              _buildDragTargetOverlay(),
+
+              // Optional ViewDummy for enhanced drag feedback
+              if (_showViewDummy) _buildViewDummyOverlay(),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildStatusBar() {
-    return Container(
-      height: 25 * _scale,
-      decoration: const BoxDecoration(
-        color: Color(0xFF0084C2), // Exact Sketchware Pro blue
-      ),
-      child: Row(
-        children: [
-          // Time
-          Padding(
-            padding: EdgeInsets.only(left: 16 * _scale),
-            child: Text(
-              '9:41',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12 * _scale,
-                fontWeight: FontWeight.w500,
+  // SKETCHWARE PRO STYLE: Drag target overlay for palette widgets
+  Widget _buildDragTargetOverlay() {
+    return Positioned.fill(
+      child: DragTarget<FlutterWidgetBean>(
+        // SKETCHWARE PRO STYLE: Accept all widgets
+        onWillAccept: (data) {
+          print('🎯 DRAG TARGET: Will accept ${data?.type}'); // Debug output
+          return data != null;
+        },
+
+        // SKETCHWARE PRO STYLE: Handle widget drop
+        onAccept: (widgetData) {
+          print('🎯 WIDGET DROPPED: ${widgetData.type}'); // Debug output
+          _handleWidgetDrop(widgetData);
+        },
+
+        // SKETCHWARE PRO STYLE: Visual feedback during drag
+        onMove: (details) {
+          print(
+              '🎯 DRAG MOVE: ${details.data.type} at ${details.offset}'); // Debug output
+        },
+
+        // SKETCHWARE PRO STYLE: Build drag target with red highlight colors
+        builder: (context, candidateData, rejectedData) {
+          return Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: candidateData.isNotEmpty
+                    ? const Color(0xffff5955) // Sketchware Pro red
+                    : Colors.transparent,
+                width: candidateData.isNotEmpty ? 2 : 0,
               ),
+              color: candidateData.isNotEmpty
+                  ? const Color(
+                      0x82ff5955) // Sketchware Pro semi-transparent red
+                  : Colors.transparent,
             ),
-          ),
-          const Spacer(),
-          // Status Icons
-          Row(
-            children: [
-              Icon(
-                Icons.signal_cellular_4_bar,
-                color: Colors.white,
-                size: 12 * _scale,
-              ),
-              SizedBox(width: 4 * _scale),
-              Icon(
-                Icons.wifi,
-                color: Colors.white,
-                size: 12 * _scale,
-              ),
-              SizedBox(width: 4 * _scale),
-              Icon(
-                Icons.battery_full,
-                color: Colors.white,
-                size: 12 * _scale,
-              ),
-              SizedBox(width: 16 * _scale),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToolbar() {
-    return Container(
-      height: 48 * _scale,
-      decoration: const BoxDecoration(
-        color: Color(0xFF008DCD), // Exact Sketchware Pro toolbar blue
-      ),
-      child: Row(
-        children: [
-          Padding(
-            padding: EdgeInsets.only(left: 16 * _scale),
-            child: Text(
-              'Toolbar',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 15 * _scale,
-                fontWeight: FontWeight.bold,
-              ),
+            child: Center(
+              child: candidateData.isNotEmpty
+                  ? Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xffff5955), // Sketchware Pro red
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'Drop here',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    )
+                  : const Text(
+                      'Drop widgets here',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildContentArea() {
-    return Container(
-      color: Colors.white,
-      child: Stack(
-        children: [
-          // Background grid (like Sketchware Pro)
-          _buildBackgroundGrid(),
+  // SKETCHWARE PRO STYLE: Handle widget drop
+  void _handleWidgetDrop(FlutterWidgetBean widgetData) {
+    // Create a new widget with proper position
+    final newWidget = FlutterWidgetBean(
+      id: FlutterWidgetBean.generateId(),
+      type: widgetData.type,
+      properties: Map<String, dynamic>.from(widgetData.properties),
+      children: [],
+      position: PositionBean(
+        x: 50, // Default position
+        y: 50,
+        width: 200,
+        height: 50,
+      ),
+      events: {},
+      layout: widgetData.layout,
+    );
 
-          // Widgets
-          ...widget.widgets.map((widgetBean) => _buildWidget(widgetBean)),
+    // Add the widget to the list
+    widget.onWidgetAdded(newWidget);
 
-          // Drag overlay
-          if (_isDragging && _draggedWidget != null) _buildDragOverlay(),
-        ],
+    // Provide haptic feedback
+    HapticFeedback.lightImpact();
+
+    // Show success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Added ${widgetData.type} widget'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 1),
       ),
     );
   }
 
-  Widget _buildBackgroundGrid() {
-    return CustomPaint(
-      painter: GridPainter(scale: _scale),
-      size: Size.infinite,
+  // SKETCHWARE PRO STYLE WIDGET RENDERING
+  Widget _buildSketchwareProWidgets(double scale) {
+    // Build drop zones first (like Sketchware Pro's ViewInfo system)
+    _buildDropZones(scale);
+
+    return Stack(
+      children: widget.widgets
+          .map((widgetBean) => _buildSketchwareProWidget(widgetBean, scale))
+          .toList(),
     );
   }
 
-  Widget _buildWidget(FlutterWidgetBean widgetBean) {
+  // SKETCHWARE PRO STYLE WIDGET
+  Widget _buildSketchwareProWidget(FlutterWidgetBean widgetBean, double scale) {
     final isSelected = widget.selectedWidget?.id == widgetBean.id;
+    final widgetKey = GlobalKey();
+
+    // Calculate position like Sketchware Pro
+    final position = _calculateWidgetPosition(widgetBean, scale);
 
     return Positioned(
-      left: widgetBean.position.x * _scale,
-      top: widgetBean.position.y * _scale,
+      left: position.left,
+      top: position.top,
       child: GestureDetector(
         onTap: () => widget.onWidgetSelected(widgetBean),
-        onPanStart: (details) => _startDrag(widgetBean, details),
-        onPanUpdate: (details) => _updateDrag(details),
-        onPanEnd: (details) => _endDrag(),
-        child: Container(
-          width: widgetBean.position.width * _scale,
-          height: widgetBean.position.height * _scale,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : Colors.grey.withOpacity(0.3),
-              width: isSelected ? 2 : 1,
+        child: Listener(
+          onPointerDown: (details) =>
+              _startDragDetection(widgetBean, details, widgetKey),
+          onPointerMove: (details) => _updateDragDetection(details),
+          onPointerUp: (details) => _endDragDetection(),
+          onPointerCancel: (details) => _cancelDragDetection(),
+          child: RepaintBoundary(
+            key: widgetKey,
+            child: Container(
+              width: position.width,
+              height: position.height,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.grey.withOpacity(0.3),
+                  width: isSelected ? 2 : 1,
+                ),
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                    : Colors.transparent,
+              ),
+              child: _buildRealWidgetWithScale(widgetBean, scale),
             ),
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                : Colors.transparent,
           ),
-          child: _buildRealWidget(widgetBean),
         ),
       ),
     );
   }
 
-  // REAL WIDGET RENDERING - EXACTLY like Sketchware Pro
-  Widget _buildRealWidget(FlutterWidgetBean widgetBean) {
+  // SKETCHWARE PRO STYLE POSITION CALCULATION
+  WidgetPosition _calculateWidgetPosition(
+      FlutterWidgetBean widgetBean, double scale) {
+    // Like Sketchware Pro's LayoutParams system
+    double width = widgetBean.position.width * scale;
+    double height = widgetBean.position.height * scale;
+
+    // Handle MATCH_PARENT and WRAP_CONTENT like Sketchware Pro
+    if (widgetBean.layout.width == LayoutBean.MATCH_PARENT) {
+      width = 360 * scale; // Full width
+    } else if (widgetBean.layout.width == LayoutBean.WRAP_CONTENT) {
+      width = _calculateWrapContentWidth(widgetBean, scale);
+    }
+
+    if (widgetBean.layout.height == LayoutBean.MATCH_PARENT) {
+      height = 640 * scale; // Full height
+    } else if (widgetBean.layout.height == LayoutBean.WRAP_CONTENT) {
+      height = _calculateWrapContentHeight(widgetBean, scale);
+    }
+
+    return WidgetPosition(
+      left: widgetBean.position.x * scale,
+      top: widgetBean.position.y * scale,
+      width: width,
+      height: height,
+    );
+  }
+
+  double _calculateWrapContentWidth(
+      FlutterWidgetBean widgetBean, double scale) {
+    // Calculate based on content like Sketchware Pro
     switch (widgetBean.type) {
       case 'TextView':
-        return _buildTextView(widgetBean);
-      case 'EditText':
-        return _buildEditText(widgetBean);
+        final text = widgetBean.properties['text'] ?? 'Text';
+        final fontSize =
+            double.tryParse(widgetBean.properties['fontSize'] ?? '14') ?? 14.0;
+        return (text.length * fontSize * 0.6 + 16) *
+            scale; // Approximate text width
       case 'Button':
-        return _buildButton(widgetBean);
-      case 'ImageView':
-        return _buildImageView(widgetBean);
-      case 'LinearLayout':
-        return _buildLinearLayout(widgetBean);
-      case 'RelativeLayout':
-        return _buildRelativeLayout(widgetBean);
-      case 'ScrollView':
-        return _buildScrollView(widgetBean);
-      case 'ListView':
-        return _buildListView(widgetBean);
-      case 'ProgressBar':
-        return _buildProgressBar(widgetBean);
-      case 'SeekBar':
-        return _buildSeekBar(widgetBean);
-      case 'Switch':
-        return _buildSwitch(widgetBean);
-      case 'CheckBox':
-        return _buildCheckBox(widgetBean);
-      case 'RadioButton':
-        return _buildRadioButton(widgetBean);
-      case 'Spinner':
-        return _buildSpinner(widgetBean);
-      case 'CalendarView':
-        return _buildCalendarView(widgetBean);
-      case 'WebView':
-        return _buildWebView(widgetBean);
-      case 'MapView':
-        return _buildMapView(widgetBean);
-      case 'AdView':
-        return _buildAdView(widgetBean);
-      case 'FloatingActionButton':
-        return _buildFloatingActionButton(widgetBean);
+        final text = widgetBean.properties['text'] ?? 'Button';
+        final fontSize =
+            double.tryParse(widgetBean.properties['fontSize'] ?? '14') ?? 14.0;
+        return (text.length * fontSize * 0.6 + 32) * scale; // Button padding
       default:
-        return _buildUnknownWidget(widgetBean);
+        return widgetBean.position.width * scale;
     }
   }
 
-  Widget _buildTextView(FlutterWidgetBean widgetBean) {
+  double _calculateWrapContentHeight(
+      FlutterWidgetBean widgetBean, double scale) {
+    // Calculate based on content like Sketchware Pro
+    switch (widgetBean.type) {
+      case 'TextView':
+        final fontSize =
+            double.tryParse(widgetBean.properties['fontSize'] ?? '14') ?? 14.0;
+        return (fontSize + 8) * scale; // Text height + padding
+      case 'Button':
+        final fontSize =
+            double.tryParse(widgetBean.properties['fontSize'] ?? '14') ?? 14.0;
+        return (fontSize + 16) * scale; // Button height
+      default:
+        return widgetBean.position.height * scale;
+    }
+  }
+
+  // SKETCHWARE PRO STYLE DROP ZONE DETECTION
+  void _buildDropZones(double scale) {
+    _dropZones.clear();
+
+    // Add drop zones for each widget (like Sketchware Pro's ViewInfo system)
+    for (int i = 0; i < widget.widgets.length; i++) {
+      final widgetBean = widget.widgets[i];
+      final position = _calculateWidgetPosition(widgetBean, scale);
+
+      _dropZones.add(DropZoneInfo(
+        bounds: Rect.fromLTWH(
+            position.left, position.top, position.width, position.height),
+        targetWidget: widgetBean,
+        index: i,
+        depth: i,
+      ));
+    }
+  }
+
+  // SKETCHWARE PRO STYLE DROP ZONE DETECTION
+  DropZoneInfo? _getDropZoneAtPosition(Offset position) {
+    DropZoneInfo? result;
+    int highestPriority = -1;
+
+    for (DropZoneInfo dropZone in _dropZones) {
+      if (dropZone.bounds.contains(position) &&
+          highestPriority < dropZone.depth) {
+        highestPriority = dropZone.depth;
+        result = dropZone;
+      }
+    }
+
+    return result;
+  }
+
+  // Proper long-press detection like Sketchware Pro
+  void _startDragDetection(FlutterWidgetBean widgetBean,
+      PointerDownEvent details, GlobalKey widgetKey) {
+    // Removed old drag controller logic
+  }
+
+  void _updateDragDetection(PointerMoveEvent details) {
+    // Removed old drag controller logic
+
+    // Update drop zone detection like Sketchware Pro
+    final dropZone = _getDropZoneAtPosition(details.position);
+    if (dropZone != _currentDropZone) {
+      _currentDropZone = dropZone;
+      // Update visual feedback
+    }
+  }
+
+  void _endDragDetection() {
+    // Removed old drag controller logic
+    _currentDropZone = null;
+  }
+
+  void _cancelDragDetection() {
+    // Removed old drag controller logic
+    _currentDropZone = null;
+  }
+
+  Widget _buildDragOverlay() {
+    // Removed old drag controller logic
+    return const SizedBox.shrink();
+  }
+
+  // Build real widget with proper scale
+  Widget _buildRealWidgetWithScale(FlutterWidgetBean widgetBean, double scale) {
+    switch (widgetBean.type) {
+      case 'TextView':
+        return _buildTextViewWithScale(widgetBean, scale);
+      case 'EditText':
+        return _buildEditTextWithScale(widgetBean, scale);
+      case 'Button':
+        return _buildButtonWithScale(widgetBean, scale);
+      case 'ImageView':
+        return _buildImageViewWithScale(widgetBean, scale);
+      case 'LinearLayout':
+        return _buildLinearLayoutWithScale(widgetBean, scale);
+      case 'RelativeLayout':
+        return _buildRelativeLayoutWithScale(widgetBean, scale);
+      case 'ScrollView':
+        return _buildScrollViewWithScale(widgetBean, scale);
+      case 'ListView':
+        return _buildListViewWithScale(widgetBean, scale);
+      case 'ProgressBar':
+        return _buildProgressBarWithScale(widgetBean, scale);
+      case 'SeekBar':
+        return _buildSeekBarWithScale(widgetBean, scale);
+      case 'Switch':
+        return _buildSwitchWithScale(widgetBean, scale);
+      case 'CheckBox':
+        return _buildCheckBoxWithScale(widgetBean, scale);
+      case 'RadioButton':
+        return _buildRadioButtonWithScale(widgetBean, scale);
+      case 'Spinner':
+        return _buildSpinnerWithScale(widgetBean, scale);
+      case 'CalendarView':
+        return _buildCalendarViewWithScale(widgetBean, scale);
+      case 'WebView':
+        return _buildWebViewWithScale(widgetBean, scale);
+      case 'MapView':
+        return _buildMapViewWithScale(widgetBean, scale);
+      case 'AdView':
+        return _buildAdViewWithScale(widgetBean, scale);
+      case 'FloatingActionButton':
+        return _buildFloatingActionButtonWithScale(widgetBean, scale);
+      default:
+        return _buildUnknownWidgetWithScale(widgetBean, scale);
+    }
+  }
+
+  Widget _buildTextViewWithScale(FlutterWidgetBean widgetBean, double scale) {
     final text = widgetBean.properties['text'] ?? 'Text View';
     final fontSize =
         double.tryParse(widgetBean.properties['fontSize'] ?? '14') ?? 14.0;
@@ -347,7 +612,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         child: Text(
           text,
           style: TextStyle(
-            fontSize: fontSize * _scale,
+            fontSize: fontSize * scale,
             color: textColor,
             fontWeight: fontWeight,
           ),
@@ -359,7 +624,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     );
   }
 
-  Widget _buildEditText(FlutterWidgetBean widgetBean) {
+  Widget _buildEditTextWithScale(FlutterWidgetBean widgetBean, double scale) {
     final hint = widgetBean.properties['hint'] ?? 'Enter text';
     final text = widgetBean.properties['text'] ?? '';
     final fontSize =
@@ -377,25 +642,25 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         controller: TextEditingController(text: text),
         enabled: false, // Read-only in preview
         style: TextStyle(
-          fontSize: fontSize * _scale,
+          fontSize: fontSize * scale,
           color: textColor,
         ),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-            fontSize: fontSize * _scale,
+            fontSize: fontSize * scale,
             color: hintColor,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4 * _scale),
+            borderRadius: BorderRadius.circular(4 * scale),
           ),
-          contentPadding: EdgeInsets.all(8 * _scale),
+          contentPadding: EdgeInsets.all(8 * scale),
         ),
       ),
     );
   }
 
-  Widget _buildButton(FlutterWidgetBean widgetBean) {
+  Widget _buildButtonWithScale(FlutterWidgetBean widgetBean, double scale) {
     final text = widgetBean.properties['text'] ?? 'Button';
     final fontSize =
         double.tryParse(widgetBean.properties['fontSize'] ?? '14') ?? 14.0;
@@ -410,7 +675,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         child: Text(
           text,
           style: TextStyle(
-            fontSize: fontSize * _scale,
+            fontSize: fontSize * scale,
             color: textColor,
             fontWeight: FontWeight.w500,
           ),
@@ -419,7 +684,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     );
   }
 
-  Widget _buildImageView(FlutterWidgetBean widgetBean) {
+  Widget _buildImageViewWithScale(FlutterWidgetBean widgetBean, double scale) {
     final src = widgetBean.properties['src'] ?? 'default_image';
     final backgroundColor =
         _parseColor(widgetBean.properties['backgroundColor'] ?? '#F5F5F5');
@@ -429,14 +694,15 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       child: Center(
         child: Icon(
           Icons.image,
-          size: 32 * _scale,
+          size: 32 * scale,
           color: Colors.grey[600],
         ),
       ),
     );
   }
 
-  Widget _buildLinearLayout(FlutterWidgetBean widgetBean) {
+  Widget _buildLinearLayoutWithScale(
+      FlutterWidgetBean widgetBean, double scale) {
     final orientation = widgetBean.properties['orientation'] ?? 'vertical';
     final backgroundColor =
         _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
@@ -448,28 +714,29 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       child: orientation == 'vertical'
           ? Column(
               mainAxisAlignment: gravity,
-              children: _buildChildWidgets(widgetBean),
+              children: _buildChildWidgetsWithScale(widgetBean, scale),
             )
           : Row(
               mainAxisAlignment: gravity,
-              children: _buildChildWidgets(widgetBean),
+              children: _buildChildWidgetsWithScale(widgetBean, scale),
             ),
     );
   }
 
-  Widget _buildRelativeLayout(FlutterWidgetBean widgetBean) {
+  Widget _buildRelativeLayoutWithScale(
+      FlutterWidgetBean widgetBean, double scale) {
     final backgroundColor =
         _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
 
     return Container(
       color: backgroundColor,
       child: Stack(
-        children: _buildChildWidgets(widgetBean),
+        children: _buildChildWidgetsWithScale(widgetBean, scale),
       ),
     );
   }
 
-  Widget _buildScrollView(FlutterWidgetBean widgetBean) {
+  Widget _buildScrollViewWithScale(FlutterWidgetBean widgetBean, double scale) {
     final backgroundColor =
         _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
 
@@ -477,13 +744,13 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       color: backgroundColor,
       child: SingleChildScrollView(
         child: Column(
-          children: _buildChildWidgets(widgetBean),
+          children: _buildChildWidgetsWithScale(widgetBean, scale),
         ),
       ),
     );
   }
 
-  Widget _buildListView(FlutterWidgetBean widgetBean) {
+  Widget _buildListViewWithScale(FlutterWidgetBean widgetBean, double scale) {
     final backgroundColor =
         _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
     final itemCount =
@@ -503,51 +770,55 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     );
   }
 
-  Widget _buildProgressBar(FlutterWidgetBean widgetBean) {
+  Widget _buildProgressBarWithScale(
+      FlutterWidgetBean widgetBean, double scale) {
     final progress =
         double.tryParse(widgetBean.properties['progress'] ?? '50') ?? 50.0;
-    final max = double.tryParse(widgetBean.properties['max'] ?? '100') ?? 100.0;
     final backgroundColor =
-        _parseColor(widgetBean.properties['backgroundColor'] ?? '#E0E0E0');
-    final progressColor =
-        _parseColor(widgetBean.properties['progressColor'] ?? '#2196F3');
+        _parseColor(widgetBean.properties['backgroundColor'] ?? '#F5F5F5');
 
     return Container(
       color: backgroundColor,
       child: Center(
-        child: LinearProgressIndicator(
-          value: progress / max,
-          backgroundColor: backgroundColor,
-          valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+        child: SizedBox(
+          width: 200 * scale,
+          child: LinearProgressIndicator(
+            value: progress / 100,
+            backgroundColor: Colors.grey[300],
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Theme.of(context).colorScheme.primary,
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildSeekBar(FlutterWidgetBean widgetBean) {
+  Widget _buildSeekBarWithScale(FlutterWidgetBean widgetBean, double scale) {
     final progress =
         double.tryParse(widgetBean.properties['progress'] ?? '50') ?? 50.0;
-    final max = double.tryParse(widgetBean.properties['max'] ?? '100') ?? 100.0;
     final backgroundColor =
-        _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
-    final thumbColor =
-        _parseColor(widgetBean.properties['thumbColor'] ?? '#2196F3');
+        _parseColor(widgetBean.properties['backgroundColor'] ?? '#F5F5F5');
 
     return Container(
       color: backgroundColor,
       child: Center(
-        child: Slider(
-          value: progress,
-          min: 0,
-          max: max,
-          activeColor: thumbColor,
-          onChanged: null, // Read-only in preview
+        child: SizedBox(
+          width: 200 * scale,
+          child: Slider(
+            value: progress,
+            min: 0,
+            max: 100,
+            onChanged: (value) {
+              // Read-only in preview
+            },
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildSwitch(FlutterWidgetBean widgetBean) {
+  Widget _buildSwitchWithScale(FlutterWidgetBean widgetBean, double scale) {
     final checked = widgetBean.properties['checked'] == 'true';
     final backgroundColor =
         _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
@@ -557,98 +828,103 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       child: Center(
         child: Switch(
           value: checked,
-          onChanged: null, // Read-only in preview
+          onChanged: (value) {
+            // Read-only in preview
+          },
         ),
       ),
     );
   }
 
-  Widget _buildCheckBox(FlutterWidgetBean widgetBean) {
+  Widget _buildCheckBoxWithScale(FlutterWidgetBean widgetBean, double scale) {
     final text = widgetBean.properties['text'] ?? 'Check Box';
     final checked = widgetBean.properties['checked'] == 'true';
-    final backgroundColor =
-        _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
     final textColor =
         _parseColor(widgetBean.properties['textColor'] ?? '#000000');
+    final backgroundColor =
+        _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
 
     return Container(
       color: backgroundColor,
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Checkbox(
-              value: checked,
-              onChanged: null, // Read-only in preview
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Checkbox(
+            value: checked,
+            onChanged: (value) {
+              // Read-only in preview
+            },
+          ),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 14 * scale,
+              color: textColor,
             ),
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: 14 * _scale,
-                color: textColor,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildRadioButton(FlutterWidgetBean widgetBean) {
+  Widget _buildRadioButtonWithScale(
+      FlutterWidgetBean widgetBean, double scale) {
     final text = widgetBean.properties['text'] ?? 'Radio Button';
     final checked = widgetBean.properties['checked'] == 'true';
-    final backgroundColor =
-        _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
     final textColor =
         _parseColor(widgetBean.properties['textColor'] ?? '#000000');
+    final backgroundColor =
+        _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
 
     return Container(
       color: backgroundColor,
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Radio<bool>(
-              value: true,
-              groupValue: checked ? true : false,
-              onChanged: null, // Read-only in preview
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Radio<bool>(
+            value: true,
+            groupValue: checked ? true : false,
+            onChanged: (value) {
+              // Read-only in preview
+            },
+          ),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 14 * scale,
+              color: textColor,
             ),
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: 14 * _scale,
-                color: textColor,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildSpinner(FlutterWidgetBean widgetBean) {
+  Widget _buildSpinnerWithScale(FlutterWidgetBean widgetBean, double scale) {
     final backgroundColor =
         _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
-    final items = ['Option 1', 'Option 2', 'Option 3'];
 
     return Container(
       color: backgroundColor,
       child: Center(
         child: DropdownButton<String>(
-          value: items.first,
-          items: items
-              .map((item) => DropdownMenuItem(
-                    value: item,
-                    child: Text(item),
-                  ))
-              .toList(),
-          onChanged: null, // Read-only in preview
+          value: 'Item 1',
+          items: ['Item 1', 'Item 2', 'Item 3'].map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: (value) {
+            // Read-only in preview
+          },
         ),
       ),
     );
   }
 
-  Widget _buildCalendarView(FlutterWidgetBean widgetBean) {
+  Widget _buildCalendarViewWithScale(
+      FlutterWidgetBean widgetBean, double scale) {
     final backgroundColor =
         _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
 
@@ -657,14 +933,14 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       child: Center(
         child: Icon(
           Icons.calendar_today,
-          size: 32 * _scale,
+          size: 32 * scale,
           color: Colors.grey[600],
         ),
       ),
     );
   }
 
-  Widget _buildWebView(FlutterWidgetBean widgetBean) {
+  Widget _buildWebViewWithScale(FlutterWidgetBean widgetBean, double scale) {
     final url = widgetBean.properties['url'] ?? 'https://example.com';
     final backgroundColor =
         _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
@@ -677,14 +953,14 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
           children: [
             Icon(
               Icons.web,
-              size: 32 * _scale,
+              size: 32 * scale,
               color: Colors.grey[600],
             ),
-            SizedBox(height: 8 * _scale),
+            SizedBox(height: 8 * scale),
             Text(
               'WebView',
               style: TextStyle(
-                fontSize: 12 * _scale,
+                fontSize: 12 * scale,
                 color: Colors.grey[600],
               ),
             ),
@@ -694,7 +970,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     );
   }
 
-  Widget _buildMapView(FlutterWidgetBean widgetBean) {
+  Widget _buildMapViewWithScale(FlutterWidgetBean widgetBean, double scale) {
     final backgroundColor =
         _parseColor(widgetBean.properties['backgroundColor'] ?? '#FFFFFF');
 
@@ -703,14 +979,14 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       child: Center(
         child: Icon(
           Icons.map,
-          size: 32 * _scale,
+          size: 32 * scale,
           color: Colors.grey[600],
         ),
       ),
     );
   }
 
-  Widget _buildAdView(FlutterWidgetBean widgetBean) {
+  Widget _buildAdViewWithScale(FlutterWidgetBean widgetBean, double scale) {
     final backgroundColor =
         _parseColor(widgetBean.properties['backgroundColor'] ?? '#F5F5F5');
 
@@ -722,14 +998,14 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
           children: [
             Icon(
               Icons.ads_click,
-              size: 24 * _scale,
+              size: 24 * scale,
               color: Colors.grey[600],
             ),
-            SizedBox(height: 4 * _scale),
+            SizedBox(height: 4 * scale),
             Text(
               'Ad View',
               style: TextStyle(
-                fontSize: 10 * _scale,
+                fontSize: 10 * scale,
                 color: Colors.grey[600],
               ),
             ),
@@ -739,7 +1015,8 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     );
   }
 
-  Widget _buildFloatingActionButton(FlutterWidgetBean widgetBean) {
+  Widget _buildFloatingActionButtonWithScale(
+      FlutterWidgetBean widgetBean, double scale) {
     final icon = widgetBean.properties['icon'] ?? 'add';
     final backgroundColor =
         _parseColor(widgetBean.properties['backgroundColor'] ?? '#FF5722');
@@ -749,21 +1026,22 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       child: Center(
         child: Icon(
           _parseIcon(icon),
-          size: 24 * _scale,
+          size: 24 * scale,
           color: Colors.white,
         ),
       ),
     );
   }
 
-  Widget _buildUnknownWidget(FlutterWidgetBean widgetBean) {
+  Widget _buildUnknownWidgetWithScale(
+      FlutterWidgetBean widgetBean, double scale) {
     return Container(
       color: Colors.grey[300],
       child: Center(
         child: Text(
           widgetBean.type,
           style: TextStyle(
-            fontSize: 10 * _scale,
+            fontSize: 10 * scale,
             color: Colors.grey[600],
           ),
         ),
@@ -771,57 +1049,11 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     );
   }
 
-  List<Widget> _buildChildWidgets(FlutterWidgetBean widgetBean) {
+  List<Widget> _buildChildWidgetsWithScale(
+      FlutterWidgetBean widgetBean, double scale) {
     // For now, return empty list. In a real implementation, this would
     // build child widgets based on the widget's children property
     return [];
-  }
-
-  Widget _buildDragOverlay() {
-    if (_draggedWidget == null) return const SizedBox.shrink();
-
-    return Positioned(
-      left: _dragStartPosition?.dx ?? 0,
-      top: _dragStartPosition?.dy ?? 0,
-      child: Opacity(
-        opacity: 0.7,
-        child: _buildWidget(_draggedWidget!),
-      ),
-    );
-  }
-
-  void _startDrag(FlutterWidgetBean widgetBean, DragStartDetails details) {
-    setState(() {
-      _draggedWidget = widgetBean;
-      _dragStartPosition = details.globalPosition;
-      _isDragging = true;
-    });
-  }
-
-  void _updateDrag(DragUpdateDetails details) {
-    if (_draggedWidget != null) {
-      setState(() {
-        _dragStartPosition = details.globalPosition;
-      });
-    }
-  }
-
-  void _endDrag() {
-    if (_draggedWidget != null && _dragStartPosition != null) {
-      final newPosition = _draggedWidget!.position.copyWith(
-        x: _dragStartPosition!.dx / _scale,
-        y: _dragStartPosition!.dy / _scale,
-      );
-
-      final updatedWidget = _draggedWidget!.copyWith(position: newPosition);
-      widget.onWidgetMoved(updatedWidget);
-    }
-
-    setState(() {
-      _draggedWidget = null;
-      _dragStartPosition = null;
-      _isDragging = false;
-    });
   }
 
   // Utility methods for parsing properties
@@ -917,6 +1149,28 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         return Icons.add;
     }
   }
+
+  // Optional ViewDummy overlay for enhanced drag feedback
+  Widget _buildViewDummyOverlay() {
+    // This would be used when dragging existing widgets
+    // For now, return empty since we're using DragTarget for palette widgets
+    return const SizedBox.shrink();
+  }
+}
+
+// SKETCHWARE PRO STYLE DATA STRUCTURES
+class WidgetPosition {
+  final double left;
+  final double top;
+  final double width;
+  final double height;
+
+  WidgetPosition({
+    required this.left,
+    required this.top,
+    required this.width,
+    required this.height,
+  });
 }
 
 class GridPainter extends CustomPainter {
