@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/flutter_widget_bean.dart';
 import '../models/sketchide_project.dart';
 import '../services/project_service.dart';
+import '../services/view_pane_service.dart';
 
 /// Design Tab Enum
 enum DesignTab {
@@ -14,6 +15,7 @@ enum DesignTab {
 /// Design ViewModel - MVVM Pattern for Visual Editor
 class DesignViewModel extends ChangeNotifier {
   final ProjectService _projectService = ProjectService();
+  final ViewPaneService _viewPaneService = ViewPaneService();
 
   // State
   SketchIDEProject? _project;
@@ -39,6 +41,7 @@ class DesignViewModel extends ChangeNotifier {
   String? get projectName => _projectName;
   bool get canUndo => _historyIndex > 0;
   bool get canRedo => _historyIndex < _history.length - 1;
+  ViewPaneService get viewPaneService => _viewPaneService;
 
   /// Load project from storage
   Future<void> loadProject(String projectId) async {
@@ -96,7 +99,7 @@ class DesignViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Update widget properties
+  /// Update widget properties with real-time ViewPane update
   void updateWidget(FlutterWidgetBean updatedWidget) {
     final index = _widgets.indexWhere((w) => w.id == updatedWidget.id);
     if (index != -1) {
@@ -104,12 +107,16 @@ class DesignViewModel extends ChangeNotifier {
       if (_selectedWidget?.id == updatedWidget.id) {
         _selectedWidget = updatedWidget;
       }
+
+      // Update widget in ViewPane for real-time changes
+      _viewPaneService.updateWidget(updatedWidget.id, updatedWidget);
+
       _saveToHistory();
       notifyListeners();
     }
   }
 
-  /// Move widget to new position
+  /// Move widget to new position with real-time ViewPane update
   void moveWidget(FlutterWidgetBean movedWidget) {
     final index = _widgets.indexWhere((w) => w.id == movedWidget.id);
     if (index != -1) {
@@ -117,6 +124,10 @@ class DesignViewModel extends ChangeNotifier {
       if (_selectedWidget?.id == movedWidget.id) {
         _selectedWidget = movedWidget;
       }
+
+      // Update widget layout in ViewPane for real-time changes
+      _viewPaneService.updateWidgetLayout(movedWidget.id, movedWidget);
+
       _saveToHistory();
       notifyListeners();
     }
@@ -281,5 +292,16 @@ class DesignViewModel extends ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  /// Register a widget with ViewPane for real-time updates
+  void registerWidgetWithViewPane(
+      String widgetId, Widget widget, FlutterWidgetBean widgetBean) {
+    _viewPaneService.registerWidget(widgetId, widget, widgetBean);
+  }
+
+  /// Unregister a widget from ViewPane
+  void unregisterWidgetFromViewPane(String widgetId) {
+    _viewPaneService.unregisterWidget(widgetId);
   }
 }

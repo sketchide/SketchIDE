@@ -250,7 +250,6 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
         onPropertyChanged: (widget) {
           viewModel.updateWidget(widget);
         },
-        allWidgets: viewModel.widgets,
         onWidgetDeleted: (widget) {
           viewModel.deleteSelectedWidget();
         },
