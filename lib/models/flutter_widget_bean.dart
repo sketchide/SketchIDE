@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 /// FlutterWidgetBean - EXACTLY matches Sketchware Pro's ViewBean
 class FlutterWidgetBean {
   final String id;
@@ -186,10 +184,10 @@ class PositionBean {
 
   factory PositionBean.fromJson(Map<String, dynamic> json) {
     return PositionBean(
-      x: (json['x'] ?? 0).toDouble(),
-      y: (json['y'] ?? 0).toDouble(),
-      width: (json['width'] ?? 200).toDouble(),
-      height: (json['height'] ?? 50).toDouble(),
+      x: LayoutBean._parseDouble(json['x']) ?? 0.0,
+      y: LayoutBean._parseDouble(json['y']) ?? 0.0,
+      width: LayoutBean._parseDouble(json['width']) ?? 200.0,
+      height: LayoutBean._parseDouble(json['height']) ?? 50.0,
     );
   }
 
@@ -261,25 +259,54 @@ class LayoutBean {
 
   factory LayoutBean.fromJson(Map<String, dynamic> json) {
     return LayoutBean(
-      width: json['width'] ?? -2,
-      height: json['height'] ?? -2,
-      marginLeft: (json['marginLeft'] ?? 0).toDouble(),
-      marginTop: (json['marginTop'] ?? 0).toDouble(),
-      marginRight: (json['marginRight'] ?? 0).toDouble(),
-      marginBottom: (json['marginBottom'] ?? 0).toDouble(),
-      paddingLeft: json['paddingLeft'] ?? 0,
-      paddingTop: json['paddingTop'] ?? 0,
-      paddingRight: json['paddingRight'] ?? 0,
-      paddingBottom: json['paddingBottom'] ?? 0,
-      layoutGravity: json['layoutGravity'] ?? 0,
-      gravity: json['gravity'] ?? 0,
-      weight: (json['weight'] ?? 0).toDouble(),
-      orientation: json['orientation'] ?? 1,
-      weightSum: (json['weightSum'] ?? 0).toDouble(),
-      backgroundColor: json['backgroundColor'] ?? 0xFFFFFFFF,
+      width: _parseInt(json['width']) ?? -2,
+      height: _parseInt(json['height']) ?? -2,
+      marginLeft: _parseDouble(json['marginLeft']) ?? 0.0,
+      marginTop: _parseDouble(json['marginTop']) ?? 0.0,
+      marginRight: _parseDouble(json['marginRight']) ?? 0.0,
+      marginBottom: _parseDouble(json['marginBottom']) ?? 0.0,
+      paddingLeft: _parseInt(json['paddingLeft']) ?? 0,
+      paddingTop: _parseInt(json['paddingTop']) ?? 0,
+      paddingRight: _parseInt(json['paddingRight']) ?? 0,
+      paddingBottom: _parseInt(json['paddingBottom']) ?? 0,
+      layoutGravity: _parseInt(json['layoutGravity']) ?? 0,
+      gravity: _parseInt(json['gravity']) ?? 0,
+      weight: _parseDouble(json['weight']) ?? 0.0,
+      orientation: _parseInt(json['orientation']) ?? 1,
+      weightSum: _parseDouble(json['weightSum']) ?? 0.0,
+      backgroundColor: _parseInt(json['backgroundColor']) ?? 0xFFFFFFFF,
       backgroundResource: json['backgroundResource'],
       backgroundResColor: json['backgroundResColor'],
     );
+  }
+
+  // Helper methods for safe parsing
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) {
+      try {
+        return int.parse(value);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      try {
+        return double.parse(value);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() {

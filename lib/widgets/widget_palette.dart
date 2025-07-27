@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/flutter_widget_bean.dart';
+import '../services/widget_factory_service.dart';
 import '../controllers/drag_controller.dart';
 
 /// Widget Palette (Left Sidebar) - EXACTLY matches Sketchware Pro's PaletteWidget
@@ -259,175 +260,24 @@ class _WidgetPaletteState extends State<WidgetPalette> {
     );
   }
 
-  // SKETCHWARE PRO STYLE: Create widget bean for drag
+  // SKETCHWARE PRO STYLE: Create widget bean for drag using factory service
   FlutterWidgetBean _createWidgetBean(
       String type, IconData icon, String label) {
-    return FlutterWidgetBean(
-      id: FlutterWidgetBean.generateId(),
-      type: type,
-      properties: _getDefaultProperties(type),
-      children: [],
-      position: PositionBean(x: 0, y: 0, width: 200, height: 50),
-      events: {},
-      layout: _getDefaultLayout(type),
-    );
+    return WidgetFactoryService.createWidgetBean(type);
   }
 
   // SKETCHWARE PRO STYLE: Get default properties for widget type
+  // DEPRECATED: Now using WidgetFactoryService.createWidgetBean() for strongly typed properties
   Map<String, dynamic> _getDefaultProperties(String type) {
-    switch (type) {
-      // Layout Widgets
-      case 'Row':
-        return {
-          'mainAxisAlignment': 'start',
-          'crossAxisAlignment': 'center',
-          'mainAxisSize': 'max',
-        };
-      case 'Column':
-        return {
-          'mainAxisAlignment': 'start',
-          'crossAxisAlignment': 'center',
-          'mainAxisSize': 'max',
-        };
-      case 'Container':
-        return {
-          'width': -2, // WRAP_CONTENT
-          'height': -2, // WRAP_CONTENT
-          'backgroundColor': '#FFFFFF',
-          'borderColor': '#CCCCCC',
-          'borderWidth': 1.0,
-          'borderRadius': 0.0,
-          'alignment': 'center',
-        };
-      case 'Stack':
-        return {
-          'alignment': 'topLeft',
-          'fit': 'loose',
-          'clipBehavior': 'hardEdge',
-        };
-
-      // Text & Input Widgets
-      case 'Text':
-        return {
-          'text': 'Text Widget',
-          'fontSize': 14.0,
-          'fontWeight': 'normal',
-          'fontStyle': 'normal',
-          'textColor': '#000000',
-          'backgroundColor': '#FFFFFF',
-          'textAlign': 'left',
-          'maxLines': null,
-          'textOverflow': 'ellipsis',
-          'softWrap': true,
-          'textDecoration': 'none',
-          'decorationColor': '#000000',
-          'decorationThickness': 1.0,
-        };
-      case 'TextField':
-        return {
-          'text': '',
-          'hint': 'Enter text',
-          'label': null,
-          'fontSize': 14.0,
-          'fontWeight': 'normal',
-          'textColor': '#000000',
-          'borderType': 'outline',
-          'borderColor': '#CCCCCC',
-          'focusedBorderColor': '#2196F3',
-          'borderRadius': 4.0,
-          'filled': false,
-          'fillColor': '#F5F5F5',
-          'maxLines': 1,
-          'obscureText': false,
-          'textAlign': 'left',
-          'keyboardType': 'text',
-          'textCapitalization': 'sentences',
-          'prefixIcon': null,
-          'suffixIcon': null,
-        };
-      case 'Icon':
-        return {
-          'iconName': 'home',
-          'iconSize': 24.0,
-          'iconColor': '#000000',
-          'semanticLabel': null,
-        };
-      default:
-        return {};
-    }
+    // This method is deprecated - use WidgetFactoryService.createWidgetBean() instead
+    return {};
   }
 
   // SKETCHWARE PRO STYLE: Get default layout for widget type
+  // DEPRECATED: Now using WidgetFactoryService.createWidgetBean() for strongly typed properties
   LayoutBean _getDefaultLayout(String type) {
-    switch (type) {
-      // Layout Widgets
-      case 'Row':
-        return LayoutBean(
-          width: -1, // MATCH_PARENT
-          height: -2, // WRAP_CONTENT
-          paddingLeft: 8,
-          paddingTop: 8,
-          paddingRight: 8,
-          paddingBottom: 8,
-        );
-      case 'Column':
-        return LayoutBean(
-          width: -2, // WRAP_CONTENT
-          height: -1, // MATCH_PARENT
-          paddingLeft: 8,
-          paddingTop: 8,
-          paddingRight: 8,
-          paddingBottom: 8,
-        );
-      case 'Container':
-        return LayoutBean(
-          width: -2, // WRAP_CONTENT
-          height: -2, // WRAP_CONTENT
-          paddingLeft: 16,
-          paddingTop: 16,
-          paddingRight: 16,
-          paddingBottom: 16,
-        );
-      case 'Stack':
-        return LayoutBean(
-          width: -1, // MATCH_PARENT
-          height: -1, // MATCH_PARENT
-        );
-
-      // Text & Input Widgets
-      case 'Text':
-        return LayoutBean(
-          width: -2, // WRAP_CONTENT
-          height: -2, // WRAP_CONTENT
-          paddingLeft: 8,
-          paddingTop: 4,
-          paddingRight: 8,
-          paddingBottom: 4,
-        );
-      case 'TextField':
-        return LayoutBean(
-          width: -1, // MATCH_PARENT
-          height: -2, // WRAP_CONTENT
-          paddingLeft: 8,
-          paddingTop: 4,
-          paddingRight: 8,
-          paddingBottom: 4,
-        );
-      case 'Icon':
-        return LayoutBean(
-          width: -2, // WRAP_CONTENT
-          height: -2, // WRAP_CONTENT
-          paddingLeft: 8,
-          paddingTop: 8,
-          paddingRight: 8,
-          paddingBottom: 8,
-        );
-      default:
-        return LayoutBean(
-          width: -2, // WRAP_CONTENT
-          height: -2, // WRAP_CONTENT
-        );
-    }
+    // This method is deprecated - use WidgetFactoryService.createWidgetBean() instead
+    return LayoutBean();
   }
 
   void _showCreateWidgetDialog() {

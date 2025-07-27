@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/flutter_widget_bean.dart';
+import '../../models/text_field_properties.dart';
+import '../../services/widget_factory_service.dart';
 
 /// WidgetTextField - Flutter TextField widget with Sketchware Pro-style selection
 /// Text input field
@@ -50,13 +52,17 @@ class WidgetTextField extends StatelessWidget {
   }
 
   String _getText() {
-    return widgetBean.properties['text'] ?? '';
+    final textFieldProps = WidgetFactoryService.getTypedProperties(widgetBean)
+        as TextFieldProperties;
+    return textFieldProps.text;
   }
 
   TextStyle _getTextStyle() {
-    final fontSize = (widgetBean.properties['fontSize'] ?? 14.0) * scale;
-    final fontWeight = _getFontWeight();
-    final color = _parseColor(widgetBean.properties['textColor'] ?? '#000000');
+    final textFieldProps = WidgetFactoryService.getTypedProperties(widgetBean)
+        as TextFieldProperties;
+    final fontSize = textFieldProps.textSize * scale;
+    final fontWeight = _getFontWeightFromType(textFieldProps.textType);
+    final color = Color(textFieldProps.textColor);
 
     return TextStyle(
       fontSize: fontSize,
@@ -65,44 +71,34 @@ class WidgetTextField extends StatelessWidget {
     );
   }
 
-  FontWeight _getFontWeight() {
-    final weight = widgetBean.properties['fontWeight'] ?? 'normal';
-    switch (weight) {
-      case 'bold':
+  FontWeight _getFontWeightFromType(int textType) {
+    switch (textType) {
+      case 1: // TEXT_TYPE_BOLD
         return FontWeight.bold;
-      case 'w500':
-        return FontWeight.w500;
-      case 'w600':
-        return FontWeight.w600;
-      default:
+      case 2: // TEXT_TYPE_ITALIC
+        return FontWeight.normal;
+      case 3: // TEXT_TYPE_BOLDITALIC
+        return FontWeight.bold;
+      default: // TEXT_TYPE_NORMAL
         return FontWeight.normal;
     }
   }
 
   InputDecoration _getInputDecoration() {
-    final hint = widgetBean.properties['hint'] ?? 'Enter text';
-    final label = widgetBean.properties['label'];
-    final prefixIcon = widgetBean.properties['prefixIcon'];
-    final suffixIcon = widgetBean.properties['suffixIcon'];
-    final borderType = widgetBean.properties['borderType'] ?? 'outline';
-    final borderColor =
-        _parseColor(widgetBean.properties['borderColor'] ?? '#CCCCCC');
-    final focusedBorderColor =
-        _parseColor(widgetBean.properties['focusedBorderColor'] ?? '#2196F3');
-    final borderRadius = (widgetBean.properties['borderRadius'] ?? 4.0) * scale;
+    final textFieldProps = WidgetFactoryService.getTypedProperties(widgetBean)
+        as TextFieldProperties;
+    final hint = textFieldProps.hint;
+    final borderColor = Color(0xffCCCCCC); // Default border color
+    final focusedBorderColor = Color(0xff2196F3); // Default focused color
+    final borderRadius = 4.0 * scale; // Default border radius
 
     return InputDecoration(
       hintText: hint,
-      labelText: label,
-      prefixIcon:
-          prefixIcon != null ? Icon(Icons.edit, size: 16 * scale) : null,
-      suffixIcon:
-          suffixIcon != null ? Icon(Icons.clear, size: 16 * scale) : null,
-      border: _getBorder(borderType, borderColor, borderRadius),
-      enabledBorder: _getBorder(borderType, borderColor, borderRadius),
-      focusedBorder: _getBorder(borderType, focusedBorderColor, borderRadius),
-      filled: widgetBean.properties['filled'] ?? false,
-      fillColor: _parseColor(widgetBean.properties['fillColor'] ?? '#F5F5F5'),
+      border: _getBorder('outline', borderColor, borderRadius),
+      enabledBorder: _getBorder('outline', borderColor, borderRadius),
+      focusedBorder: _getBorder('outline', focusedBorderColor, borderRadius),
+      filled: false,
+      fillColor: Color(0xffF5F5F5),
       contentPadding: EdgeInsets.symmetric(
         horizontal: 12 * scale,
         vertical: 8 * scale,
@@ -121,69 +117,42 @@ class WidgetTextField extends StatelessWidget {
   }
 
   int? _getMaxLines() {
-    final lines = widgetBean.properties['maxLines'];
-    return lines != null ? (lines as num).toInt() : 1;
+    final textFieldProps = WidgetFactoryService.getTypedProperties(widgetBean)
+        as TextFieldProperties;
+    return textFieldProps.line > 0 ? textFieldProps.line : 1;
   }
 
   bool _getObscureText() {
-    return widgetBean.properties['obscureText'] ?? false;
+    final textFieldProps = WidgetFactoryService.getTypedProperties(widgetBean)
+        as TextFieldProperties;
+    return textFieldProps.inputType == 129; // INPUT_TYPE_PASSWORD
   }
 
   TextAlign _getTextAlign() {
-    final align = widgetBean.properties['textAlign'] ?? 'left';
-    switch (align) {
-      case 'left':
-        return TextAlign.left;
-      case 'right':
-        return TextAlign.right;
-      case 'center':
-        return TextAlign.center;
-      case 'justify':
-        return TextAlign.justify;
-      case 'start':
-        return TextAlign.start;
-      case 'end':
-        return TextAlign.end;
-      default:
-        return TextAlign.left;
-    }
+    return TextAlign.left; // Default for Sketchware Pro
   }
 
   TextInputType _getKeyboardType() {
-    final type = widgetBean.properties['keyboardType'] ?? 'text';
-    switch (type) {
-      case 'text':
+    final textFieldProps = WidgetFactoryService.getTypedProperties(widgetBean)
+        as TextFieldProperties;
+    switch (textFieldProps.inputType) {
+      case 1: // INPUT_TYPE_TEXT
         return TextInputType.text;
-      case 'number':
-        return TextInputType.number;
-      case 'email':
-        return TextInputType.emailAddress;
-      case 'phone':
+      case 3: // INPUT_TYPE_PHONE
         return TextInputType.phone;
-      case 'url':
-        return TextInputType.url;
-      case 'multiline':
-        return TextInputType.multiline;
+      case 129: // INPUT_TYPE_PASSWORD
+        return TextInputType.text;
+      case 4098: // INPUT_TYPE_NUMBER_SIGNED
+        return TextInputType.number;
+      case 8194: // INPUT_TYPE_NUMBER_DECIMAL
+        return TextInputType.numberWithOptions(decimal: true);
       default:
         return TextInputType.text;
     }
   }
 
   TextCapitalization _getTextCapitalization() {
-    final capitalization =
-        widgetBean.properties['textCapitalization'] ?? 'sentences';
-    switch (capitalization) {
-      case 'words':
-        return TextCapitalization.words;
-      case 'sentences':
-        return TextCapitalization.sentences;
-      case 'characters':
-        return TextCapitalization.characters;
-      case 'none':
-        return TextCapitalization.none;
-      default:
-        return TextCapitalization.sentences;
-    }
+    return TextCapitalization.sentences; // Default for Sketchware Pro
   }
 
   Color _parseColor(String colorString) {
@@ -198,56 +167,12 @@ class WidgetTextField extends StatelessWidget {
     }
   }
 
-  /// Create a FlutterWidgetBean for TextField
+  /// Create a FlutterWidgetBean for TextField using Factory Service
   static FlutterWidgetBean createBean({
     String? id,
     Map<String, dynamic>? properties,
   }) {
-    return FlutterWidgetBean(
-      id: id ?? FlutterWidgetBean.generateId(),
-      type: 'TextField',
-      properties: {
-        'text': '',
-        'hint': 'Enter text',
-        'label': null,
-        'fontSize': 14.0,
-        'fontWeight': 'normal',
-        'textColor': '#000000',
-        'borderType': 'outline',
-        'borderColor': '#CCCCCC',
-        'focusedBorderColor': '#2196F3',
-        'borderRadius': 4.0,
-        'filled': false,
-        'fillColor': '#F5F5F5',
-        'maxLines': 1,
-        'obscureText': false,
-        'textAlign': 'left',
-        'keyboardType': 'text',
-        'textCapitalization': 'sentences',
-        'prefixIcon': null,
-        'suffixIcon': null,
-        ...?properties,
-      },
-      children: [],
-      position: PositionBean(
-        x: 0,
-        y: 0,
-        width: 200,
-        height: 50,
-      ),
-      events: {},
-      layout: LayoutBean(
-        width: -1, // MATCH_PARENT
-        height: -2, // WRAP_CONTENT
-        marginLeft: 0,
-        marginTop: 0,
-        marginRight: 0,
-        marginBottom: 0,
-        paddingLeft: 8,
-        paddingTop: 4,
-        paddingRight: 8,
-        paddingBottom: 4,
-      ),
-    );
+    return WidgetFactoryService.createWidgetBean('TextField',
+        id: id, customProperties: properties);
   }
 }
