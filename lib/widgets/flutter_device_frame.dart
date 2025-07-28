@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../models/flutter_widget_bean.dart';
 import '../models/view_info.dart';
 import '../services/view_info_service.dart' as view_service;
-import '../services/widget_factory_service.dart';
+import '../services/widget_sizing_service.dart';
+import '../services/mobile_frame_widget_factory_service.dart';
+import '../services/widget_sizing_service.dart';
+import '../controllers/mobile_frame_touch_controller.dart';
+import '../services/selection_service.dart';
 import 'view_dummy.dart';
 
 /// Flutter Device Frame (Center) - EXACTLY matches Sketchware Pro's ViewPane
 ///
-/// SIMPLIFIED DESIGN:
-/// - Pure white background (matches Sketchware Pro)
-/// - Simple border (no device simulation)
+/// SKETCHWARE PRO STYLE DESIGN:
+/// - Rectangular vertical frame (no rounded phone frame)
+/// - Blue status bar (0xff0084c2) with phone background image
+/// - Blue toolbar (0xff008dcd) with "Toolbar" text
+/// - Pure white content area with grid
 /// - Red highlight colors (matches Sketchware Pro)
 /// - Optional ViewDummy for enhanced feedback
 /// - Maintains sophisticated ViewInfo system
@@ -25,7 +30,7 @@ class FlutterDeviceFrame extends StatefulWidget {
   final FlutterWidgetBean? selectedWidget;
   final Function(FlutterWidgetBean) onWidgetSelected;
   final Function(FlutterWidgetBean) onWidgetMoved;
-  final Function(FlutterWidgetBean) onWidgetAdded;
+  final Function(FlutterWidgetBean, {Size? containerSize}) onWidgetAdded;
 
   const FlutterDeviceFrame({
     super.key,
@@ -41,7 +46,7 @@ class FlutterDeviceFrame extends StatefulWidget {
 }
 
 class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
-  late view_service.ViewInfoService _viewInfoService;
+  view_service.ViewInfoService? _viewInfoService;
   double _scale = 1.0;
   bool _showViewDummy = true; // Optional ViewDummy toggle
 
@@ -51,16 +56,95 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
   Offset _viewDummyPosition = Offset.zero;
   FlutterWidgetBean? _viewDummyWidget;
 
+  // SKETCHWARE PRO STYLE: Mobile frame touch and selection controllers
+  late MobileFrameTouchController _touchController;
+  late SelectionService _selectionService;
+
   @override
   void initState() {
     super.initState();
-    _viewInfoService = view_service.ViewInfoService();
+    _initializeViewInfoService();
+    _initializeMobileFrameControllers();
   }
 
   @override
   void dispose() {
-    _viewInfoService.dispose();
+    _viewInfoService?.dispose();
     super.dispose();
+  }
+
+  /// SKETCHWARE PRO STYLE: Initialize ViewInfoService safely
+  void _initializeViewInfoService() {
+    if (_viewInfoService == null || _viewInfoService!.disposed) {
+      _viewInfoService = view_service.ViewInfoService();
+    } else {
+      // SKETCHWARE PRO STYLE: Reset service for tab switching
+      _viewInfoService!.resetForTabSwitch();
+    }
+  }
+
+  /// SKETCHWARE PRO STYLE: Check if service is available
+  bool get _isServiceAvailable =>
+      _viewInfoService != null && !_viewInfoService!.disposed;
+
+  /// SKETCHWARE PRO STYLE: Get ViewInfoService safely
+  view_service.ViewInfoService get _safeViewInfoService {
+    _initializeViewInfoService();
+    return _viewInfoService!;
+  }
+
+  /// SKETCHWARE PRO STYLE: Initialize mobile frame controllers
+  void _initializeMobileFrameControllers() {
+    _touchController = MobileFrameTouchController();
+    _selectionService = SelectionService();
+
+    // Setup touch controller callbacks
+    _touchController.setCallbacks(
+      onWidgetSelected: (widget) {
+        print('🎯 MOBILE FRAME: Widget selected ${widget.id}');
+        this.widget.onWidgetSelected?.call(widget);
+      },
+      onWidgetDragStart: (widget, position) {
+        print('🎯 MOBILE FRAME: Widget drag start ${widget.id} at $position');
+        _handleWidgetDragStart(widget, position);
+      },
+      onWidgetDragUpdate: (widget, position) {
+        print('🎯 MOBILE FRAME: Widget drag update ${widget.id} at $position');
+        _handleWidgetDragUpdate(widget, position);
+      },
+      onWidgetDragEnd: (widget, position) {
+        print('🎯 MOBILE FRAME: Widget drag end ${widget.id} at $position');
+        _handleWidgetDragEnd(widget, position);
+      },
+      onWidgetLongPress: (widget) {
+        print('🎯 MOBILE FRAME: Widget long press ${widget.id}');
+        // Handle long press feedback
+      },
+      onDragStateChanged: (isDragging) {
+        print('🎯 MOBILE FRAME: Drag state changed - $isDragging');
+        // Handle drag state changes
+      },
+    );
+  }
+
+  /// SKETCHWARE PRO STYLE: Handle widget drag start
+  void _handleWidgetDragStart(FlutterWidgetBean widget, Offset position) {
+    print('🎯 DRAG START: ${widget.id} at $position');
+    // TODO: Implement drag start logic for existing widgets
+  }
+
+  /// SKETCHWARE PRO STYLE: Handle widget drag update
+  void _handleWidgetDragUpdate(FlutterWidgetBean widget, Offset position) {
+    print('🎯 DRAG UPDATE: ${widget.id} at $position');
+    // TODO: Implement drag update logic for existing widgets
+    // Call the widget's onWidgetMoved callback
+    this.widget.onWidgetMoved(widget);
+  }
+
+  /// SKETCHWARE PRO STYLE: Handle widget drag end
+  void _handleWidgetDragEnd(FlutterWidgetBean widget, Offset position) {
+    print('🎯 DRAG END: ${widget.id} at $position');
+    // TODO: Implement drag end logic for existing widgets
   }
 
   // SKETCHWARE PRO STYLE: Drop zone detection is now handled directly by ViewInfoService
@@ -76,9 +160,9 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
               // Device Frame Header (like Sketchware Pro)
               _buildDeviceHeader(),
 
-              // Device Frame Content with Phone Simulation
+              // Device Frame Content with Rectangular Design
               Expanded(
-                child: _buildPhoneSimulation(),
+                child: _buildRectangularMobileFrame(),
               ),
             ],
           ),
@@ -99,105 +183,246 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-            width: 1,
-          ),
+        // SKETCHWARE PRO STYLE: Professional header design
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            const Color(0xFF0084C2), // Sketchware Pro blue
+            const Color(0xFF006B9E), // Darker blue
+          ],
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
+          // SKETCHWARE PRO STYLE: Professional icon and title
           Icon(
             Icons.phone_android,
-            color: Theme.of(context).colorScheme.primary,
+            color: Colors.white,
             size: 20,
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Sketchware Pro Style Preview',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          // ViewDummy Toggle (optional enhanced feedback)
-          IconButton(
-            icon: Icon(
-              _showViewDummy ? Icons.visibility : Icons.visibility_off,
-              size: 18,
+          // SKETCHWARE PRO STYLE: Professional control buttons
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(4),
             ),
-            onPressed: () => setState(() => _showViewDummy = !_showViewDummy),
-            tooltip: 'Toggle Enhanced Drag Feedback',
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            padding: EdgeInsets.zero,
+            child: IconButton(
+              icon: Icon(
+                _showViewDummy ? Icons.visibility : Icons.visibility_off,
+                size: 18,
+                color: Colors.white,
+              ),
+              onPressed: () => setState(() => _showViewDummy = !_showViewDummy),
+              tooltip: 'Toggle Enhanced Drag Feedback',
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              padding: EdgeInsets.zero,
+            ),
           ),
-          // Zoom Controls
-          IconButton(
-            icon: const Icon(Icons.zoom_in, size: 18),
-            onPressed: () =>
-                setState(() => _scale = (_scale + 0.1).clamp(0.5, 2.0)),
-            tooltip: 'Zoom In',
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            padding: EdgeInsets.zero,
+          const SizedBox(width: 4),
+          // SKETCHWARE PRO STYLE: Professional zoom controls
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.zoom_in, size: 18, color: Colors.white),
+              onPressed: () =>
+                  setState(() => _scale = (_scale + 0.1).clamp(0.5, 2.0)),
+              tooltip: 'Zoom In',
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              padding: EdgeInsets.zero,
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.zoom_out, size: 18),
-            onPressed: () =>
-                setState(() => _scale = (_scale - 0.1).clamp(0.5, 2.0)),
-            tooltip: 'Zoom Out',
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            padding: EdgeInsets.zero,
+          const SizedBox(width: 2),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.zoom_out, size: 18, color: Colors.white),
+              onPressed: () =>
+                  setState(() => _scale = (_scale - 0.1).clamp(0.5, 2.0)),
+              tooltip: 'Zoom Out',
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              padding: EdgeInsets.zero,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPhoneSimulation() {
+  // SKETCHWARE PRO STYLE: Rectangular mobile frame (no rounded phone frame)
+  Widget _buildRectangularMobileFrame() {
     return Center(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // Calculate available space like Sketchware Pro
-          final availableWidth = constraints.maxWidth - 40;
-          final availableHeight = constraints.maxHeight - 40;
+          // EXACT SKETCHIDE: Use the exact scaling formula from ViewEditor.java:870-890
+          final sketchideScaling =
+              WidgetSizingService.calculateExactFrameScaling(
+            context,
+            hasAds: false, // Can be made configurable
+            screenType: 0,
+          );
 
-          // Calculate scale factors like Sketchware Pro
-          final scaleX =
-              availableWidth / 360.0; // 360dp is Sketchware Pro's base width
-          final scaleY =
-              availableHeight / 640.0; // 640dp is Sketchware Pro's base height
+          // EXACT SKETCHIDE: Apply user scale factor to the calculated scaling
+          final finalScale = _scale * sketchideScaling.scaleX;
 
-          // Use the smaller scale to maintain aspect ratio (like Sketchware Pro)
-          final calculatedScale = _scale * (scaleX < scaleY ? scaleX : scaleY);
+          // EXACT SKETCHIDE: Calculate final content dimensions using exact formula
+          final contentWidth = sketchideScaling.displayWidth * finalScale;
+          final contentHeight = sketchideScaling.displayHeight * finalScale;
 
-          // Calculate final content dimensions
-          final contentWidth = 360 * calculatedScale;
-          final contentHeight = 640 * calculatedScale;
-
-          // SKETCHWARE PRO STYLE: Simple white container with border
+          // SKETCHWARE PRO STYLE: Rectangular frame with simple border (no phone simulation)
           return Container(
             width: contentWidth,
             height: contentHeight,
             decoration: BoxDecoration(
-              color: Colors.white, // Pure white like Sketchware Pro
+              // EXACT SKETCHWARE PRO: Simple rectangular border
               border: Border.all(
-                color: Colors.grey.withOpacity(0.3),
-                width: 1,
+                color: const Color(0xFFCCCCCC),
+                width: 2 * finalScale,
               ),
+              color: Colors.white, // White background
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4 * finalScale,
+                  offset: Offset(0, 2 * finalScale),
+                ),
+              ],
             ),
-            child: _buildContentArea(calculatedScale),
+            child: Column(
+              children: [
+                // Status Bar (like Sketchware Pro)
+                _buildStatusBar(finalScale),
+
+                // Toolbar (like Sketchware Pro)
+                _buildToolbar(finalScale),
+
+                // Content Area
+                Expanded(
+                  child: _buildContentArea(finalScale),
+                ),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  // Removed status bar and toolbar methods - simplified to match Sketchware Pro
+  // EXACT SKETCHWARE PRO: Status Bar (like Sketchware Pro)
+  Widget _buildStatusBar(double scale) {
+    return Container(
+      height: WidgetSizingService.convertDpToPixels(context, 25.0) *
+          scale, // EXACT Sketchware Pro status bar height
+      decoration: BoxDecoration(
+        color: const Color(0xFF0084C2), // Sketchware Pro blue
+        border: Border(
+          bottom: BorderSide(
+            color: const Color(0xFF006B9E),
+            width: 1 * scale,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Status bar content (like Sketchware Pro)
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(left: 8 * scale),
+              child: Text(
+                '9:41', // Time
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12 * scale,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+          // Status icons
+          Row(
+            children: [
+              Icon(
+                Icons.signal_cellular_4_bar,
+                color: Colors.white,
+                size: 14 * scale,
+              ),
+              SizedBox(width: 2 * scale),
+              Icon(
+                Icons.wifi,
+                color: Colors.white,
+                size: 14 * scale,
+              ),
+              SizedBox(width: 2 * scale),
+              Icon(
+                Icons.battery_full,
+                color: Colors.white,
+                size: 14 * scale,
+              ),
+              SizedBox(width: 8 * scale),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // EXACT SKETCHIDE: Toolbar (like Sketchware Pro)
+  Widget _buildToolbar(double scale) {
+    return Container(
+      height: WidgetSizingService.convertDpToPixels(context, 48.0) *
+          scale, // EXACT Sketchware Pro toolbar height
+      decoration: BoxDecoration(
+        color: const Color(0xFF008DCD), // Sketchware Pro toolbar blue
+        border: Border(
+          bottom: BorderSide(
+            color: const Color(0xFF006B9E),
+            width: 1 * scale,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Toolbar content (like Sketchware Pro)
+          Padding(
+            padding: EdgeInsets.only(left: 16 * scale),
+            child: Text(
+              'Toolbar',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15 * scale,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   // SKETCHWARE PRO STYLE CONTENT AREA
   Widget _buildContentArea(double scale) {
@@ -207,14 +432,17 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
         // SKETCHWARE PRO STYLE: Update ViewInfoService with container information
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!_isServiceAvailable)
+            return; // SKETCHWARE PRO STYLE: Prevent disposed service usage
+
           final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
           if (renderBox != null) {
             final containerOffset = renderBox.localToGlobal(Offset.zero);
-            _viewInfoService.updateContainer(
+            _safeViewInfoService.updateContainer(
               size: containerSize,
               offset: containerOffset,
             );
-            _viewInfoService.updateScales(
+            _safeViewInfoService.updateScales(
               outerScale: _scale,
               innerScale: scale,
             );
@@ -222,7 +450,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         });
 
         return Container(
-          color: Colors.white,
+          color: Colors.white, // Pure white background (like Sketchware Pro)
           child: Stack(
             children: [
               // Background grid (like Sketchware Pro)
@@ -237,8 +465,9 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
               // SKETCHWARE PRO STYLE: Drag target for palette widgets
               _buildDragTargetOverlay(),
 
-              // Optional ViewDummy for enhanced drag feedback
-              if (_showViewDummy) _buildViewDummyOverlay(),
+              // SKETCHWARE PRO STYLE: Enhanced ViewDummy for drag feedback
+              if (_showViewDummy && _isViewDummyVisible)
+                _buildViewDummyOverlay(),
             ],
           ),
         );
@@ -325,11 +554,11 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
   void _handleDragMove(DragTargetDetails<FlutterWidgetBean> details) {
     // SKETCHWARE PRO STYLE: Transform raw coordinates to scaled coordinates
     final transformedCoordinates =
-        _viewInfoService.transformCoordinates(details.offset);
+        _safeViewInfoService.transformCoordinates(details.offset);
 
     // SKETCHWARE PRO STYLE: Check if coordinates are within container
-    if (!_viewInfoService.isWithinContainer(details.offset)) {
-      _viewInfoService.resetViewHighlight();
+    if (!_safeViewInfoService.isWithinContainer(details.offset)) {
+      _safeViewInfoService.resetViewHighlight();
       _updateViewDummy(false, details.offset, details.data);
       return;
     }
@@ -338,10 +567,11 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     final widgetSize = _getWidgetSize(details.data);
 
     // SKETCHWARE PRO STYLE: Update view highlight with transformed coordinates
-    _viewInfoService.updateViewHighlight(transformedCoordinates, widgetSize);
+    _safeViewInfoService.updateViewHighlight(
+        transformedCoordinates, widgetSize);
 
     // SKETCHWARE PRO STYLE: Store current drop position for precise positioning
-    _viewInfoService.setCurrentDropZone(view_service.DropZoneInfo(
+    _safeViewInfoService.setCurrentDropZone(view_service.DropZoneInfo(
       viewInfo: ViewInfo(
         rect: Rect.fromLTWH(transformedCoordinates.dx,
             transformedCoordinates.dy, widgetSize.width, widgetSize.height),
@@ -358,29 +588,36 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     _updateViewDummy(true, details.offset, details.data);
   }
 
-  /// SKETCHWARE PRO STYLE: Handle widget drop with precise positioning
+  /// SKETCHWARE PRO STYLE: Handle widget drop with proper sizing (like ViewEditor.java:327)
   void _handleWidgetDrop(FlutterWidgetBean widgetData) {
     // SKETCHWARE PRO STYLE: Get the actual drop position from the last drag move
-    final dropPosition = _viewInfoService.currentDropZone?.position ??
-        Offset(_viewInfoService.containerSize.width / 2,
-            _viewInfoService.containerSize.height / 2);
+    final dropPosition = _safeViewInfoService.currentDropZone?.position ??
+        Offset(_safeViewInfoService.containerSize.width / 2,
+            _safeViewInfoService.containerSize.height / 2);
 
-    final widgetSize = _getWidgetSize(widgetData);
+    // SKETCHWARE PRO STYLE: Get available container size
+    final containerSize = WidgetSizingService.getAvailableContainerSize(
+      Size(_safeViewInfoService.containerSize.width,
+          _safeViewInfoService.containerSize.height),
+    );
 
     // SKETCHWARE PRO STYLE: Calculate precise position with bounds checking
-    final precisePosition =
-        _calculatePreciseDropPosition(dropPosition, widgetSize);
+    final precisePosition = WidgetSizingService.calculateDropPosition(
+      dropPosition,
+      WidgetSizingService.getWidgetSize(widgetData.type, containerSize),
+      containerSize,
+    );
 
-    // SKETCHWARE PRO STYLE: Create widget with precise position and default properties
+    // SKETCHWARE PRO STYLE: Create widget with precise position and proper sizing
     final positionedWidget = _createPositionedWidgetWithDefaults(
       widgetData,
       precisePosition,
-      widgetSize,
+      WidgetSizingService.getWidgetSize(widgetData.type, containerSize),
     );
 
-    // SKETCHWARE PRO STYLE: Add widget through the view model for proper history management
+    // SKETCHWARE PRO STYLE: Add widget through the view model with proper sizing
     if (widget.onWidgetAdded != null) {
-      widget.onWidgetAdded!(positionedWidget);
+      widget.onWidgetAdded!(positionedWidget, containerSize: containerSize);
     }
 
     // SKETCHWARE PRO STYLE: Select the newly added widget
@@ -391,12 +628,13 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     // SKETCHWARE PRO STYLE: Hide ViewDummy after successful drop
     _hideViewDummy();
 
-    print('🎯 WIDGET DROPPED: ${widgetData.type} at ${precisePosition}');
+    print(
+        '🎯 WIDGET DROPPED: ${widgetData.type} at ${precisePosition} with proper sizing');
   }
 
   /// SKETCHWARE PRO STYLE: Calculate precise drop position with bounds checking
   Offset _calculatePreciseDropPosition(Offset dropPosition, Size widgetSize) {
-    final containerSize = _viewInfoService.containerSize;
+    final containerSize = _safeViewInfoService.containerSize;
 
     // SKETCHWARE PRO STYLE: Ensure widget fits within container bounds
     double x = dropPosition.dx;
@@ -680,13 +918,24 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
   // SKETCHWARE PRO STYLE WIDGET RENDERING
   Widget _buildSketchwareProWidgets(double scale) {
-    // Drop zones are now handled by ViewInfoService
+    // SKETCHWARE PRO STYLE: Get root widgets for hierarchical rendering
+    final rootWidgets = _getRootWidgets();
 
     return Stack(
-      children: widget.widgets
+      children: rootWidgets
           .map((widgetBean) => _buildSketchwareProWidget(widgetBean))
           .toList(),
     );
+  }
+
+  /// SKETCHWARE PRO STYLE: Get root widgets (widgets without parents)
+  List<FlutterWidgetBean> _getRootWidgets() {
+    return widget.widgets
+        .where((widget) =>
+            widget.parentId == null ||
+            widget.parentId == 'root' ||
+            widget.parent == 'root')
+        .toList();
   }
 
   /// SKETCHWARE PRO STYLE: Build widget with selection capability
@@ -701,61 +950,41 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     return Positioned(
       left: position.left,
       top: position.top,
-      child: GestureDetector(
-        onTap: () {
-          // SKETCHWARE PRO STYLE: Select widget and show property panel
-          print('🎯 WIDGET SELECTED: ${widgetBean.type} (${widgetBean.id})');
-          if (widget.onWidgetSelected != null) {
-            widget.onWidgetSelected!(widgetBean);
-          }
-        },
-        child: Listener(
-          onPointerDown: (details) {
-            // SKETCHWARE PRO STYLE: Handle drag start for existing widgets
-            _handleExistingWidgetDragStart(widgetBean, details);
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              border:
-                  isSelected ? Border.all(color: Colors.blue, width: 2) : null,
-            ),
-            child: _buildRealWidgetWithScale(widgetBean, scale),
-          ),
-        ),
+      child: Container(
+        width: position.width,
+        height: position.height,
+        child: _buildRealWidgetWithScale(widgetBean, scale),
       ),
     );
-  }
-
-  /// SKETCHWARE PRO STYLE: Handle drag start for existing widgets
-  void _handleExistingWidgetDragStart(
-      FlutterWidgetBean widgetBean, PointerDownEvent details) {
-    // SKETCHWARE PRO STYLE: Allow dragging existing widgets
-    print(
-        '🎯 EXISTING WIDGET DRAG START: ${widgetBean.type} (${widgetBean.id})');
-    // TODO: Implement drag functionality for existing widgets
   }
 
   // SKETCHWARE PRO STYLE POSITION CALCULATION
   WidgetPosition _calculateWidgetPosition(
       FlutterWidgetBean widgetBean, double scale) {
+    // SKETCHWARE PRO STYLE: Get available container size
+    final containerSize = WidgetSizingService.getAvailableContainerSize(
+      Size(_safeViewInfoService.containerSize.width,
+          _safeViewInfoService.containerSize.height),
+    );
+
     // Like Sketchware Pro's LayoutParams system
     double width = widgetBean.position.width * scale;
     double height = widgetBean.position.height * scale;
 
     // Handle MATCH_PARENT and WRAP_CONTENT like Sketchware Pro
     if (widgetBean.layout.width == LayoutBean.MATCH_PARENT) {
-      width = 360 * scale; // Full width
+      width = containerSize.width * scale; // Available width
     } else if (widgetBean.layout.width == LayoutBean.WRAP_CONTENT) {
       width = _calculateWrapContentWidth(widgetBean, scale);
     }
 
     if (widgetBean.layout.height == LayoutBean.MATCH_PARENT) {
-      height = 640 * scale; // Full height
+      height = containerSize.height * scale; // Available height
     } else if (widgetBean.layout.height == LayoutBean.WRAP_CONTENT) {
       height = _calculateWrapContentHeight(widgetBean, scale);
     }
 
-    // SKETCHWARE PRO STYLE: Use position coordinates for positioning (reverted to previous behavior)
+    // SKETCHWARE PRO STYLE: Use position coordinates for positioning
     return WidgetPosition(
       left: widgetBean.position.x * scale,
       top: widgetBean.position.y * scale,
@@ -803,17 +1032,19 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
   // SKETCHWARE PRO STYLE: Drop zone detection is now handled by ViewInfoService
 
-  // Build real widget with proper scale using Factory Service (like Sketchware Pro's createItemView)
+  // Build real widget with proper scale using Frame Factory Service (like Sketchware Pro's createItemView)
   Widget _buildRealWidgetWithScale(FlutterWidgetBean widgetBean, double scale) {
-    final isSelected = widget.selectedWidget?.id == widgetBean.id;
-
-    // Use the factory service to create the widget (like Sketchware Pro's createItemView)
-    return WidgetFactoryService.createWidget(
-      widgetBean,
-      isSelected: isSelected,
+    // SKETCHWARE PRO STYLE: Create frame widget with touch controller integration
+    Widget createdWidget = MobileFrameWidgetFactoryService.createFrameWidget(
+      widgetBean: widgetBean,
       scale: scale,
-      onTap: () => widget.onWidgetSelected(widgetBean),
+      allWidgets: widget.widgets,
+      touchController: _touchController,
+      selectionService: _selectionService,
     );
+
+    // SKETCHWARE PRO STYLE: Return frame widget with touch capabilities
+    return createdWidget;
   }
 
   Widget _buildTextWidgetWithScale(FlutterWidgetBean widgetBean, double scale) {
@@ -1373,9 +1604,8 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     }
   }
 
-  // Optional ViewDummy overlay for enhanced drag feedback
+  // SKETCHWARE PRO STYLE: Enhanced ViewDummy overlay (EXACTLY like Sketchware Pro)
   Widget _buildViewDummyOverlay() {
-    // SKETCHWARE PRO STYLE: ViewDummy provides visual feedback during drag
     if (!_isViewDummyVisible || _viewDummyWidget == null) {
       return const SizedBox.shrink();
     }
@@ -1385,8 +1615,70 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       isAllowed: _isViewDummyAllowed,
       position: _viewDummyPosition,
       widgetBean: _viewDummyWidget,
+      draggedWidget: _buildWidgetPreview(_viewDummyWidget!),
       isCustomWidget: false,
     );
+  }
+
+  /// SKETCHWARE PRO STYLE: Build widget preview for ViewDummy
+  Widget _buildWidgetPreview(FlutterWidgetBean widget) {
+    switch (widget.type) {
+      case 'Text':
+        return Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            widget.properties['text'] ?? 'Text',
+            style: TextStyle(
+              fontSize: (widget.properties['textSize'] ?? 14.0).toDouble(),
+              color: Colors.black,
+            ),
+          ),
+        );
+      case 'Button':
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            widget.properties['text'] ?? 'Button',
+            style: const TextStyle(color: Colors.white),
+          ),
+        );
+      case 'Container':
+        return Container(
+          width: 100,
+          height: 60,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Center(child: Text('Container')),
+        );
+      default:
+        return Container(
+          width: 80,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Center(
+            child: Text(
+              widget.type,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+        );
+    }
   }
 
   // Missing widget rendering methods

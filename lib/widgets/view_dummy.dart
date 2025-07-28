@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'dart:ui' as ui;
 import '../models/flutter_widget_bean.dart';
 
 /// ViewDummy - EXACTLY matches Sketchware Pro's ViewDummy functionality
@@ -34,7 +32,6 @@ class ViewDummy extends StatefulWidget {
 }
 
 class _ViewDummyState extends State<ViewDummy> {
-  ui.Image? _widgetImage;
   bool _isImageReady = false;
 
   @override
@@ -53,19 +50,103 @@ class _ViewDummyState extends State<ViewDummy> {
     }
   }
 
-  /// SKETCHWARE PRO STYLE: Create bitmap of the dragged widget
+  /// SKETCHWARE PRO STYLE: Create widget preview (SAFE approach without bitmap creation)
   Future<void> _createWidgetBitmap() async {
     if (widget.draggedWidget == null) return;
 
     try {
-      // For now, we'll use the widget preview approach
-      // Bitmap creation requires more complex setup with GlobalKey
+      // SKETCHWARE PRO STYLE: Use widget preview instead of bitmap to avoid OpenGL errors
       setState(() {
         _isImageReady = true;
       });
     } catch (e) {
-      print('ViewDummy: Error creating widget bitmap: $e');
+      print('ViewDummy: Error creating widget preview: $e');
+      // Fallback to widget preview
+      setState(() {
+        _isImageReady = true;
+      });
     }
+  }
+
+  /// SKETCHWARE PRO STYLE: Build temporary widget for bitmap creation
+  Widget _buildTempWidget() {
+    if (widget.widgetBean != null) {
+      // Create widget based on FlutterWidgetBean (like Sketchware Pro)
+      switch (widget.widgetBean!.type) {
+        case 'Text':
+          return Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              widget.widgetBean!.properties['text'] ?? 'Text',
+              style: TextStyle(
+                fontSize: (widget.widgetBean!.properties['textSize'] ?? 14.0)
+                    .toDouble(),
+                color:
+                    _parseColor(widget.widgetBean!.properties['textColor']) ??
+                        Colors.black,
+              ),
+            ),
+          );
+        case 'Button':
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              widget.widgetBean!.properties['text'] ?? 'Button',
+              style: const TextStyle(color: Colors.white),
+            ),
+          );
+        case 'Container':
+          return Container(
+            width: 100,
+            height: 60,
+            decoration: BoxDecoration(
+              color: _parseColor(
+                      widget.widgetBean!.properties['backgroundColor']) ??
+                  Colors.transparent,
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: const Center(child: Text('Container')),
+          );
+        default:
+          return Container(
+            width: 80,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Center(
+              child: Text(
+                widget.widgetBean!.type,
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          );
+      }
+    }
+
+    // Fallback widget
+    return Container(
+      width: 80,
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: const Center(child: Text('Widget')),
+    );
   }
 
   @override
@@ -119,18 +200,7 @@ class _ViewDummyState extends State<ViewDummy> {
   }
 
   Widget _buildWidgetPreview() {
-    // SKETCHWARE PRO STYLE: Show actual widget bitmap if available
-    if (_isImageReady && _widgetImage != null) {
-      return RawImage(
-        image: _widgetImage,
-        width: widget.widgetBean?.position.width ?? 100,
-        height: widget.widgetBean?.position.height ?? 50,
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
-      );
-    }
-
-    // SKETCHWARE PRO STYLE: Fallback to widget preview
+    // SKETCHWARE PRO STYLE: Show widget preview (SAFE approach without bitmap)
     if (widget.widgetBean != null) {
       return Container(
         width: widget.widgetBean!.position.width,
@@ -363,7 +433,6 @@ class _ViewDummyState extends State<ViewDummy> {
 
   @override
   void dispose() {
-    _widgetImage?.dispose();
     super.dispose();
   }
 }

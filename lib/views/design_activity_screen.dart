@@ -47,7 +47,8 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
     _sharedDragController.setCallbacks(
       onWidgetMoved: (widget) => _viewModel.moveWidget(widget),
       onWidgetDeleted: (widget) => _viewModel.deleteSelectedWidget(),
-      onWidgetAdded: (widget) => _viewModel.addWidget(widget),
+      onWidgetAdded: (widget, {Size? containerSize}) =>
+          _viewModel.addWidget(widget, containerSize: containerSize),
       onDragStateChanged: (isDragging) {
         // Handle global drag state changes
       },
@@ -178,7 +179,8 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
               selectedWidget: viewModel.selectedWidget,
               onWidgetSelected: (widget) => viewModel.selectWidget(widget),
               onWidgetMoved: (widget) => viewModel.moveWidget(widget),
-              onWidgetAdded: (widget) => viewModel.addWidget(widget),
+              onWidgetAdded: (widget, {Size? containerSize}) =>
+                  viewModel.addWidget(widget, containerSize: containerSize),
             ),
           ),
         ),

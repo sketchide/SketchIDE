@@ -142,6 +142,7 @@ class _WidgetPaletteState extends State<WidgetPalette> {
     return Column(
       children: [
         _buildDraggableWidgetCard('Text', Icons.text_fields, 'Text'),
+        _buildDraggableWidgetCard('Button', Icons.smart_button, 'Button'),
         _buildDraggableWidgetCard('TextField', Icons.input, 'Text Field'),
         _buildDraggableWidgetCard('Icon', Icons.star, 'Icon'),
       ],
@@ -254,6 +255,9 @@ class _WidgetPaletteState extends State<WidgetPalette> {
   // SKETCHWARE PRO STYLE: Create widget bean for drag using factory service
   FlutterWidgetBean _createWidgetBean(
       String type, IconData icon, String label) {
+    // SKETCHWARE PRO STYLE: Use type-based ID generation with existing widgets
+    // For now, we'll use the simple ID since we don't have access to existing widgets here
+    // The proper ID will be generated when the widget is actually added to the design
     return WidgetFactoryService.createWidgetBean(type);
   }
 
