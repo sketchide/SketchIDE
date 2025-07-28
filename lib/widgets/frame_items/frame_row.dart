@@ -77,14 +77,21 @@ class _FrameRowState extends State<FrameRow> {
     final density = MediaQuery.of(context).devicePixelRatio;
 
     // SKETCHWARE PRO STYLE: Handle width/height like ViewPane.updateLayout()
-    double width = position.width * widget.scale;
-    double height = position.height * widget.scale;
+    double? width = position.width * widget.scale;
+    double? height = position.height * widget.scale;
 
-    // SKETCHWARE PRO STYLE: If width/height are positive, convert dp to pixels
-    if (layout.width > 0) {
+    // SKETCHWARE PRO STYLE: Handle MATCH_PARENT and positive values
+    if (layout.width == -1) {
+      // MATCH_PARENT - Mobile frame handles width via Positioned(right: 0)
+      width = null; // ✅ Let parent constraints determine width
+    } else if (layout.width > 0) {
       width = layout.width * density * widget.scale;
     }
-    if (layout.height > 0) {
+
+    if (layout.height == -1) {
+      // MATCH_PARENT - Let Container handle full height
+      height = null; // ✅ Let parent constraints determine height
+    } else if (layout.height > 0) {
       height = layout.height * density * widget.scale;
     }
 
@@ -127,11 +134,19 @@ class _FrameRowState extends State<FrameRow> {
         child: Container(
           key: _widgetKey,
           // SKETCHWARE PRO STYLE: Use exact width/height like ItemLinearLayout
-          width: width > 0 ? width : null,
-          height: height > 0 ? height : null,
+          width: width != null && width! > 0
+              ? width
+              : null, // ✅ Handle nullable width
+          height: height != null && height! > 0
+              ? height
+              : null, // ✅ Handle nullable height
           // SKETCHWARE PRO STYLE: Minimum size like ItemLinearLayout (32dp)
           constraints: BoxConstraints(
-            minWidth: 32 * density * widget.scale,
+            minWidth: width == null
+                ? 0
+                : 32 *
+                    density *
+                    widget.scale, // ✅ No minWidth when using parent constraints
             minHeight: 32 * density * widget.scale,
           ),
           child: _buildRowContent(),
@@ -152,11 +167,12 @@ class _FrameRowState extends State<FrameRow> {
     final scaledFontSize = 12 * density * widget.scale;
 
     return Container(
+      // SKETCHWARE PRO STYLE: Full width container like ItemLinearLayout
+      width: double.infinity, // ✅ FORCE FULL WIDTH - no right edge padding
       // SKETCHWARE PRO STYLE: Minimum size like ItemLinearLayout
       constraints: BoxConstraints(
-        minWidth:
-            64 * density * widget.scale, // Larger min size like Sketchware Pro
-        minHeight: 48 * density * widget.scale,
+        minHeight:
+            48 * density * widget.scale, // Only constrain height, not width
       ),
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -294,6 +310,7 @@ class _FrameRowState extends State<FrameRow> {
   /// EXACT SKETCHWARE PRO: Build empty row placeholder like ItemLinearLayout
   Widget _buildEmptyRowPlaceholder() {
     return Container(
+      width: double.infinity, // ✅ ENSURE PLACEHOLDER ALSO TAKES FULL WIDTH
       padding: EdgeInsets.all(8 * widget.scale),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

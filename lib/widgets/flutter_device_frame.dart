@@ -174,10 +174,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         children: [
           Column(
             children: [
-              // Device Frame Header (like Sketchware Pro)
-              _buildDeviceHeader(),
-
-              // Device Frame Content with Rectangular Design
+              // SKETCHWARE PRO STYLE: No header - mobile frame starts from top
               Expanded(
                 child: _buildRectangularMobileFrame(),
               ),
@@ -196,52 +193,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     );
   }
 
-  Widget _buildDeviceHeader() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        // SKETCHWARE PRO STYLE: Professional header design
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFF0084C2), // Sketchware Pro blue
-            const Color(0xFF006B9E), // Darker blue
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // SKETCHWARE PRO STYLE: Clean header without unnecessary labels
-          const Spacer(),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: IconButton(
-              icon: Icon(
-                _showViewDummy ? Icons.visibility : Icons.visibility_off,
-                size: 18,
-                color: Colors.white,
-              ),
-              onPressed: () => setState(() => _showViewDummy = !_showViewDummy),
-              tooltip: 'Toggle Enhanced Drag Feedback',
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              padding: EdgeInsets.zero,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // REMOVED: _buildDeviceHeader - User requested no blue header like Sketchware Pro
 
   // SKETCHWARE PRO STYLE: Fixed mobile frame exactly like Sketchware Pro (no center, no extra spacing)
   Widget _buildRectangularMobileFrame() {
@@ -916,15 +868,43 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     // Calculate position like Sketchware Pro
     final position = _calculateWidgetPosition(widgetBean, scale);
 
-    return Positioned(
-      left: position.left,
-      top: position.top,
-      child: Container(
-        width: position.width,
-        height: position.height,
-        child: _buildRealWidgetWithScale(widgetBean, scale),
-      ),
-    );
+    // SKETCHWARE PRO STYLE: Handle MATCH_PARENT widgets differently for proper expansion
+    if (widgetBean.type == 'Row' &&
+        widgetBean.layout.width == LayoutBean.MATCH_PARENT) {
+      // ✅ ROW with MATCH_PARENT: Force top-left-right alignment
+      return Positioned(
+        left: 0, // ✅ Force left edge
+        top: 0, // ✅ Force top edge
+        right: 0, // ✅ Force right edge
+        child: Container(
+          height: position.height > 0 ? position.height : null,
+          child: _buildRealWidgetWithScale(widgetBean, scale),
+        ),
+      );
+    } else if (widgetBean.type == 'Column' &&
+        widgetBean.layout.height == LayoutBean.MATCH_PARENT) {
+      // ✅ COLUMN with MATCH_PARENT: Force left-top-bottom alignment
+      return Positioned(
+        left: 0, // ✅ Force left edge
+        top: 0, // ✅ Force top edge
+        bottom: 0, // ✅ Force bottom edge
+        child: Container(
+          width: position.width > 0 ? position.width : null,
+          child: _buildRealWidgetWithScale(widgetBean, scale),
+        ),
+      );
+    } else {
+      // Regular widgets with fixed positioning
+      return Positioned(
+        left: position.left,
+        top: position.top,
+        child: Container(
+          width: position.width,
+          height: position.height,
+          child: _buildRealWidgetWithScale(widgetBean, scale),
+        ),
+      );
+    }
   }
 
   // SKETCHWARE PRO STYLE POSITION CALCULATION

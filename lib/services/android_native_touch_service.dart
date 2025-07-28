@@ -127,8 +127,18 @@ class AndroidNativeTouchService extends ChangeNotifier {
   void _handleTap() {
     if (_touchedWidget != null) {
       print('🎯 ANDROID TAP CONFIRMED: ${_touchedWidget!.id}');
+      print('🎯 CALLBACK CHECK: onWidgetTapped = ${onWidgetTapped != null ? "SET" : "NULL"}');
+      
       // Trigger selection callback exactly like Android
-      onWidgetTapped?.call(_touchedWidget!);
+      if (onWidgetTapped != null) {
+        print('🎯 CALLING CALLBACK: onWidgetTapped for ${_touchedWidget!.id}');
+        onWidgetTapped!.call(_touchedWidget!);
+        print('🎯 CALLBACK CALLED: onWidgetTapped completed');
+      } else {
+        print('🎯 ERROR: onWidgetTapped callback is NULL - widget tap will not work!');
+      }
+    } else {
+      print('🎯 ERROR: _touchedWidget is NULL - no widget to tap!');
     }
   }
 

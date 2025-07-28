@@ -185,6 +185,7 @@ class DesignViewModel extends ChangeNotifier {
       Offset(dropPosition.x, dropPosition.y),
       widgetSize,
       containerSize,
+      widgetType: widget.type, // Pass widget type for special positioning
     );
 
     // SKETCHWARE PRO STYLE: Update widget with proper sizing

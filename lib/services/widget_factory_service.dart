@@ -242,15 +242,16 @@ class WidgetFactoryService {
             'mainAxisSize': 'max',
           },
           children: [],
-          position: PositionBean(x: 0, y: 0, width: 200, height: 50),
+          position: PositionBean(
+              x: 0, y: 0, width: -1, height: 50), // ✅ Force MATCH_PARENT width
           events: {},
           layout: LayoutBean(
             width: -1, // MATCH_PARENT (like Sketchware Pro)
             height: -2, // WRAP_CONTENT
-            paddingLeft: 8, // Like Sketchware Pro
-            paddingTop: 8, // Like Sketchware Pro
-            paddingRight: 8, // Like Sketchware Pro
-            paddingBottom: 8, // Like Sketchware Pro
+            paddingLeft: 0, // ✅ No padding to touch edges
+            paddingTop: 0, // ✅ No padding to touch edges
+            paddingRight: 0, // ✅ No padding to touch edges
+            paddingBottom: 0, // ✅ No padding to touch edges
             orientation: 0, // HORIZONTAL (like Sketchware Pro)
           ),
         );
@@ -267,15 +268,16 @@ class WidgetFactoryService {
             'mainAxisSize': 'max',
           },
           children: [],
-          position: PositionBean(x: 0, y: 0, width: 200, height: 100),
+          position: PositionBean(
+              x: 0, y: 0, width: 50, height: -1), // ✅ Same width as Row (50)
           events: {},
           layout: LayoutBean(
             width: -2, // WRAP_CONTENT
             height: -1, // MATCH_PARENT (like Sketchware Pro)
-            paddingLeft: 8, // Like Sketchware Pro
-            paddingTop: 8, // Like Sketchware Pro
-            paddingRight: 8, // Like Sketchware Pro
-            paddingBottom: 8, // Like Sketchware Pro
+            paddingLeft: 0, // ✅ No padding to touch edges
+            paddingTop: 0, // ✅ No padding to touch edges
+            paddingRight: 0, // ✅ No padding to touch edges
+            paddingBottom: 0, // ✅ No padding to touch edges
             orientation: 1, // VERTICAL (like Sketchware Pro)
           ),
         );

@@ -15,93 +15,101 @@ class WidgetSizingService {
   // ====================================================================
   // EXACT SKETCHIDE DENSITY CONVERSION (matches Sketchware Pro wB.a())
   // ====================================================================
-  
+
   /// EXACT equivalent of wB.a(context, 1.0f) from Sketchware Pro
   /// Implements TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, displayMetrics)
   static double convertDpToPixels(BuildContext context, double dp) {
     final mediaQuery = MediaQuery.of(context);
-    
+
     // EXACT Android equivalent of TypedValue.applyDimension with COMPLEX_UNIT_DIP
     // Android formula: dp * density + 0.5f (for rounding)
     final density = mediaQuery.devicePixelRatio;
     return (dp * density + 0.5);
   }
-  
+
   /// EXACT equivalent of wB.a(context, 1.0f) - get density factor
   static double getDensityFactor(BuildContext context) {
     return MediaQuery.of(context).devicePixelRatio;
   }
-  
+
   /// EXACT equivalent of getResources().getDisplayMetrics().widthPixels
   static double getDisplayWidthPixels(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     return mediaQuery.size.width * mediaQuery.devicePixelRatio;
   }
-  
-  /// EXACT equivalent of getResources().getDisplayMetrics().heightPixels  
+
+  /// EXACT equivalent of getResources().getDisplayMetrics().heightPixels
   static double getDisplayHeightPixels(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     return mediaQuery.size.height * mediaQuery.devicePixelRatio;
   }
-  
+
   /// EXACT equivalent of GB.f(getContext()) - status bar height
   static double getStatusBarHeight(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     return mediaQuery.padding.top;
   }
-  
-  /// EXACT equivalent of GB.a(getContext()) - toolbar height  
+
+  /// EXACT equivalent of GB.a(getContext()) - toolbar height
   static double getToolbarHeight(BuildContext context) {
     // Standard Android toolbar height is 56dp
     return convertDpToPixels(context, 56.0);
   }
-  
+
   /// EXACT equivalent of Sketchware Pro's scaling calculation from ViewEditor.java:870-890
   /// This is the EXACT formula used by Sketchware Pro for frame scaling
-  static SketchIDEScaling calculateExactFrameScaling(BuildContext context, {
+  static SketchIDEScaling calculateExactFrameScaling(
+    BuildContext context, {
     bool hasAds = false,
     int screenType = 0,
   }) {
     final mediaQuery = MediaQuery.of(context);
-    
+
     // EXACT: Get device dimensions like Sketchware Pro
     final displayWidth = mediaQuery.size.width * mediaQuery.devicePixelRatio;
     final displayHeight = mediaQuery.size.height * mediaQuery.devicePixelRatio;
-    
+
     // EXACT: Get density factor (f = wB.a(context, 1.0f))
     final f = getDensityFactor(context);
-    
+
     // EXACT: Calculate orientation-based margins
     final isLandscapeMode = displayWidth > displayHeight;
-    final var4 = (f * (!isLandscapeMode ? 12.0 : 24.0)).toInt();  // horizontal margin
-    final var5 = (f * (!isLandscapeMode ? 20.0 : 10.0)).toInt();  // vertical margin
-    
+    final var4 =
+        (f * (!isLandscapeMode ? 12.0 : 24.0)).toInt(); // horizontal margin
+    final var5 =
+        (f * (!isLandscapeMode ? 20.0 : 10.0)).toInt(); // vertical margin
+
     // EXACT: Get system UI heights
     final statusBarHeight = getStatusBarHeight(context);
     final toolBarHeight = getToolbarHeight(context);
-    
+
     // EXACT: Calculate available space (subtract palette width 120dp)
     final var9 = displayWidth - (120.0 * f).toInt();
-    var var8 = displayHeight - statusBarHeight - toolBarHeight - (f * 48.0).toInt() - (f * 48.0).toInt();
-    
+    var var8 = displayHeight -
+        statusBarHeight -
+        toolBarHeight -
+        (f * 48.0).toInt() -
+        (f * 48.0).toInt();
+
     // EXACT: Subtract ad banner height if ads are enabled
     if (screenType == 0 && hasAds) {
       var8 -= (f * 56.0).toInt();
     }
-    
+
     // EXACT: Calculate scaling factors (two different calculations)
-    final var11 = (var9 / displayWidth < var8 / displayHeight) 
-        ? var9 / displayWidth 
+    final var11 = (var9 / displayWidth < var8 / displayHeight)
+        ? var9 / displayWidth
         : var8 / displayHeight;
-        
-    final var3 = ((var9 - var4 * 2) / displayWidth < (var8 - var5 * 2) / displayHeight)
-        ? (var9 - var4 * 2) / displayWidth
-        : (var8 - var5 * 2) / displayHeight;
-    
+
+    final var3 =
+        ((var9 - var4 * 2) / displayWidth < (var8 - var5 * 2) / displayHeight)
+            ? (var9 - var4 * 2) / displayWidth
+            : (var8 - var5 * 2) / displayHeight;
+
     // EXACT: Calculate positioning offsets
     final offsetX = -((displayWidth - displayWidth * var11) / 2.0);
     final offsetY = -((displayHeight - displayHeight * var11) / 2.0);
-    
+
     return SketchIDEScaling(
       displayWidth: displayWidth,
       displayHeight: displayHeight,
@@ -117,20 +125,21 @@ class WidgetSizingService {
       isLandscape: isLandscapeMode,
     );
   }
-  
+
   /// Convert SketchIDE measurements to Sketchware Pro exact equivalents
-  static EdgeInsets convertSketchwarePadding(BuildContext context, {
+  static EdgeInsets convertSketchwarePadding(
+    BuildContext context, {
     required int left,
-    required int top, 
+    required int top,
     required int right,
     required int bottom,
   }) {
-    // EXACT equivalent of ItemTextView.setPadding() 
+    // EXACT equivalent of ItemTextView.setPadding()
     final oneDp = getDensityFactor(context);
-    
+
     return EdgeInsets.fromLTRB(
       left * oneDp,
-      top * oneDp, 
+      top * oneDp,
       right * oneDp,
       bottom * oneDp,
     );
@@ -282,7 +291,13 @@ class WidgetSizingService {
 
   /// SKETCHWARE PRO STYLE: Calculate proper position for dropped widget (like ViewPane.java:782)
   static Offset calculateDropPosition(
-      Offset dropPosition, Size widgetSize, Size containerSize) {
+      Offset dropPosition, Size widgetSize, Size containerSize,
+      {String? widgetType}) {
+    // SKETCHWARE PRO SPECIAL: Row widgets should touch left, right, and top edges
+    if (widgetType == 'Row' || widgetType == 'HorizontalLayout') {
+      return Offset(0.0, 0.0); // Always position at top-left corner
+    }
+
     // SKETCHWARE PRO STYLE: Ensure widget fits within container bounds
     double x =
         dropPosition.dx.clamp(0.0, containerSize.width - widgetSize.width);
@@ -336,7 +351,7 @@ class SketchIDEScaling {
   final double marginVertical;
   final double densityFactor;
   final bool isLandscape;
-  
+
   const SketchIDEScaling({
     required this.displayWidth,
     required this.displayHeight,
