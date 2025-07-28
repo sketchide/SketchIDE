@@ -143,7 +143,7 @@ class _WidgetPaletteState extends State<WidgetPalette> {
       children: [
         _buildDraggableWidgetCard('Text', Icons.text_fields, 'Text'),
         _buildDraggableWidgetCard('Button', Icons.smart_button, 'Button'),
-        _buildDraggableWidgetCard('TextField', Icons.input, 'Text Field'),
+        _buildDraggableWidgetCard('TextField', Icons.input, 'TextField'),
         _buildDraggableWidgetCard('Icon', Icons.star, 'Icon'),
       ],
     );

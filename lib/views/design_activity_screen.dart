@@ -141,7 +141,18 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
           ),
         ),
         // Property panel (slides up from bottom)
-        if (viewModel.selectedWidget != null) _buildPropertyPanel(viewModel),
+        if (viewModel.selectedWidget != null)
+          () {
+            print(
+                '🎯 DESIGN ACTIVITY: Building property panel for ${viewModel.selectedWidget!.id}');
+            return _buildPropertyPanel(viewModel);
+          }()
+        else
+          () {
+            print(
+                '🎯 DESIGN ACTIVITY: No selected widget - property panel hidden');
+            return Container();
+          }(),
       ],
     );
   }

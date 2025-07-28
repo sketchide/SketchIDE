@@ -148,13 +148,52 @@ class MobileFrameTouchController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// SKETCHWARE PRO STYLE: Handle widget selection (simple single selection)
-  void _handleWidgetSelection() {
-    if (_touchedWidget == null) return;
+  /// SKETCHWARE PRO STYLE: Handle widget tap selection (direct selection)
+  void handleWidgetTap(FlutterWidgetBean widget) {
+    print('🎯 MOBILE FRAME TOUCH: handleWidgetTap called for ${widget.id}');
+    print(
+        '🎯 MOBILE FRAME TOUCH: onWidgetSelected callback = ${onWidgetSelected != null ? "SET" : "NULL"}');
+
+    // SKETCHWARE PRO STYLE: Set touched widget and trigger selection
+    _touchedWidget = widget;
 
     // SKETCHWARE PRO STYLE: Simple single selection like Sketchware Pro
     if (onWidgetSelected != null) {
+      print('🎯 MOBILE FRAME TOUCH: Calling onWidgetSelected for ${widget.id}');
+      onWidgetSelected!(widget);
+      print('🎯 MOBILE FRAME TOUCH: onWidgetSelected callback completed');
+    } else {
+      print(
+          '🎯 MOBILE FRAME TOUCH: WARNING - onWidgetSelected callback is NULL!');
+    }
+
+    // Reset touch state
+    _resetTouchState();
+    notifyListeners();
+  }
+
+  /// SKETCHWARE PRO STYLE: Handle widget selection (simple single selection)
+  void _handleWidgetSelection() {
+    print('🎯 MOBILE FRAME TOUCH: _handleWidgetSelection called');
+    print('🎯 MOBILE FRAME TOUCH: _touchedWidget = ${_touchedWidget?.id}');
+
+    if (_touchedWidget == null) {
+      print('🎯 MOBILE FRAME TOUCH: WARNING - _touchedWidget is null!');
+      return;
+    }
+
+    print(
+        '🎯 MOBILE FRAME TOUCH: onWidgetSelected callback = ${onWidgetSelected != null ? "SET" : "NULL"}');
+
+    // SKETCHWARE PRO STYLE: Simple single selection like Sketchware Pro
+    if (onWidgetSelected != null) {
+      print(
+          '🎯 MOBILE FRAME TOUCH: Calling onWidgetSelected for ${_touchedWidget!.id}');
       onWidgetSelected!(_touchedWidget!);
+      print('🎯 MOBILE FRAME TOUCH: onWidgetSelected callback completed');
+    } else {
+      print(
+          '🎯 MOBILE FRAME TOUCH: WARNING - onWidgetSelected callback is NULL!');
     }
   }
 

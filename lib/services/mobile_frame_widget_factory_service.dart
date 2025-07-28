@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/flutter_widget_bean.dart';
 import '../controllers/mobile_frame_touch_controller.dart';
 import '../services/selection_service.dart';
+import 'android_native_touch_service.dart';
+import 'android_native_measurement_service.dart';
 import '../widgets/frame_items/frame_text.dart';
 import '../widgets/frame_items/frame_button.dart';
 import '../widgets/frame_items/frame_container.dart';
@@ -14,90 +16,134 @@ import '../widgets/frame_items/frame_stack.dart';
 /// Mobile Frame Widget Factory Service - EXACTLY matches Sketchware Pro's ViewPane.createItemView
 /// Creates appropriate mobile frame widget classes based on widget type
 class MobileFrameWidgetFactoryService {
-  /// SKETCHWARE PRO STYLE: Create mobile frame widget (like ViewPane.createItemView)
+  /// ANDROID NATIVE: Create mobile frame widget with Android Native Touch System
   static Widget createFrameWidget({
     required FlutterWidgetBean widgetBean,
     required double scale,
     required List<FlutterWidgetBean> allWidgets,
     MobileFrameTouchController? touchController,
     SelectionService? selectionService,
+    AndroidNativeTouchService? androidTouchService,
+    required BuildContext context,
   }) {
     print(
-        '🏭 MOBILE FRAME FACTORY: Creating ${widgetBean.type} (${widgetBean.id})');
+        '🏭 ANDROID NATIVE FACTORY: Creating ${widgetBean.type} (${widgetBean.id})');
 
+    // ANDROID NATIVE: Calculate exact measurements using Android's system
+    final androidScale =
+        AndroidNativeMeasurementService.calculateViewEditorScaling(context);
+    final exactScale = scale * androidScale.contentScaleX;
+
+    Widget frameWidget;
     switch (widgetBean.type) {
       case 'Text':
-        return FrameText(
+        frameWidget = FrameText(
           widgetBean: widgetBean,
-          scale: scale,
+          scale: exactScale,
           touchController: touchController,
           selectionService: selectionService,
         );
+        break;
 
       case 'Button':
-        return FrameButton(
+        frameWidget = FrameButton(
           widgetBean: widgetBean,
-          scale: scale,
+          scale: exactScale,
           touchController: touchController,
           selectionService: selectionService,
         );
+        break;
 
       case 'Container':
-        return FrameContainer(
+        frameWidget = FrameContainer(
           widgetBean: widgetBean,
-          scale: scale,
+          scale: exactScale,
           touchController: touchController,
           selectionService: selectionService,
           allWidgets: allWidgets,
         );
+        break;
 
       case 'TextField':
-        return FrameTextField(
+        frameWidget = FrameTextField(
           widgetBean: widgetBean,
-          scale: scale,
+          scale: exactScale,
           touchController: touchController,
           selectionService: selectionService,
         );
+        break;
 
       case 'Icon':
-        return FrameIcon(
+        frameWidget = FrameIcon(
           widgetBean: widgetBean,
-          scale: scale,
+          scale: exactScale,
           touchController: touchController,
           selectionService: selectionService,
         );
+        break;
 
       case 'Row':
-        return FrameRow(
+        frameWidget = FrameRow(
           widgetBean: widgetBean,
-          scale: scale,
+          scale: exactScale,
           touchController: touchController,
           selectionService: selectionService,
           allWidgets: allWidgets,
         );
+        break;
 
       case 'Column':
-        return FrameColumn(
+        frameWidget = FrameColumn(
           widgetBean: widgetBean,
-          scale: scale,
+          scale: exactScale,
           touchController: touchController,
           selectionService: selectionService,
           allWidgets: allWidgets,
         );
+        break;
 
       case 'Stack':
-        return FrameStack(
+        frameWidget = FrameStack(
           widgetBean: widgetBean,
-          scale: scale,
+          scale: exactScale,
           touchController: touchController,
           selectionService: selectionService,
           allWidgets: allWidgets,
         );
+        break;
 
       default:
         print('⚠️ UNKNOWN WIDGET TYPE: ${widgetBean.type}');
-        return _createPlaceholderWidget(widgetBean, scale, 'Unknown');
+        frameWidget = Container(
+          width:
+              AndroidNativeMeasurementService.convertDpToPixels(context, 100) *
+                  exactScale,
+          height:
+              AndroidNativeMeasurementService.convertDpToPixels(context, 50) *
+                  exactScale,
+          color: Colors.red,
+          child: Center(
+            child: Text(
+              'Unknown Widget: ${widgetBean.type}',
+              style: TextStyle(
+                  fontSize: AndroidNativeMeasurementService.convertDpToPixels(
+                          context, 10) *
+                      exactScale),
+            ),
+          ),
+        );
     }
+
+    // ANDROID NATIVE: Wrap with Android Native Touch System
+    if (androidTouchService != null) {
+      return AndroidNativeTouchWidget(
+        widgetBean: widgetBean,
+        touchService: androidTouchService,
+        child: frameWidget,
+      );
+    }
+
+    return frameWidget;
   }
 
   /// SKETCHWARE PRO STYLE: Create placeholder widget for unsupported types
@@ -156,7 +202,7 @@ class MobileFrameWidgetFactoryService {
     ];
   }
 
-  /// SKETCHWARE PRO STYLE: Update existing frame widget
+  /// ANDROID NATIVE: Update existing frame widget with Android Native system
   static Widget updateFrameWidget({
     required Widget existingWidget,
     required FlutterWidgetBean updatedWidgetBean,
@@ -164,14 +210,18 @@ class MobileFrameWidgetFactoryService {
     required List<FlutterWidgetBean> allWidgets,
     MobileFrameTouchController? touchController,
     SelectionService? selectionService,
+    AndroidNativeTouchService? androidTouchService,
+    required BuildContext context,
   }) {
-    // SKETCHWARE PRO STYLE: Recreate widget with updated properties
+    // ANDROID NATIVE: Recreate widget with updated properties using Android Native system
     return createFrameWidget(
       widgetBean: updatedWidgetBean,
       scale: scale,
       allWidgets: allWidgets,
       touchController: touchController,
       selectionService: selectionService,
+      androidTouchService: androidTouchService,
+      context: context,
     );
   }
 

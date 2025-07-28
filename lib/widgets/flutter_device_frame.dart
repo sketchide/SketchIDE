@@ -4,7 +4,8 @@ import '../models/view_info.dart';
 import '../services/view_info_service.dart' as view_service;
 import '../services/widget_sizing_service.dart';
 import '../services/mobile_frame_widget_factory_service.dart';
-import '../services/widget_sizing_service.dart';
+import '../services/android_native_touch_service.dart';
+import '../services/android_native_measurement_service.dart';
 import '../controllers/mobile_frame_touch_controller.dart';
 import '../services/selection_service.dart';
 import 'view_dummy.dart';
@@ -50,6 +51,9 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
   double _scale = 1.0;
   bool _showViewDummy = true; // Optional ViewDummy toggle
 
+  // ANDROID NATIVE: Touch service for native-like touch handling
+  late AndroidNativeTouchService _androidTouchService;
+
   // SKETCHWARE PRO STYLE: ViewDummy state management
   bool _isViewDummyVisible = false;
   bool _isViewDummyAllowed = false;
@@ -65,6 +69,19 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     super.initState();
     _initializeViewInfoService();
     _initializeMobileFrameControllers();
+    _androidTouchService = AndroidNativeTouchService();
+
+    // ANDROID NATIVE: Set up touch service callbacks for property panel
+    _androidTouchService.onWidgetTapped = (widget) {
+      print('🎯 ANDROID NATIVE TAP: ${widget.id} → Opening property panel');
+      // Call the main widget selection callback
+      this.widget.onWidgetSelected?.call(widget);
+    };
+
+    _androidTouchService.onWidgetLongPressed = (widget) {
+      print('🎯 ANDROID NATIVE LONG PRESS: ${widget.id} → Starting drag');
+      // Handle long press for drag operations
+    };
   }
 
   @override
@@ -202,25 +219,8 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       ),
       child: Row(
         children: [
-          // SKETCHWARE PRO STYLE: Professional icon and title
-          Icon(
-            Icons.phone_android,
-            color: Colors.white,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Sketchware Pro Style Preview',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          // SKETCHWARE PRO STYLE: Professional control buttons
+          // SKETCHWARE PRO STYLE: Clean header without unnecessary labels
+          const Spacer(),
           Container(
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.1),
@@ -238,106 +238,75 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
               padding: EdgeInsets.zero,
             ),
           ),
-          const SizedBox(width: 4),
-          // SKETCHWARE PRO STYLE: Professional zoom controls
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.zoom_in, size: 18, color: Colors.white),
-              onPressed: () =>
-                  setState(() => _scale = (_scale + 0.1).clamp(0.5, 2.0)),
-              tooltip: 'Zoom In',
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              padding: EdgeInsets.zero,
-            ),
-          ),
-          const SizedBox(width: 2),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.zoom_out, size: 18, color: Colors.white),
-              onPressed: () =>
-                  setState(() => _scale = (_scale - 0.1).clamp(0.5, 2.0)),
-              tooltip: 'Zoom Out',
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              padding: EdgeInsets.zero,
-            ),
-          ),
         ],
       ),
     );
   }
 
-  // SKETCHWARE PRO STYLE: Rectangular mobile frame (no rounded phone frame)
+  // SKETCHWARE PRO STYLE: Fixed mobile frame exactly like Sketchware Pro (no center, no extra spacing)
   Widget _buildRectangularMobileFrame() {
-    return Center(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // EXACT SKETCHIDE: Use the exact scaling formula from ViewEditor.java:870-890
-          final sketchideScaling =
-              WidgetSizingService.calculateExactFrameScaling(
-            context,
-            hasAds: false, // Can be made configurable
-            screenType: 0,
-          );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // ANDROID NATIVE: Use the exact Android scaling formula from ViewEditor.java:870-890
+        final androidScaling =
+            AndroidNativeMeasurementService.calculateViewEditorScaling(
+          context,
+          hasStatusBar: true,
+          hasToolbar: true,
+          hasAds: false, // Can be made configurable
+        );
 
-          // EXACT SKETCHIDE: Apply user scale factor to the calculated scaling
-          final finalScale = _scale * sketchideScaling.scaleX;
+        // ANDROID NATIVE: Apply user scale factor to the calculated scaling
+        final finalScale = _scale * androidScaling.contentScaleX;
 
-          // EXACT SKETCHIDE: Calculate final content dimensions using exact formula
-          final contentWidth = sketchideScaling.displayWidth * finalScale;
-          final contentHeight = sketchideScaling.displayHeight * finalScale;
+        // ANDROID NATIVE: Calculate final content dimensions using exact Android formula
+        final contentWidth = androidScaling.displayWidth * finalScale;
+        final contentHeight = androidScaling.displayHeight * finalScale;
 
-          // SKETCHWARE PRO STYLE: Rectangular frame with simple border (no phone simulation)
-          return Container(
-            width: contentWidth,
-            height: contentHeight,
-            decoration: BoxDecoration(
-              // EXACT SKETCHWARE PRO: Simple rectangular border
-              border: Border.all(
-                color: const Color(0xFFCCCCCC),
-                width: 2 * finalScale,
+        // SKETCHWARE PRO STYLE: Exact mobile frame like Sketchware Pro
+        return Container(
+          width: contentWidth,
+          height: contentHeight,
+          decoration: BoxDecoration(
+            // EXACT SKETCHWARE PRO: Clean rectangular border like ViewEditor
+            border: Border.all(
+              color:
+                  const Color(0xFFDDDDDD), // Lighter border like Sketchware Pro
+              width: 1 * finalScale,
+            ),
+            color: Colors.white, // Clean white background
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05), // Subtle shadow
+                blurRadius: 2 * finalScale,
+                offset: Offset(0, 1 * finalScale),
               ),
-              color: Colors.white, // White background
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4 * finalScale,
-                  offset: Offset(0, 2 * finalScale),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // Status Bar (like Sketchware Pro)
-                _buildStatusBar(finalScale),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Status Bar (like Sketchware Pro)
+              _buildStatusBar(finalScale),
 
-                // Toolbar (like Sketchware Pro)
-                _buildToolbar(finalScale),
+              // Toolbar (like Sketchware Pro)
+              _buildToolbar(finalScale),
 
-                // Content Area
-                Expanded(
-                  child: _buildContentArea(finalScale),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+              // Content Area
+              Expanded(
+                child: _buildContentArea(finalScale),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  // EXACT SKETCHWARE PRO: Status Bar (like Sketchware Pro)
+  // ANDROID NATIVE: Status Bar (exactly like Sketchware Pro)
   Widget _buildStatusBar(double scale) {
     return Container(
-      height: WidgetSizingService.convertDpToPixels(context, 25.0) *
-          scale, // EXACT Sketchware Pro status bar height
+      height: AndroidNativeMeasurementService.convertDpToPixels(context, 25.0) *
+          scale, // EXACT Android status bar height
       decoration: BoxDecoration(
         color: const Color(0xFF0084C2), // Sketchware Pro blue
         border: Border(
@@ -391,11 +360,11 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     );
   }
 
-  // EXACT SKETCHIDE: Toolbar (like Sketchware Pro)
+  // ANDROID NATIVE: Toolbar (exactly like Sketchware Pro)
   Widget _buildToolbar(double scale) {
     return Container(
-      height: WidgetSizingService.convertDpToPixels(context, 48.0) *
-          scale, // EXACT Sketchware Pro toolbar height
+      height: AndroidNativeMeasurementService.convertDpToPixels(context, 48.0) *
+          scale, // EXACT Android toolbar height
       decoration: BoxDecoration(
         color: const Color(0xFF008DCD), // Sketchware Pro toolbar blue
         border: Border(
@@ -1032,15 +1001,17 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
   // SKETCHWARE PRO STYLE: Drop zone detection is now handled by ViewInfoService
 
-  // Build real widget with proper scale using Frame Factory Service (like Sketchware Pro's createItemView)
+  // Build real widget with proper scale using Android Native Factory Service
   Widget _buildRealWidgetWithScale(FlutterWidgetBean widgetBean, double scale) {
-    // SKETCHWARE PRO STYLE: Create frame widget with touch controller integration
+    // ANDROID NATIVE: Create frame widget with Android Native touch system integration
     Widget createdWidget = MobileFrameWidgetFactoryService.createFrameWidget(
       widgetBean: widgetBean,
       scale: scale,
       allWidgets: widget.widgets,
       touchController: _touchController,
       selectionService: _selectionService,
+      androidTouchService: _androidTouchService,
+      context: context,
     );
 
     // SKETCHWARE PRO STYLE: Return frame widget with touch capabilities

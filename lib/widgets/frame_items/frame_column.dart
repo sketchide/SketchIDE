@@ -90,6 +90,18 @@ class _FrameColumnState extends State<FrameColumn> {
     }
 
     return GestureDetector(
+      // FLUTTER FIX: Ensure tap events are captured
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        // SKETCHWARE PRO STYLE: Handle widget selection on tap
+        print('🎯 FRAME COLUMN TAP: ${widget.widgetBean.id}');
+        if (widget.selectionService != null) {
+          widget.selectionService!.selectWidget(widget.widgetBean);
+          print(
+              '🎯 SELECTION SERVICE: Widget ${widget.widgetBean.id} selected');
+        }
+        _notifyWidgetSelected();
+      },
       onTapDown: (details) {
         setState(() => _isPressed = true);
         _handleTouchStart(details.globalPosition);
@@ -142,40 +154,37 @@ class _FrameColumnState extends State<FrameColumn> {
     return Container(
       // SKETCHWARE PRO STYLE: Minimum size like ItemLinearLayout
       constraints: BoxConstraints(
-        minWidth: 32 * density * widget.scale,
-        minHeight: 32 * density * widget.scale,
+        minWidth:
+            64 * density * widget.scale, // Larger min size like Sketchware Pro
+        minHeight: 64 * density * widget.scale,
       ),
-      // SKETCHWARE PRO STYLE: Background color handling like ItemLinearLayout
-      color: backgroundColor,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        // EXACT SKETCHWARE PRO: Selection background like ItemLinearLayout.onDraw()
+        border: Border.all(
+          color: const Color(0x60000000), // Sketchware Pro border color
+          width: 1.0 * widget.scale,
+        ),
+        // EXACT SKETCHWARE PRO: Selection highlight
+        boxShadow: (widget.selectionService?.selectedWidget?.id ==
+                widget.widgetBean.id)
+            ? [
+                BoxShadow(
+                  color:
+                      const Color(0x9599d5d0), // Sketchware Pro selection color
+                  blurRadius: 0,
+                  spreadRadius: 2.0 * widget.scale,
+                ),
+              ]
+            : null,
+      ),
       child: childWidgets.isNotEmpty
           ? Column(
               mainAxisAlignment: mainAxisAlignment,
               crossAxisAlignment: crossAxisAlignment,
               children: childWidgets,
             )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 20 * density * widget.scale,
-                  height: 20 * density * widget.scale,
-                  color: Colors.grey[300],
-                  margin: EdgeInsets.all(4 * density * widget.scale),
-                ),
-                Container(
-                  width: 20 * density * widget.scale,
-                  height: 20 * density * widget.scale,
-                  color: Colors.grey[300],
-                  margin: EdgeInsets.all(4 * density * widget.scale),
-                ),
-                Container(
-                  width: 20 * density * widget.scale,
-                  height: 20 * density * widget.scale,
-                  color: Colors.grey[300],
-                  margin: EdgeInsets.all(4 * density * widget.scale),
-                ),
-              ],
-            ),
+          : _buildEmptyColumnPlaceholder(),
     );
   }
 
@@ -187,6 +196,7 @@ class _FrameColumnState extends State<FrameColumn> {
       widget.scale,
       widget.touchController,
       widget.selectionService,
+      context,
     );
   }
 
@@ -281,10 +291,77 @@ class _FrameColumnState extends State<FrameColumn> {
     widget.touchController?.handleTouchEnd(position);
   }
 
+  /// EXACT SKETCHWARE PRO: Build empty column placeholder like ItemLinearLayout
+  Widget _buildEmptyColumnPlaceholder() {
+    return Container(
+      padding: EdgeInsets.all(8 * widget.scale),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // EXACT SKETCHWARE PRO: Vertical layout icon like Sketchware Pro
+          Container(
+            width: 12 * widget.scale,
+            height: 20 * widget.scale,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: const Color(0xFF666666),
+                width: 1 * widget.scale,
+              ),
+              borderRadius: BorderRadius.circular(2 * widget.scale),
+            ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.all(1 * widget.scale),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFCCCCCC),
+                      borderRadius: BorderRadius.circular(1 * widget.scale),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 1 * widget.scale),
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.all(1 * widget.scale),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFCCCCCC),
+                      borderRadius: BorderRadius.circular(1 * widget.scale),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 4 * widget.scale),
+          Text(
+            'Column',
+            style: TextStyle(
+              fontSize: 11 * widget.scale,
+              color: const Color(0xFF666666),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// SKETCHWARE PRO STYLE: Handle touch cancel
   void _handleTouchCancel() {
     print('🎯 FRAME COLUMN TOUCH CANCEL: ${widget.widgetBean.id}');
     widget.touchController?.handleTouchCancel();
+  }
+
+  /// SKETCHWARE PRO STYLE: Notify parent about widget selection
+  void _notifyWidgetSelected() {
+    print('🚀 NOTIFYING WIDGET SELECTION: ${widget.widgetBean.id}');
+    if (widget.touchController != null) {
+      widget.touchController!.handleWidgetTap(widget.widgetBean);
+    } else {
+      print('🚀 WARNING: touchController is null!');
+    }
   }
 }
 

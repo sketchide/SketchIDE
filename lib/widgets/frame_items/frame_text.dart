@@ -66,32 +66,72 @@ class _FrameTextContent extends StatelessWidget {
     }
 
     return GestureDetector(
+      // FLUTTER FIX: Ensure tap events are captured (will be overridden by AndroidNativeTouchWidget)
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        // ANDROID NATIVE: This will be handled by AndroidNativeTouchService when wrapped
+        print('🎯 FRAME TEXT TAP (GestureDetector): ${widgetBean.id}');
+        print(
+            '🎯 SELECTION SERVICE: ${selectionService != null ? "AVAILABLE" : "NULL"}');
+        print(
+            '🎯 TOUCH CONTROLLER: ${touchController != null ? "AVAILABLE" : "NULL"}');
+
+        if (selectionService != null) {
+          selectionService!.selectWidget(widgetBean);
+          print('🎯 SELECTION SERVICE: Widget ${widgetBean.id} selected');
+        }
+        // Notify parent about selection to open property panel
+        _notifyWidgetSelected();
+      },
       onTapDown: (details) {
-        // Handle tap down
+        // Additional tap down handling if needed
+        print('🎯 FRAME TEXT TAP DOWN: ${widgetBean.id}');
       },
       onLongPressStart: (details) {
-        // Handle long press start
+        // SKETCHWARE PRO STYLE: Start drag detection on long press
+        print('🎯 FRAME TEXT LONG PRESS START: ${widgetBean.id}');
+        if (touchController != null) {
+          touchController!
+              .handleTouchStart(widgetBean, details.globalPosition, widgetKey);
+        }
       },
       onLongPressMoveUpdate: (details) {
-        // Handle long press move update
+        // SKETCHWARE PRO STYLE: Update drag position during long press move
+        if (touchController != null) {
+          touchController!.handleTouchMove(details.globalPosition);
+        }
       },
       onLongPressEnd: (details) {
-        // Handle long press end
+        // SKETCHWARE PRO STYLE: End drag operation
+        if (touchController != null) {
+          touchController!.handleTouchEnd(details.globalPosition);
+        }
       },
       onPanStart: (details) {
-        // Handle pan start
+        // SKETCHWARE PRO STYLE: Alternative drag start
+        print('🎯 FRAME TEXT PAN START: ${widgetBean.id}');
+        if (touchController != null) {
+          touchController!
+              .handleTouchStart(widgetBean, details.globalPosition, widgetKey);
+        }
       },
       onPanUpdate: (details) {
-        // Handle pan update
+        // SKETCHWARE PRO STYLE: Update drag position during pan
+        if (touchController != null) {
+          touchController!.handleTouchMove(details.globalPosition);
+        }
       },
       onPanEnd: (details) {
-        // Handle pan end
+        // SKETCHWARE PRO STYLE: End pan operation
+        if (touchController != null) {
+          touchController!.handleTouchEnd(details.globalPosition);
+        }
       },
       child: Container(
         key: widgetKey,
         // SKETCHWARE PRO STYLE: Use exact width/height like ItemTextView
-        width: width > 0 ? width : null,
-        height: height > 0 ? height : null,
+        width: width,
+        height: height,
         // EXACT SKETCHWARE PRO: Minimum size like ItemTextView (32dp)
         constraints: BoxConstraints(
           minWidth:
@@ -104,12 +144,26 @@ class _FrameTextContent extends StatelessWidget {
     );
   }
 
-  /// SKETCHWARE PRO STYLE: Build text content (matches ItemTextView)
+  /// EXACT SKETCHWARE PRO: Build text content like ItemTextView
   Widget _buildTextContent(BuildContext context) {
+    final isSelected = selectionService?.selectedWidget?.id == widgetBean.id;
+
     return Container(
       padding: _getPadding(context),
       decoration: BoxDecoration(
         color: _getBackgroundColor(),
+        // EXACT SKETCHWARE PRO: Selection background like ItemTextView.onDraw()
+        border: isSelected
+            ? Border.all(color: const Color(0x9599d5d0), width: 2.0 * scale)
+            : Border.all(color: Colors.transparent, width: 1.0 * scale),
+        // EXACT SKETCHWARE PRO: Subtle shadow like Android TextView
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 1.0 * scale,
+            offset: Offset(0, 1.0 * scale),
+          ),
+        ],
       ),
       child: Text(
         _getText(),
@@ -197,6 +251,19 @@ class _FrameTextContent extends StatelessWidget {
       sketchwarePadding.right * scale,
       sketchwarePadding.bottom * scale,
     );
+  }
+
+  /// SKETCHWARE PRO STYLE: Notify parent about widget selection (like ViewEditor.java:83)
+  void _notifyWidgetSelected() {
+    // This will bubble up to DesignActivityScreen -> PropertyPanel
+    print('🚀 NOTIFYING WIDGET SELECTION: ${widgetBean.id}');
+
+    // Use the touch controller's proper widget tap method
+    if (touchController != null) {
+      touchController!.handleWidgetTap(widgetBean);
+    } else {
+      print('🚀 WARNING: touchController is null!');
+    }
   }
 
   /// SKETCHWARE PRO STYLE: Parse double from various types

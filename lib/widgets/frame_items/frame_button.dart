@@ -64,8 +64,26 @@ class _FrameButtonContent extends StatelessWidget {
     }
 
     return GestureDetector(
+      // FLUTTER FIX: Ensure tap events are captured
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        // SKETCHWARE PRO STYLE: Handle widget selection on tap (like ViewEditor.java:304)
+        print('🎯 FRAME BUTTON TAP: ${widgetBean.id}');
+        print(
+            '🎯 SELECTION SERVICE: ${selectionService != null ? "AVAILABLE" : "NULL"}');
+        print(
+            '🎯 TOUCH CONTROLLER: ${touchController != null ? "AVAILABLE" : "NULL"}');
+
+        if (selectionService != null) {
+          selectionService!.selectWidget(widgetBean);
+          print('🎯 SELECTION SERVICE: Widget ${widgetBean.id} selected');
+        }
+        // Notify parent about selection to open property panel
+        _notifyWidgetSelected();
+      },
       onTapDown: (details) {
-        // Handle tap down
+        // Additional tap down handling if needed
+        print('🎯 FRAME BUTTON TAP DOWN: ${widgetBean.id}');
       },
       onLongPressStart: (details) {
         // Handle long press start
@@ -100,30 +118,44 @@ class _FrameButtonContent extends StatelessWidget {
     );
   }
 
-  /// SKETCHWARE PRO STYLE: Build button content (matches ItemButton)
+  /// EXACT SKETCHWARE PRO: Build real Material button like ItemButton
   Widget _buildButtonContent(BuildContext context) {
-    final backgroundColor = _getBackgroundColor();
-    final cornerRadius = _getCornerRadius();
-
-    // SKETCHWARE PRO STYLE: Convert dp to pixels like Android
-    final density = MediaQuery.of(context).devicePixelRatio;
-    final scaledCornerRadius = cornerRadius * density * scale;
+    final isSelected = selectionService?.selectedWidget?.id == widgetBean.id;
 
     return Container(
-      // SKETCHWARE PRO STYLE: Minimum size like ItemButton
-      constraints: BoxConstraints(
-        minWidth: 32 * density * scale,
-        minHeight: 32 * density * scale,
-      ),
       decoration: BoxDecoration(
-        // SKETCHWARE PRO STYLE: Background color handling like ItemButton
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(scaledCornerRadius),
+        // EXACT SKETCHWARE PRO: Selection border like ItemButton.onDraw()
+        border: isSelected
+            ? Border.all(color: const Color(0x9599d5d0), width: 2.0 * scale)
+            : null,
+        borderRadius: BorderRadius.circular(_getCornerRadius() * scale),
       ),
-      child: Center(
+      child: ElevatedButton(
+        onPressed: null, // Disabled in design mode
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _getBackgroundColor(),
+          foregroundColor: Colors.white,
+          elevation: 3.0 * scale, // Higher elevation like Material Design
+          shadowColor: Colors.black38,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_getCornerRadius() * scale),
+          ),
+          minimumSize: Size(
+            88.0 * scale, // Android Material min width
+            48.0 * scale, // Android Material min height
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: 16.0 * scale,
+            vertical: 8.0 * scale,
+          ),
+        ),
         child: Text(
           _getText(),
-          style: _getTextStyle(context),
+          style: _getTextStyle(context).copyWith(
+            // EXACT SKETCHWARE PRO: Material button text style
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.5,
+          ),
         ),
       ),
     );
@@ -203,5 +235,15 @@ class _FrameButtonContent extends StatelessWidget {
       }
     }
     return Colors.transparent;
+  }
+
+  /// SKETCHWARE PRO STYLE: Notify parent about widget selection (like ViewEditor.java:83)
+  void _notifyWidgetSelected() {
+    print('🚀 NOTIFYING WIDGET SELECTION: ${widgetBean.id}');
+    if (touchController != null) {
+      touchController!.handleWidgetTap(widgetBean);
+    } else {
+      print('🚀 WARNING: touchController is null!');
+    }
   }
 }

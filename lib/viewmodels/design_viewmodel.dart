@@ -65,6 +65,9 @@ class DesignViewModel extends ChangeNotifier {
           projectId,
           _currentLayout,
         );
+
+        // SKETCHWARE PRO STYLE: Start with clean mobile frame (no default widgets)
+
         _saveToHistory();
       }
       _error = null;
@@ -119,8 +122,12 @@ class DesignViewModel extends ChangeNotifier {
 
   /// Select a widget
   void selectWidget(FlutterWidgetBean widget) {
+    print('🎯 DESIGN VIEWMODEL: selectWidget called for ${widget.id}');
+    print('🎯 BEFORE: _selectedWidget = ${_selectedWidget?.id}');
     _selectedWidget = widget;
+    print('🎯 AFTER: _selectedWidget = ${_selectedWidget?.id}');
     notifyListeners();
+    print('🎯 NOTIFIED LISTENERS - UI should rebuild now');
   }
 
   /// SKETCHWARE PRO STYLE: Add widget with proper sizing

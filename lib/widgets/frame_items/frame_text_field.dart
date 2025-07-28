@@ -64,8 +64,20 @@ class _FrameTextFieldContent extends StatelessWidget {
     }
 
     return GestureDetector(
+      // FLUTTER FIX: Ensure tap events are captured
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        // SKETCHWARE PRO STYLE: Handle widget selection on tap
+        print('🎯 FRAME TEXT FIELD TAP: ${widgetBean.id}');
+        if (selectionService != null) {
+          selectionService!.selectWidget(widgetBean);
+          print('🎯 SELECTION SERVICE: Widget ${widgetBean.id} selected');
+        }
+        _notifyWidgetSelected();
+      },
       onTapDown: (details) {
-        // Handle tap down
+        // Additional tap down handling if needed
+        print('🎯 FRAME TEXT FIELD TAP DOWN: ${widgetBean.id}');
       },
       onLongPressStart: (details) {
         // Handle long press start
@@ -242,5 +254,15 @@ class _FrameTextFieldContent extends StatelessWidget {
       }
     }
     return Colors.transparent;
+  }
+
+  /// SKETCHWARE PRO STYLE: Notify parent about widget selection
+  void _notifyWidgetSelected() {
+    print('🚀 NOTIFYING WIDGET SELECTION: ${widgetBean.id}');
+    if (touchController != null) {
+      touchController!.handleWidgetTap(widgetBean);
+    } else {
+      print('🚀 WARNING: touchController is null!');
+    }
   }
 }

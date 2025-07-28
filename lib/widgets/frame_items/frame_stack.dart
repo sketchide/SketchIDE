@@ -90,6 +90,18 @@ class _FrameStackState extends State<FrameStack> {
     }
 
     return GestureDetector(
+      // FLUTTER FIX: Ensure tap events are captured
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        // SKETCHWARE PRO STYLE: Handle widget selection on tap
+        print('🎯 FRAME STACK TAP: ${widget.widgetBean.id}');
+        if (widget.selectionService != null) {
+          widget.selectionService!.selectWidget(widget.widgetBean);
+          print(
+              '🎯 SELECTION SERVICE: Widget ${widget.widgetBean.id} selected');
+        }
+        _notifyWidgetSelected();
+      },
       onTapDown: (details) {
         setState(() => _isPressed = true);
         _handleTouchStart(details.globalPosition);
@@ -187,6 +199,7 @@ class _FrameStackState extends State<FrameStack> {
       widget.scale,
       widget.touchController,
       widget.selectionService,
+      context,
     );
   }
 
@@ -288,6 +301,16 @@ class _FrameStackState extends State<FrameStack> {
   void _handleTouchCancel() {
     print('🎯 FRAME STACK TOUCH CANCEL: ${widget.widgetBean.id}');
     widget.touchController?.handleTouchCancel();
+  }
+
+  /// SKETCHWARE PRO STYLE: Notify parent about widget selection
+  void _notifyWidgetSelected() {
+    print('🚀 NOTIFYING WIDGET SELECTION: ${widget.widgetBean.id}');
+    if (widget.touchController != null) {
+      widget.touchController!.handleWidgetTap(widget.widgetBean);
+    } else {
+      print('🚀 WARNING: touchController is null!');
+    }
   }
 }
 
