@@ -88,7 +88,28 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
 
   PreferredSizeWidget _buildAppBar(DesignViewModel viewModel) {
     return AppBar(
-      title: Text(viewModel.projectName ?? 'Design'),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            viewModel.projectName ?? 'Design',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+          Text(
+            widget.projectId,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.black54,
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black87,
       actions: [
         IconButton(
           icon: const Icon(Icons.undo),

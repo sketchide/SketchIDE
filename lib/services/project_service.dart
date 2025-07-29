@@ -8,6 +8,7 @@ import '../models/sketchide_project.dart';
 import '../models/project_complexity.dart';
 import 'native_storage_service.dart';
 import 'adaptive_file_generator.dart';
+import 'dart:math' as math;
 
 class ProjectService {
   // Sketchware Pro-style directory structure
@@ -131,10 +132,35 @@ class ProjectService {
   }
 
   // Generate unique project ID (like Sketchware Pro's sc_id)
-  String _generateProjectId() {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final random = (timestamp % 1000000).toString().padLeft(6, '0');
-    return 'sketchide_$timestamp$random';
+  Future<String> _generateProjectId() async {
+    // SKETCHWARE PRO STYLE: Start from 601 and find highest existing ID
+    int nextId = 601;
+
+    try {
+      final listDir = await getProjectListDirectory();
+      final projectListFile = File(path.join(listDir, 'projects.json'));
+
+      if (await projectListFile.exists()) {
+        final content = await projectListFile.readAsString();
+        final List<dynamic> projectList = jsonDecode(content);
+
+        // Find the highest existing project ID
+        for (final project in projectList) {
+          final projectId = project['project_id'] as String;
+          // Extract numeric part from project ID
+          final numericId = int.tryParse(projectId) ?? 0;
+          nextId = math.max(nextId, numericId + 1);
+        }
+      }
+    } catch (e) {
+      print('Error reading project list for ID generation: $e');
+      // Fallback to timestamp-based ID if there's an error
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final random = (timestamp % 1000000).toString().padLeft(6, '0');
+      return 'sketchide_$timestamp$random';
+    }
+
+    return nextId.toString();
   }
 
   // Create new project with adaptive structure
@@ -148,7 +174,7 @@ class ProjectService {
     ProjectTemplate template = ProjectTemplate.helloWorld,
   }) async {
     // Create project with specified template
-    final project = SketchIDEProject.createEmpty(
+    final project = await SketchIDEProject.createEmpty(
       appName: appName,
       packageName: packageName,
       projectName: projectName,
@@ -591,7 +617,7 @@ flutter:
     final projectData = jsonDecode(jsonString) as Map<String, dynamic>;
 
     // Create new project with imported data
-    final project = SketchIDEProject.createEmpty(
+    final project = await SketchIDEProject.createEmpty(
       appName: projectData['app_name'] ?? 'Imported Project',
       packageName: projectData['package_name'] ?? 'com.sketchide.imported',
       projectName: projectData['project_name'] ?? 'Imported Project',
@@ -601,7 +627,7 @@ flutter:
     );
 
     // Generate new project ID and create directory structure
-    final projectId = _generateProjectId();
+    final projectId = await _generateProjectId();
     await _createProjectDirectoryStructure(projectId, project);
     await _saveProjectMetadata(projectId, project);
     await _addToProjectList(projectId, project);

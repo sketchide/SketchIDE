@@ -469,26 +469,21 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       child: DragTarget<FlutterWidgetBean>(
         // SKETCHWARE PRO STYLE: Accept all widgets
         onWillAccept: (data) {
-          print('🎯 DRAG TARGET: Will accept ${data?.type}'); // Debug output
           return data != null;
         },
 
         // SKETCHWARE PRO STYLE: Handle widget drop with coordinate transformation
         onAccept: (widgetData) {
-          print('🎯 WIDGET DROPPED: ${widgetData.type}'); // Debug output
           _handleWidgetDrop(widgetData);
         },
 
         // SKETCHWARE PRO STYLE: Visual feedback during drag with coordinate transformation
         onMove: (details) {
-          print(
-              '🎯 DRAG MOVE: ${details.data.type} at ${details.offset}'); // Debug output
           _handleDragMove(details);
         },
 
         // SKETCHWARE PRO STYLE: Hide visual feedback when drag leaves
         onLeave: (data) {
-          print('🎯 DRAG LEAVE: ${data?.type}'); // Debug output
           _hideVisualFeedback();
         },
 
