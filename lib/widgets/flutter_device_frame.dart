@@ -461,51 +461,48 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
           _hideViewDummy();
         },
 
-        // SKETCHWARE PRO FIX: Make drag target transparent when no active drag
-        // This allows dropped widgets to receive touch events (like Sketchware Pro)
+        // SKETCHWARE PRO STYLE: Drag target builder (only shown during active drag)
         builder: (context, candidateData, rejectedData) {
           final hasActiveDrag = candidateData.isNotEmpty;
 
-          return IgnorePointer(
-            ignoring:
-                !hasActiveDrag, // CRITICAL: Only consume touches during active drag
-            child: Container(
-              decoration: BoxDecoration(
-                border: hasActiveDrag
-                    ? Border.all(
-                        color: const Color(0xffff5955), // Sketchware Pro red
-                        width: 2,
-                      )
-                    : null,
-                color: hasActiveDrag
-                    ? const Color(
-                        0x82ff5955) // Sketchware Pro semi-transparent red
-                    : Colors.transparent,
+          // SKETCHWARE PRO STYLE: Return completely transparent container when not dragging
+          // This ensures dropped widgets can receive touch events
+          if (!hasActiveDrag) {
+            return const SizedBox.shrink();
+          }
+
+          return Container(
+            // SKETCHWARE PRO STYLE: Only show visual feedback during active drag
+            // This prevents the overlay from blocking touch events on dropped widgets
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: const Color(0xffff5955), // Sketchware Pro red
+                width: 2,
               ),
-              child: Center(
-                child: hasActiveDrag
-                    ? Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          'Drop ${candidateData.first?.type ?? 'widget'} here',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      )
-                    : null,
+              color: const Color(
+                  0x82ff5955), // Sketchware Pro semi-transparent red
+            ),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'Drop ${candidateData.first?.type ?? 'widget'} here',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
           );

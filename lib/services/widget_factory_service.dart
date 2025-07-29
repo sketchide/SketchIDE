@@ -132,7 +132,7 @@ class WidgetFactoryService {
             'gravity': 'left',
           },
           children: [],
-          position: PositionBean(x: 0, y: 0, width: 120, height: 30),
+          position: PositionBean(x: 0, y: 0, width: 50, height: 30),
           events: {},
           layout: LayoutBean(
             width: -2, // WRAP_CONTENT
@@ -161,7 +161,7 @@ class WidgetFactoryService {
           type: type,
           properties: buttonProps.toJson(),
           children: [],
-          position: PositionBean(x: 0, y: 0, width: 100, height: 40),
+          position: PositionBean(x: 0, y: 0, width: 80, height: 40),
           events: {},
           layout: LayoutBean(
             width: -2, // WRAP_CONTENT
@@ -180,7 +180,7 @@ class WidgetFactoryService {
           type: type,
           properties: containerProps.toJson(),
           children: [],
-          position: PositionBean(x: 0, y: 0, width: 150, height: 80),
+          position: PositionBean(x: 0, y: 0, width: 50, height: 30),
           events: {},
           layout: LayoutBean(
             width: -2, // WRAP_CONTENT
@@ -199,7 +199,7 @@ class WidgetFactoryService {
           type: type,
           properties: textFieldProps.toJson(),
           children: [],
-          position: PositionBean(x: 0, y: 0, width: 200, height: 50),
+          position: PositionBean(x: 0, y: 0, width: 150, height: 40),
           events: {},
           layout: LayoutBean(
             width: -1, // MATCH_PARENT
@@ -289,7 +289,7 @@ class WidgetFactoryService {
           type: type,
           properties: stackProps.toJson(),
           children: [],
-          position: PositionBean(x: 0, y: 0, width: 200, height: 100),
+          position: PositionBean(x: 0, y: 0, width: 100, height: 60),
           events: {},
           layout: LayoutBean(
             width: -1, // MATCH_PARENT

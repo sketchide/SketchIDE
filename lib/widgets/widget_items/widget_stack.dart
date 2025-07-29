@@ -16,7 +16,7 @@ class WidgetStack extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 80 * scale,
+      width: 100 * scale,
       height: 60 * scale,
       decoration: BoxDecoration(
         color: Colors.purple[50],

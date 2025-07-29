@@ -199,6 +199,7 @@ class _FrameTextContent extends StatelessWidget {
       fontSize: scaledFontSize,
       color: textColor,
       fontWeight: _getFontWeight(textStyle),
+      fontStyle: _getFontStyle(textStyle),
     );
   }
 
@@ -208,13 +209,22 @@ class _FrameTextContent extends StatelessWidget {
       case 'bold':
         return FontWeight.bold;
       case 'italic':
-        return FontStyle.italic
-            as FontWeight; // This is incorrect, should be FontWeight.normal with FontStyle.italic
+        return FontWeight.normal; // Normal weight with italic style
       case 'bold|italic':
-        return FontWeight
-            .bold; // This is incorrect, should be FontWeight.bold with FontStyle.italic
+        return FontWeight.bold; // Bold weight with italic style
       default:
         return FontWeight.normal;
+    }
+  }
+
+  /// SKETCHWARE PRO STYLE: Get font style (matches ItemTextView)
+  FontStyle _getFontStyle(String textStyle) {
+    switch (textStyle) {
+      case 'italic':
+      case 'bold|italic':
+        return FontStyle.italic;
+      default:
+        return FontStyle.normal;
     }
   }
 

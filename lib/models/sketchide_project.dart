@@ -6,7 +6,7 @@ import 'page.dart';
 import 'project_complexity.dart';
 
 class SketchIDEProject {
-  final String projectId; // Add project ID field
+  final String projectId; 
   final ProjectInfo projectInfo;
   final List<UIComponent> uiComponents;
   final List<LogicBlock> logicBlocks;
@@ -16,7 +16,7 @@ class SketchIDEProject {
   final ProjectComplexity complexity;
 
   SketchIDEProject({
-    required this.projectId, // Add project ID parameter
+    required this.projectId, 
     required this.projectInfo,
     this.uiComponents = const [],
     this.logicBlocks = const [],
@@ -42,7 +42,7 @@ class SketchIDEProject {
   factory SketchIDEProject.fromJson(Map<String, dynamic> json) {
     return SketchIDEProject(
       projectId:
-          json['project_id'] as String, // Assuming 'project_id' is in JSON
+          json['project_id'] as String, 
       projectInfo: ProjectInfo.fromJson(json['project_info']),
       uiComponents: (json['ui_components'] as List?)
               ?.map((component) => UIComponent.fromJson(component))
@@ -70,11 +70,11 @@ class SketchIDEProject {
     String? iconPath,
     ProjectTemplate template = ProjectTemplate.helloWorld,
   }) {
-    final projectId = _generateProjectId(); // Generate ID here
+    final projectId = _generateProjectId(); 
     final complexity = ProjectTemplateInfo.templates[template]!.complexity;
 
     return SketchIDEProject(
-      projectId: projectId, // Use generated ID
+      projectId: projectId, 
       projectInfo: ProjectInfo(
         appName: appName,
         packageName: packageName,
@@ -141,7 +141,7 @@ class SketchIDEProject {
     ProjectComplexity? complexity,
   }) {
     return SketchIDEProject(
-      projectId: projectId, // Keep existing projectId
+      projectId: projectId, 
       projectInfo: projectInfo ?? this.projectInfo,
       uiComponents: uiComponents ?? this.uiComponents,
       logicBlocks: logicBlocks ?? this.logicBlocks,

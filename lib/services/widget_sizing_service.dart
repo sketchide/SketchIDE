@@ -166,11 +166,11 @@ class WidgetSizingService {
       case 'Text':
       case 'TextView':
         // SKETCHWARE PRO STYLE: Text widgets use WRAP_CONTENT
-        return Size(100.0, 40.0); // Reasonable default for text
+        return Size(50.0, 30.0); // EXACT Sketchware Pro default
 
       case 'Button':
         // SKETCHWARE PRO STYLE: Buttons use WRAP_CONTENT
-        return Size(100.0, 40.0); // Standard button size (like Sketchware Pro)
+        return Size(80.0, 40.0); // EXACT Sketchware Pro default
 
       case 'Icon':
       case 'IconButton':

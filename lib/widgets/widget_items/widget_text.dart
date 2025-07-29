@@ -16,8 +16,8 @@ class WidgetText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 80 * scale,
-      height: 40 * scale,
+      width: 50 * scale,
+      height: 30 * scale,
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: Colors.grey[300]!, width: 1 * scale),
