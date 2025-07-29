@@ -82,13 +82,10 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
     // ANDROID NATIVE: Set up touch service callbacks for property panel
     _androidTouchService.onWidgetTapped = (widget) {
-      print('🎯 ANDROID NATIVE TAP: ${widget.id} → Opening property panel');
-      // Call the main widget selection callback
       this.widget.onWidgetSelected?.call(widget);
     };
 
     _androidTouchService.onWidgetLongPressed = (widget) {
-      print('🎯 ANDROID NATIVE LONG PRESS: ${widget.id} → Starting drag');
       // Handle long press for drag operations
     };
   }
@@ -127,27 +124,21 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     // Setup touch controller callbacks
     _touchController.setCallbacks(
       onWidgetSelected: (widget) {
-        print('🎯 MOBILE FRAME: Widget selected ${widget.id}');
         this.widget.onWidgetSelected?.call(widget);
       },
       onWidgetDragStart: (widget, position) {
-        print('🎯 MOBILE FRAME: Widget drag start ${widget.id} at $position');
         _handleWidgetDragStart(widget, position);
       },
       onWidgetDragUpdate: (widget, position) {
-        print('🎯 MOBILE FRAME: Widget drag update ${widget.id} at $position');
         _handleWidgetDragUpdate(widget, position);
       },
       onWidgetDragEnd: (widget, position) {
-        print('🎯 MOBILE FRAME: Widget drag end ${widget.id} at $position');
         _handleWidgetDragEnd(widget, position);
       },
       onWidgetLongPress: (widget) {
-        print('🎯 MOBILE FRAME: Widget long press ${widget.id}');
         // Handle long press feedback
       },
       onDragStateChanged: (isDragging) {
-        print('🎯 MOBILE FRAME: Drag state changed - $isDragging');
         // Handle drag state changes
       },
     );
@@ -155,13 +146,11 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
   /// SKETCHWARE PRO STYLE: Handle widget drag start
   void _handleWidgetDragStart(FlutterWidgetBean widget, Offset position) {
-    print('🎯 DRAG START: ${widget.id} at $position');
     // TODO: Implement drag start logic for existing widgets
   }
 
   /// SKETCHWARE PRO STYLE: Handle widget drag update
   void _handleWidgetDragUpdate(FlutterWidgetBean widget, Offset position) {
-    print('🎯 DRAG UPDATE: ${widget.id} at $position');
     // TODO: Implement drag update logic for existing widgets
     // Call the widget's onWidgetMoved callback
     this.widget.onWidgetMoved?.call(widget);
@@ -169,7 +158,6 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
   /// SKETCHWARE PRO STYLE: Handle widget drag end
   void _handleWidgetDragEnd(FlutterWidgetBean widget, Offset position) {
-    print('🎯 DRAG END: ${widget.id} at $position');
     // TODO: Implement drag end logic for existing widgets
   }
 
@@ -432,7 +420,6 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         return GestureDetector(
           // SKETCHWARE PRO STYLE: Handle background taps to clear selection (like ViewEditor.java:285-289)
           onTap: () {
-            print('🎯 MOBILE FRAME BACKGROUND TAP: Clearing selection');
             widget.onBackgroundTapped?.call();
           },
           child: Container(
