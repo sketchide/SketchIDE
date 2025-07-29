@@ -576,44 +576,33 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
   /// SKETCHWARE PRO STYLE: Handle widget drop with proper sizing (like ViewEditor.java:327)
   void _handleWidgetDrop(FlutterWidgetBean widgetData) {
-    // SKETCHWARE PRO STYLE: Get the actual drop position from the last drag move
     final dropPosition = _safeViewInfoService.currentDropZone?.position ??
         Offset(_safeViewInfoService.containerSize.width / 2,
             _safeViewInfoService.containerSize.height / 2);
 
-    // SKETCHWARE PRO STYLE: Get available container size
     final containerSize = WidgetSizingService.getAvailableContainerSize(
       Size(_safeViewInfoService.containerSize.width,
           _safeViewInfoService.containerSize.height),
     );
 
-    // SKETCHWARE PRO STYLE: Calculate precise position with bounds checking
-    final precisePosition = WidgetSizingService.calculateDropPosition(
+    final hierarchicalWidget =
+        WidgetSizingService.calculateHierarchicalPosition(
+      widgetData,
+      dropPosition,
+      widget.widgets,
+    );
+
+    final positionedWidget = _createPositionedWidgetWithDefaults(
+      hierarchicalWidget,
       dropPosition,
       WidgetSizingService.getWidgetSize(widgetData.type, containerSize),
-      containerSize,
     );
 
-    // SKETCHWARE PRO STYLE: Create widget with precise position and proper sizing
-    final positionedWidget = _createPositionedWidgetWithDefaults(
-      widgetData,
-      precisePosition,
-      WidgetSizingService.getWidgetSize(widgetData.type, containerSize),
-    );
-
-    // SKETCHWARE PRO STYLE: Add widget through the view model with proper sizing
     if (widget.onWidgetAdded != null) {
       widget.onWidgetAdded!(positionedWidget, containerSize: containerSize);
     }
 
-    // SKETCHWARE PRO STYLE: Widget selection handled automatically by DesignViewModel.addWidget()
-    // No need for redundant onWidgetSelected call - DesignViewModel sets _selectedWidget when adding
-
-    // SKETCHWARE PRO STYLE: Hide ViewDummy after successful drop
     _hideViewDummy();
-
-    print(
-        '🎯 WIDGET DROPPED: ${widgetData.type} at ${precisePosition} with proper sizing');
   }
 
   /// SKETCHWARE PRO STYLE: Calculate precise drop position with bounds checking
@@ -645,21 +634,18 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     Offset position,
     Size widgetSize,
   ) {
-    // SKETCHWARE PRO STYLE: Create new layout with default properties based on widget type
     LayoutBean layout;
 
-    // SKETCHWARE PRO STYLE: Set default size based on widget type
     switch (widgetData.type) {
       case 'Row':
       case 'Column':
-        // SKETCHWARE PRO STYLE: Layout widgets get MATCH_PARENT by default
         layout = LayoutBean(
-          marginLeft: position.dx.toDouble(),
-          marginTop: position.dy.toDouble(),
+          marginLeft: 0.0,
+          marginTop: 0.0,
           marginRight: 0.0,
           marginBottom: 0.0,
-          width: -1, // MATCH_PARENT
-          height: -2, // WRAP_CONTENT
+          width: -1,
+          height: -2,
           paddingLeft: 8,
           paddingTop: 8,
           paddingRight: 8,
@@ -669,14 +655,13 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         );
         break;
       case 'Stack':
-        // SKETCHWARE PRO STYLE: Stack gets MATCH_PARENT by default
         layout = LayoutBean(
-          marginLeft: position.dx.toDouble(),
-          marginTop: position.dy.toDouble(),
+          marginLeft: 0.0,
+          marginTop: 0.0,
           marginRight: 0.0,
           marginBottom: 0.0,
-          width: -1, // MATCH_PARENT
-          height: -1, // MATCH_PARENT
+          width: -1,
+          height: -1,
           paddingLeft: 8,
           paddingTop: 8,
           paddingRight: 8,
@@ -686,14 +671,13 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         );
         break;
       default:
-        // SKETCHWARE PRO STYLE: Regular widgets get WRAP_CONTENT by default
         layout = LayoutBean(
-          marginLeft: position.dx.toDouble(),
-          marginTop: position.dy.toDouble(),
+          marginLeft: position.dx,
+          marginTop: position.dy,
           marginRight: 0.0,
           marginBottom: 0.0,
-          width: -2, // WRAP_CONTENT
-          height: -2, // WRAP_CONTENT
+          width: -2,
+          height: -2,
           paddingLeft: 8,
           paddingTop: 8,
           paddingRight: 8,
@@ -704,24 +688,15 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         break;
     }
 
-    // SKETCHWARE PRO STYLE: Create new widget with updated layout and default properties
-    final updatedWidget = FlutterWidgetBean(
-      id: widgetData.id,
-      type: widgetData.type,
-      properties: Map.from(widgetData.properties)
-        ..addAll(_getDefaultProperties(widgetData.type)),
-      children: List.from(widgetData.children),
+    return widgetData.copyWith(
+      layout: layout,
       position: PositionBean(
         x: position.dx,
         y: position.dy,
         width: widgetSize.width,
         height: widgetSize.height,
       ),
-      events: Map.from(widgetData.events),
-      layout: layout,
     );
-
-    return updatedWidget;
   }
 
   /// SKETCHWARE PRO STYLE: Get default properties for widget type

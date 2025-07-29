@@ -151,12 +151,14 @@ class WidgetSizingService {
       case 'Row':
       case 'HorizontalLayout':
         // SKETCHWARE PRO STYLE: Horizontal layouts use MATCH_PARENT width, WRAP_CONTENT height
-        return Size(availableSize.width, 48.0); // Full width, standard height
+        return Size(
+            availableSize.width, 32.0); // ✅ EXACT: 32dp like ItemLinearLayout
 
       case 'Column':
       case 'VerticalLayout':
         // SKETCHWARE PRO STYLE: Vertical layouts use WRAP_CONTENT width, MATCH_PARENT height
-        return Size(200.0, availableSize.height); // Standard width, full height
+        return Size(
+            32.0, availableSize.height); // ✅ EXACT: 32dp like ItemLinearLayout
 
       case 'Container':
         // SKETCHWARE PRO STYLE: Containers use default size
@@ -293,23 +295,60 @@ class WidgetSizingService {
   static Offset calculateDropPosition(
       Offset dropPosition, Size widgetSize, Size containerSize,
       {String? widgetType}) {
-    // SKETCHWARE PRO SPECIAL: Row widgets should touch left, right, and top edges
-    if (widgetType == 'Row' || widgetType == 'HorizontalLayout') {
-      return Offset(0.0, 0.0); // Always position at top-left corner
+    if (widgetType == 'Row' || widgetType == 'Column') {
+      return Offset(0.0, 0.0);
     }
 
-    // SKETCHWARE PRO STYLE: Ensure widget fits within container bounds
-    double x =
-        dropPosition.dx.clamp(0.0, containerSize.width - widgetSize.width);
-    double y =
-        dropPosition.dy.clamp(0.0, containerSize.height - widgetSize.height);
+    return Offset(0.0, 0.0);
+  }
 
-    // SKETCHWARE PRO STYLE: Snap to grid for better alignment
-    const double gridSize = 8.0;
-    x = (x / gridSize).round() * gridSize;
-    y = (y / gridSize).round() * gridSize;
+  static FlutterWidgetBean calculateHierarchicalPosition(
+      FlutterWidgetBean widget,
+      Offset dropPosition,
+      List<FlutterWidgetBean> existingWidgets) {
+    String? closestParent = _findClosestParent(dropPosition, existingWidgets);
 
-    return Offset(x, y);
+    if (closestParent != null) {
+      return widget.copyWith(
+        parent: closestParent,
+        parentType: 0,
+        index: _getNextIndex(closestParent, existingWidgets),
+      );
+    } else {
+      return widget.copyWith(
+        parent: 'root',
+        parentType: 0,
+        index: -1,
+      );
+    }
+  }
+
+  static String? _findClosestParent(
+      Offset dropPosition, List<FlutterWidgetBean> existingWidgets) {
+    for (FlutterWidgetBean widget in existingWidgets) {
+      if (widget.type == 'Row' ||
+          widget.type == 'Column' ||
+          widget.type == 'Container' ||
+          widget.type == 'Stack') {
+        final rect = Rect.fromLTWH(widget.position.x, widget.position.y,
+            widget.position.width, widget.position.height);
+        if (rect.contains(dropPosition)) {
+          return widget.id;
+        }
+      }
+    }
+    return null;
+  }
+
+  static int _getNextIndex(
+      String parentId, List<FlutterWidgetBean> existingWidgets) {
+    int maxIndex = -1;
+    for (FlutterWidgetBean widget in existingWidgets) {
+      if (widget.parent == parentId && widget.index > maxIndex) {
+        maxIndex = widget.index;
+      }
+    }
+    return maxIndex + 1;
   }
 
   /// SKETCHWARE PRO STYLE: Get available container size (like ViewEditor.java:873)
