@@ -19,6 +19,8 @@
 
 **SketchIDE** is an offline mobile IDE that allows anyone to build **native Android & iOS apps visually** – no coding required. Inspired by Sketchware Pro but built using **Flutter** for modern, cross-platform compatibility.
 
+> **🚀 Recent Updates**: SketchIDE now features a complete **Sketchware Pro-compatible** drag & drop system with enhanced ViewDummy, advanced touch controllers, comprehensive property validation, and a full set of frame widgets. The visual editor perfectly matches Sketchware Pro's behavior while using modern Flutter architecture.
+
 ---
 
 ## 🌟 Core Features
@@ -61,6 +63,30 @@
 - **CRUD Operations**: Create, Read, Update, Delete widgets with visual feedback
 - **Success Messages**: Confirmation messages for all operations
 
+### **Enhanced ViewDummy System**
+- **Sketchware Pro Exact Match**: ViewDummy behavior perfectly matches Sketchware Pro
+- **Semi-transparent Widget Preview**: Shows 50% opacity copy of dragged widget at drop location
+- **No Double Shadows**: Fixed duplicate visual feedback issue
+- **Invalid Drop Feedback**: Red cancel icon when dragging over invalid areas
+
+### **Advanced Touch Controller System**
+- **Native-like Touch Handling**: Mimics Android native touch behavior exactly
+- **Touch Variables**: Uses same variable names as Sketchware Pro (`t`, `u`, `v`)
+- **Gesture Detection**: Tap, long press, and drag with proper thresholds
+- **Touch State Management**: Complete touch lifecycle handling
+
+### **Property Validation Service**
+- **Comprehensive Validation**: Reserved keywords, method names, pattern matching
+- **Sketchware Pro Rules**: Exact same validation rules as Sketchware Pro
+- **Real-time Feedback**: Instant validation with error messages
+- **Type-specific Validation**: Color, numeric, text, URL, email validation
+
+### **Frame Widgets System**
+- **Complete Widget Set**: Text, Button, Container, Row, Column, Stack, Icon, TextField
+- **Sketchware Pro Styling**: Exact same visual appearance and behavior
+- **Touch Integration**: Perfect integration with touch controller system
+- **Selection Visual**: Same selection color (`0x9599d5d0`) as Sketchware Pro
+
 ### **Real-time Flutter Code Generation**
 - **Live Code Updates**: Widget changes immediately reflect in generated Dart code
 - **File Management**: Supports main.dart and custom page files
@@ -99,6 +125,11 @@ graph TD
 * [x] Auto-selection and smart property panel
 * [x] Flutter code generation from widgets
 * [x] Project file management (main.dart, custom pages)
+* [x] Enhanced ViewDummy system (Sketchware Pro exact match)
+* [x] Advanced touch controller system
+* [x] Property validation service
+* [x] Frame widgets implementation (Text, Button, Container, etc.)
+* [x] Selection service and visual feedback
 * [ ] Logic block editor (Blockly)
 * [ ] Project import/export (`.ide`)
 * [ ] Android offline APK builder
@@ -113,135 +144,67 @@ graph TD
 ```bash
 SketchIDE/
 ├── lib/
-│   ├── core/                        # Core utilities & constants
-│   │   ├── constants/
-│   │   │   ├── app_paths.dart
-│   │   │   ├── app_strings.dart
-│   │   │   └── dependencies.dart
-│   │   ├── error/
-│   │   │   ├── exceptions.dart
-│   │   │   └── failure.dart
-│   │   ├── utils/
-│   │   │   ├── file_helper.dart
-│   │   │   ├── logger.dart
-│   │   │   └── validators.dart
-│   │   └── di.dart                  # Dependency Injection (GetIt)
+│   ├── controllers/                # Touch and interaction controllers
+│   │   ├── drag_controller.dart
+│   │   ├── mobile_frame_touch_controller.dart
+│   │   └── selection_controller.dart
 │   │
-│   ├── data/                        # Persistence layer
-│   │   ├── datasources/
-│   │   │   ├── hive_service.dart    # Hive DB for metadata
-│   │   │   ├── sqlite_service.dart  # SQLite for complex UI/logic
-│   │   │   └── json_service.dart    # JSON import/export
-│   │   ├── models/
-│   │   │   ├── project_model.dart
-│   │   │   ├── ui_node_model.dart
-│   │   │   └── logic_block_model.dart
-│   │   └── repositories/
-│   │       └── project_repository_impl.dart
-│   │
-│   ├── domain/                      # Business Logic (Use Cases)
-│   │   ├── entities/
-│   │   │   ├── project.dart
-│   │   │   ├── ui_node.dart
-│   │   │   └── logic_block.dart
+│   ├── data/                       # Data persistence layer
 │   │   ├── repositories/
-│   │   │   └── project_repository.dart
-│   │   └── usecases/
-│   │       ├── create_project.dart
-│   │       ├── delete_project.dart
-│   │       ├── get_all_projects.dart
-│   │       ├── update_project.dart
-│   │       └── build_project.dart
+│   │   └── datasources/
 │   │
-│   ├── features/
-│   │   ├── project/                 # CRUD UI for projects
-│   │   │   ├── view/
-│   │   │   │   ├── project_list_page.dart
-│   │   │   │   └── project_editor_page.dart
-│   │   │   └── viewmodel/
-│   │   │       └── project_viewmodel.dart
-│   │   │
-│   │   ├── builder/                 # Drag & drop UI editor
-│   │   │   ├── screens/
-│   │   │   │   ├── builder_screen.dart
-│   │   │   │   └── property_editor_screen.dart
-│   │   │   ├── widgets/
-│   │   │   │   ├── droppable_mobile_frame.dart
-│   │   │   │   ├── draggable_widget_palette.dart
-│   │   │   │   ├── property_editor_panel.dart
-│   │   │   │   └── dart_file_selector.dart
-│   │   │   ├── models/
-│   │   │   │   ├── widget_data.dart
-│   │   │   │   ├── dart_file_bean.dart
-│   │   │   │   └── history_manager.dart
-│   │   │   ├── services/
-│   │   │   │   ├── code_generator.dart
-│   │   │   │   ├── dart_file_manager.dart
-│   │   │   │   └── file_sync_service.dart
-│   │   │   └── viewmodel/
-│   │   │       └── builder_viewmodel.dart
-│   │   │
-│   │   ├── blocks/                  # Visual programming engine
-│   │   │   ├── view/
-│   │   │   │   └── block_editor_page.dart
-│   │   │   └── viewmodel/
-│   │   │       └── block_viewmodel.dart
-│   │   │
-│   │   ├── preview/                 # Live preview renderer
-│   │   │   ├── view/
-│   │   │   │   └── preview_page.dart
-│   │   │   └── viewmodel/
-│   │   │       └── preview_viewmodel.dart
-│   │   │
-│   │   ├── settings/                # App theme & settings
-│   │   │   ├── view/
-│   │   │   │   └── settings_page.dart
-│   │   │   └── viewmodel/
-│   │   │       └── settings_viewmodel.dart
-│   │   │
-│   │   └── cloud_build/             # CI/CD integration
-│   │       ├── view/
-│   │       │   └── cloud_build_page.dart
-│   │       └── viewmodel/
-│   │           └── cloud_build_viewmodel.dart
+│   ├── models/                     # Data models and beans
+│   │   ├── flutter_widget_bean.dart
+│   │   ├── sketchide_project.dart
+│   │   ├── project_info.dart
+│   │   └── view_info.dart
 │   │
-│   ├── build/                       # **Core builder system**
-│   │   ├── project_compiler_service.dart   # (ProjectBuilder)
-│   │   ├── manifest_generator.dart         # (Ix)
-│   │   ├── source_code_generator.dart      # (Jx)
-│   │   ├── component_generator.dart        # (Lx)
-│   │   ├── layout_generator.dart           # (Ox)
-│   │   ├── dependency_manager.dart         # (qq)
-│   │   ├── build_dialog_controller.dart    # (tq)
-│   │   └── project_path_registry.dart      # (yq)
+│   ├── services/                   # Business logic services
+│   │   ├── property_validation_service.dart
+│   │   ├── view_info_service.dart
+│   │   ├── selection_service.dart
+│   │   ├── flutter_code_generator_service.dart
+│   │   ├── project_service.dart
+│   │   └── widget_factory_service.dart
+│   │
+│   ├── viewmodels/                 # MVVM view models
+│   │   ├── design_viewmodel.dart
+│   │   ├── project_viewmodel.dart
+│   │   └── property_viewmodel.dart
+│   │
+│   ├── views/                      # UI screens and pages
+│   │   ├── project_list_view.dart
+│   │   ├── design_activity_screen.dart
+│   │   └── sketchide_project_creation.dart
+│   │
+│   ├── widgets/                    # UI widgets and components
+│   │   ├── frame_items/            # Sketchware Pro-style frame widgets
+│   │   │   ├── frame_text.dart
+│   │   │   ├── frame_button.dart
+│   │   │   ├── frame_container.dart
+│   │   │   ├── frame_row.dart
+│   │   │   ├── frame_column.dart
+│   │   │   ├── frame_stack.dart
+│   │   │   ├── frame_icon.dart
+│   │   │   └── frame_text_field.dart
+│   │   ├── property_items/         # Property editor components
+│   │   ├── widget_items/           # Widget palette items
+│   │   ├── flutter_device_frame.dart
+│   │   ├── widget_palette.dart
+│   │   ├── property_panel.dart
+│   │   ├── view_dummy.dart
+│   │   └── design_drawer.dart
 │   │
 │   └── main.dart                   # App Entry Point
 │
-├── assets/                         # Icons, templates
+├── assets/                         # Icons, images, templates
 │   ├── icons/
-│   └── templates/
+│   └── images/
 │
-├── export_templates/               # Flutter project boilerplate
-│   ├── base_project/
-│   └── plugin_templates/
-│
-└── fastlane/                       # Play Store Metadata
-
-```
-=======
-│   ├── core/                # Constants, utils, error handling
-│   ├── data/                # Hive/SQLite models and persistence
-│   ├── features/
-│   │   ├── project/         # Project create/edit/export
-│   │   ├── builder/         # UI drag & drop editor
-│   │   ├── blocks/          # Visual programming engine
-│   │   ├── preview/         # Live preview renderer
-│   │   ├── settings/        # App settings & theme
-│   │   └── cloud_build/     # CI/CD integration
-│   └── main.dart            # Entry point
-├── assets/                  # Icons, templates
-├── export_templates/        # Flutter boilerplate
-└── fastlane/                # Play Store metadata
+├── android/                        # Android platform files
+├── ios/                           # iOS platform files
+├── fastlane/                      # Play Store Metadata
+└── Sketchware-Pro/                # Reference implementation
 ```
 
 ---

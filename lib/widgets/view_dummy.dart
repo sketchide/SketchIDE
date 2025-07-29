@@ -163,62 +163,61 @@ class _ViewDummyState extends State<ViewDummy> {
   }
 
   Widget _buildDummyContent() {
-    return Container(
-      decoration: BoxDecoration(
-        color: _getBackgroundColor(),
-        borderRadius: BorderRadius.circular(2), // Sketchware Pro style
-        border: Border.all(
-          color: _getBorderColor(),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
+    // SKETCHWARE PRO EXACT: ViewDummy shows semi-transparent copy of the actual widget
+    // NOT colored borders or plus icons - just the widget at 50% alpha
+    return Opacity(
+      opacity: 0.5, // SKETCHWARE PRO: setAlpha(0.5f) = 50% transparency
+      child: Stack(
+        children: [
+          // Show the actual widget preview (like Sketchware Pro's bitmap)
+          _buildWidgetPreview(),
+
+          // Show "not allowed" icon when drop is invalid (like Sketchware Pro)
+          if (!widget.isAllowed)
+            Positioned.fill(
+              child: Container(
+                color: Colors.red.withOpacity(0.3),
+                child: const Center(
+                  child: Icon(
+                    Icons.cancel,
+                    color: Colors.red,
+                    size: 32,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
-      child: _buildWidgetPreview(),
     );
   }
 
-  Color _getBackgroundColor() {
-    if (!widget.isAllowed) {
-      return const Color(0xffff5955)
-          .withOpacity(0.3); // Sketchware Pro red for invalid
-    }
-    return const Color(
-        0x82ff5955); // Sketchware Pro semi-transparent red for valid
-  }
-
-  Color _getBorderColor() {
-    if (!widget.isAllowed) {
-      return const Color(0xffff5955); // Sketchware Pro red
-    }
-    return const Color(0xffff5955); // Sketchware Pro red
-  }
-
   Widget _buildWidgetPreview() {
-    // SKETCHWARE PRO STYLE: Show widget preview (SAFE approach without bitmap)
+    // SKETCHWARE PRO STYLE: Show actual widget preview with proper sizing (like bitmap creation)
     if (widget.widgetBean != null) {
+      final widgetBean = widget.widgetBean!;
       return Container(
-        width: widget.widgetBean!.position.width,
-        height: widget.widgetBean!.position.height,
-        padding: const EdgeInsets.all(4),
+        width: widgetBean.position.width > 0 ? widgetBean.position.width : 100,
+        height:
+            widgetBean.position.height > 0 ? widgetBean.position.height : 50,
         child: _buildWidgetTypePreview(),
       );
     }
 
-    // Default preview
+    // Default preview when no widget bean
     return Container(
       width: 100,
       height: 50,
-      padding: const EdgeInsets.all(4),
-      child: const Icon(
-        Icons.widgets,
-        color: Colors.white,
-        size: 20,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.grey),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.widgets,
+          color: Colors.grey,
+          size: 20,
+        ),
       ),
     );
   }

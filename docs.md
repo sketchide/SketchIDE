@@ -31,7 +31,7 @@ This document explains the **frameworks**, **features**, **storage structure**, 
 
 ---
 
-## **2. Features Implemented**
+## **4. Features Implemented**
 
 ### **Core Features**
 
@@ -145,7 +145,7 @@ This document explains the **frameworks**, **features**, **storage structure**, 
 
 ---
 
-## **2. Features Implemented**
+## **4. Features Implemented**
 
 ### **Core Features**
 1. **Project Creation**
@@ -451,6 +451,97 @@ JSON -- supplies config --> CustomSDK
 - **SAF:**  
   Secure access and export/import to other locations/outside apps
 - **No unrestricted file access** or legacy storage; passes Play Store reviews
+
+---
+
+## **3. Current Architecture & Implementation**
+
+### **MVVM Architecture Pattern**
+
+SketchIDE follows the **Model-View-ViewModel (MVVM)** pattern for clean separation of concerns:
+
+- **Models** (`lib/models/`) - Data structures and business entities
+  - `FlutterWidgetBean` - Widget representation with properties
+  - `SketchIDEProject` - Project structure and metadata
+  - `ViewInfo` - View hierarchy and positioning data
+
+- **Views** (`lib/views/`) - UI screens and user interfaces
+  - `ProjectListView` - Project management screen
+  - `DesignActivityScreen` - Main visual editor
+  - `SketchIDEProjectCreation` - Project creation wizard
+
+- **ViewModels** (`lib/viewmodels/`) - Business logic and state management
+  - `DesignViewModel` - Handles widget operations and state
+  - `ProjectViewModel` - Manages project lifecycle
+  - `PropertyViewModel` - Property editing logic
+
+### **Touch System Architecture**
+
+#### **Mobile Frame Touch Controller**
+- **Native Android Behavior**: Mimics exact Android touch handling
+- **Touch Variables**: Uses Sketchware Pro variable names (`t`, `u`, `v`)
+- **Gesture Detection**: Tap, long press, drag with proper thresholds
+- **Touch State Management**: Complete lifecycle handling
+
+#### **Selection Service**
+- **Widget Selection**: Single and multi-widget selection
+- **Visual Feedback**: Sketchware Pro-style selection highlighting
+- **Selection Color**: Exact match (`0x9599d5d0`)
+
+#### **ViewDummy System**
+- **Sketchware Pro Exact Match**: 50% opacity widget preview
+- **No Double Shadows**: Single visual feedback system
+- **Invalid Drop Feedback**: Red cancel icon for invalid drops
+- **Coordinate Transformation**: Proper scaling and positioning
+
+### **Frame Widgets Implementation**
+
+#### **Widget Factory Pattern**
+Complete implementation of Sketchware Pro-style widgets:
+
+- **Frame Text** (`frame_text.dart`) - TextView equivalent
+- **Frame Button** (`frame_button.dart`) - Button with Material styling
+- **Frame Container** (`frame_container.dart`) - LinearLayout/RelativeLayout
+- **Frame Row/Column** (`frame_row.dart`, `frame_column.dart`) - Layout widgets
+- **Frame Stack** (`frame_stack.dart`) - Overlay positioning
+- **Frame Icon** (`frame_icon.dart`) - ImageView equivalent
+- **Frame TextField** (`frame_text_field.dart`) - EditText equivalent
+
+#### **Touch Integration**
+- **Gesture Handling**: Each frame widget handles tap, long press, drag
+- **Property Panel Integration**: Tap to open, selection feedback
+- **Drag Support**: Long press to start drag operations
+
+### **Property System Architecture**
+
+#### **Property Validation Service**
+- **Comprehensive Rules**: Reserved keywords, method names, patterns
+- **Sketchware Pro Compatibility**: Exact same validation rules
+- **Type-specific Validation**: Color, numeric, text, URL, email
+- **Real-time Feedback**: Instant validation with error messages
+
+#### **Property Panel System**
+- **Color-coded Boxes**: Each property type has distinct styling
+- **Dynamic Content**: Updates based on selected widget type
+- **Property Groups**: Basic, Recent, Event categories
+- **Live Updates**: Changes immediately reflect in widget and code
+
+### **Code Generation System**
+
+#### **Flutter Code Generator Service**
+- **Real-time Generation**: Widget changes immediately update Dart code
+- **File Management**: Supports main.dart and custom page files
+- **Code Synchronization**: Visual widgets stay in sync with generated code
+- **Template System**: Default Flutter app structure generation
+
+### **Coordinate System & Scaling**
+
+#### **View Info Service**
+- **Coordinate Transformation**: Raw to scaled coordinate conversion
+- **Scale-aware Positioning**: Handles multiple scale factors
+- **Depth-based Priority**: Z-index based drop zone priority
+- **Margin/Padding Awareness**: Proper spacing calculations
+- **Gravity-based Positioning**: Layout gravity support
 
 ---
 

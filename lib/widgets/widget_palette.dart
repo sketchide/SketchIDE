@@ -157,7 +157,8 @@ class _WidgetPaletteState extends State<WidgetPalette> {
         // SKETCHWARE PRO STYLE: Create drag data
         data: _createWidgetBean(type, icon, label),
 
-        // SKETCHWARE PRO STYLE: Drag feedback (shadow/parchayi)
+        // SKETCHWARE PRO STYLE: Drag feedback (shadow/parchayi) - RESTORED
+        // This blue feedback follows the finger during drag (like Sketchware Pro)
         feedback: Material(
           elevation: 8,
           borderRadius: BorderRadius.circular(4), // SKETCHWARE PRO: 4dp radius
