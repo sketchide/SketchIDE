@@ -15,8 +15,8 @@ import 'dart:math' as math;
 ///
 /// SKETCHWARE PRO STYLE DESIGN:
 /// - Rectangular vertical frame (no rounded phone frame)
-/// - Blue status bar (0xff0084c2) with phone background image
-/// - Blue toolbar (0xff008dcd) with "Toolbar" text
+/// - Blue status bar (0xff0084c2) with "main.dart" and system indicators
+/// - Blue AppBar (0xff008dcd) with "AppBar" text (Flutter terminology)
 /// - Pure white content area with grid
 /// - Red highlight colors (matches Sketchware Pro)
 /// - Optional ViewDummy for enhanced feedback
@@ -203,34 +203,47 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
   Widget _buildRectangularMobileFrame() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // SKETCHWARE PRO EXACT: Fixed target device dimensions (like ViewEditor.java:894)
-        // These represent the TARGET ANDROID DEVICE (not host device)
-        const int targetDeviceWidth =
-            360; // Standard Android device width in dp
-        const int targetDeviceHeight =
-            640; // Standard Android device height in dp
+        // EXACT SKETCHWARE PRO SCALING (from ViewEditor.java:870-890)
+        final double f = MediaQuery.of(context)
+            .devicePixelRatio; // EXACT: f = wB.a(context, 1.0f)
+        final int displayWidth = (MediaQuery.of(context).size.width * f)
+            .round(); // EXACT: getResources().getDisplayMetrics().widthPixels
+        final int displayHeight = (MediaQuery.of(context).size.height * f)
+            .round(); // EXACT: getResources().getDisplayMetrics().heightPixels
 
-        // SKETCHWARE PRO STYLE: Convert target dp to pixels using density
-        final double density = MediaQuery.of(context).devicePixelRatio;
-        final double targetWidthPx = targetDeviceWidth * density;
-        final double targetHeightPx = targetDeviceHeight * density;
+        // EXACT SKETCHWARE PRO: Orientation-based margins (like ViewEditor.java:870-871)
+        final bool isLandscapeMode = displayWidth > displayHeight;
+        final int var4 =
+            (f * (!isLandscapeMode ? 12.0 : 24.0)).round(); // horizontal margin
+        final int var5 =
+            (f * (!isLandscapeMode ? 20.0 : 10.0)).round(); // vertical margin
 
-        // SKETCHWARE PRO STYLE: Calculate scaling to fit available space (like ViewEditor.java:891-892)
-        final double availableWidth = constraints.maxWidth;
-        final double availableHeight = constraints.maxHeight;
+        // EXACT SKETCHWARE PRO: System UI heights (like ViewEditor.java:872-873)
+        final int statusBarHeight =
+            (f * 25.0).round(); // EXACT: (int) (f * 25f)
+        final int toolBarHeight = (f * 48.0).round(); // EXACT: (int) (f * 48f)
 
-        // SKETCHWARE PRO FORMULA: Scale to fit while maintaining aspect ratio
-        final double scaleToFit = math.min(
-          availableWidth / targetWidthPx,
-          availableHeight / targetHeightPx,
-        );
+        // EXACT SKETCHWARE PRO: Calculate available space (like ViewEditor.java:874-875)
+        final int var9 =
+            displayWidth - (120.0 * f).round(); // subtract palette width
+        final int var8 = displayHeight -
+            statusBarHeight -
+            toolBarHeight -
+            (f * 48.0).round() -
+            (f * 48.0).round();
 
-        // SKETCHWARE PRO STYLE: Apply user scale factor to the calculated scaling
-        final double finalScale = _scale * scaleToFit;
+        // EXACT SKETCHWARE PRO: Calculate scaling factors (like ViewEditor.java:877-878)
+        final double var11 =
+            math.min(var9 / displayWidth, var8 / displayHeight);
+        final double var3 = math.min((var9 - var4 * 2) / displayWidth,
+            (var8 - var5 * 2) / displayHeight);
 
-        // SKETCHWARE PRO STYLE: Final frame dimensions (fixed aspect ratio)
-        final double frameWidth = targetWidthPx * finalScale;
-        final double frameHeight = targetHeightPx * finalScale;
+        // EXACT SKETCHWARE PRO: Apply scaling (like ViewEditor.java:880-881)
+        final double finalScale = var3 * _scale;
+
+        // EXACT SKETCHWARE PRO: Final frame dimensions
+        final double frameWidth = displayWidth * finalScale;
+        final double frameHeight = displayHeight * finalScale;
 
         // SKETCHWARE PRO STYLE: Exact mobile frame like Sketchware Pro
         return Align(
@@ -260,7 +273,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
                 // Status Bar (like Sketchware Pro)
                 _buildStatusBar(finalScale),
 
-                // Toolbar (like Sketchware Pro)
+                // AppBar (like Sketchware Pro's Toolbar)
                 _buildToolbar(finalScale),
 
                 // Content Area (white background with grid)
@@ -278,8 +291,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
   // ANDROID NATIVE: Status Bar (exactly like Sketchware Pro)
   Widget _buildStatusBar(double scale) {
     return Container(
-      height: AndroidNativeMeasurementService.convertDpToPixels(context, 25.0) *
-          scale, // EXACT Android status bar height
+      height: 25.0 * scale, // EXACT: Fixed 25dp height like Sketchware Pro
       decoration: BoxDecoration(
         color: const Color(0xFF0084C2), // Sketchware Pro blue
         border: Border(
@@ -291,12 +303,12 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       ),
       child: Row(
         children: [
-          // Status bar content (like Sketchware Pro)
+          // EXACT SKETCHWARE PRO: File name on left side (like ViewEditor.java:535)
           Expanded(
             child: Padding(
               padding: EdgeInsets.only(left: 8 * scale),
               child: Text(
-                '9:41', // Time
+                'main.dart', // FLUTTER: Show main.dart instead of main.xml
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 12 * scale,
@@ -305,25 +317,38 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
               ),
             ),
           ),
-          // Status icons
+          // EXACT SKETCHWARE PRO: System indicators on right side
           Row(
             children: [
+              // Network signal
               Icon(
                 Icons.signal_cellular_4_bar,
                 color: Colors.white,
                 size: 14 * scale,
               ),
               SizedBox(width: 2 * scale),
+              // WiFi
               Icon(
                 Icons.wifi,
                 color: Colors.white,
                 size: 14 * scale,
               ),
               SizedBox(width: 2 * scale),
+              // Battery
               Icon(
                 Icons.battery_full,
                 color: Colors.white,
                 size: 14 * scale,
+              ),
+              SizedBox(width: 4 * scale),
+              // Time (like Sketchware Pro)
+              Text(
+                '10:11', // EXACT SKETCHWARE PRO: Current time format
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12 * scale,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               SizedBox(width: 8 * scale),
             ],
@@ -333,13 +358,12 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     );
   }
 
-  // ANDROID NATIVE: Toolbar (exactly like Sketchware Pro)
+  // ANDROID NATIVE: AppBar (exactly like Sketchware Pro's Toolbar)
   Widget _buildToolbar(double scale) {
     return Container(
-      height: AndroidNativeMeasurementService.convertDpToPixels(context, 48.0) *
-          scale, // EXACT Android toolbar height
+      height: 48.0 * scale, // EXACT: Fixed 48dp height like Sketchware Pro
       decoration: BoxDecoration(
-        color: const Color(0xFF008DCD), // Sketchware Pro toolbar blue
+        color: const Color(0xFF008DCD), // Sketchware Pro AppBar blue
         border: Border(
           bottom: BorderSide(
             color: const Color(0xFF006B9E),
@@ -349,15 +373,15 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       ),
       child: Row(
         children: [
-          // Toolbar content (like Sketchware Pro)
+          // EXACT SKETCHWARE PRO: AppBar content (like ViewEditor.java:565)
           Padding(
             padding: EdgeInsets.only(left: 16 * scale),
             child: Text(
-              'Toolbar',
+              'AppBar', // FLUTTER: Use AppBar instead of Toolbar
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 15 * scale,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.bold, // EXACT SKETCHWARE PRO: Bold text
               ),
             ),
           ),
@@ -371,10 +395,11 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     return LayoutBuilder(
       builder: (context, constraints) {
         // SKETCHWARE PRO EXACT: Fixed content area dimensions for target device
-        // Based on 360x640dp target device minus status bar (24dp) and toolbar (48dp)
+        // Based on 360x640dp target device minus status bar (25dp) and AppBar (48dp)
         const double targetContentWidth = 360.0; // Fixed content width in dp
-        const double targetContentHeight =
-            640.0 - 24.0 - 48.0; // 568dp content height
+        const double targetContentHeight = 640.0 -
+            25.0 -
+            48.0; // 567dp content height (exact Sketchware Pro calculation)
 
         // SKETCHWARE PRO STYLE: Convert to actual container size (like ViewEditor.java:894)
         final containerSize = Size(targetContentWidth, targetContentHeight);

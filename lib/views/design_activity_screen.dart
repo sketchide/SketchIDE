@@ -138,7 +138,8 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
               viewModel.setTab(DesignTab.values[index]);
             },
             children: [
-              _buildViewTab(viewModel),
+              _buildViewTab(
+                  viewModel, isPropertyPanelVisible, propertyPanelHeight),
               _buildEventTab(),
               _buildComponentTab(),
             ],
@@ -179,7 +180,8 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
     );
   }
 
-  Widget _buildViewTab(DesignViewModel viewModel) {
+  Widget _buildViewTab(DesignViewModel viewModel, bool isPropertyPanelVisible,
+      double propertyPanelHeight) {
     return Row(
       children: [
         // Left palette - fixed 120dp width
@@ -203,19 +205,28 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
             },
           ),
         ),
-        // Center mobile frame
+        // Mobile frame - SKETCHWARE PRO STYLE: Fixed at top, not centered, respect property panel
         Expanded(
           child: Container(
             color: Theme.of(context).colorScheme.surface,
-            child: FlutterDeviceFrame(
-              widgets: viewModel.widgets,
-              selectedWidget: viewModel.selectedWidget,
-              onWidgetSelected: (widget) => viewModel.selectWidget(widget),
-              onWidgetMoved: (widget) => viewModel.moveWidget(widget),
-              onWidgetAdded: (widget, {Size? containerSize}) =>
-                  viewModel.addWidget(widget, containerSize: containerSize),
-              onBackgroundTapped: () => viewModel
-                  .clearSelection(), // SKETCHWARE PRO: Clear selection on background tap
+            child: Align(
+              alignment: Alignment
+                  .topLeft, // SKETCHWARE PRO: Fixed at top, not centered
+              child: Container(
+                // SKETCHWARE PRO STYLE: Fixed mobile frame size that NEVER changes
+                width: 360, // Fixed width like Sketchware Pro
+                height: 640, // Fixed height like Sketchware Pro - NEVER changes
+                child: FlutterDeviceFrame(
+                  widgets: viewModel.widgets,
+                  selectedWidget: viewModel.selectedWidget,
+                  onWidgetSelected: (widget) => viewModel.selectWidget(widget),
+                  onWidgetMoved: (widget) => viewModel.moveWidget(widget),
+                  onWidgetAdded: (widget, {Size? containerSize}) =>
+                      viewModel.addWidget(widget, containerSize: containerSize),
+                  onBackgroundTapped: () => viewModel
+                      .clearSelection(), // SKETCHWARE PRO: Clear selection on background tap
+                ),
+              ),
             ),
           ),
         ),
