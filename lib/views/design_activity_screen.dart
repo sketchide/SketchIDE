@@ -123,10 +123,14 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
   }
 
   Widget _buildBody(DesignViewModel viewModel) {
-    return Column(
+    // SKETCHWARE PRO STYLE: Fixed mobile frame position - no up/down movement
+    const double propertyPanelHeight = 170.0;
+    final bool isPropertyPanelVisible = viewModel.selectedWidget != null;
+
+    return Stack(
       children: [
-        // Main content area
-        Expanded(
+        // Main content area - SKETCHWARE PRO STYLE: Fixed position at top
+        Positioned.fill(
           child: PageView(
             controller: _pageController,
             onPageChanged: (index) {
@@ -140,19 +144,37 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
             ],
           ),
         ),
-        // Property panel (slides up from bottom)
-        if (viewModel.selectedWidget != null)
-          () {
-            print(
-                '🎯 DESIGN ACTIVITY: Building property panel for ${viewModel.selectedWidget!.id}');
-            return _buildPropertyPanel(viewModel);
-          }()
-        else
-          () {
-            print(
-                '🎯 DESIGN ACTIVITY: No selected widget - property panel hidden');
-            return Container();
-          }(),
+        // Property panel - SKETCHWARE PRO STYLE: Slides up from bottom (overlays mobile frame)
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: AnimatedSwitcher(
+            duration: const Duration(
+                milliseconds: 300), // SKETCHWARE PRO: 300ms AutoTransition
+            switchInCurve:
+                Curves.decelerate, // SKETCHWARE PRO: DecelerateInterpolator
+            switchOutCurve:
+                Curves.easeIn, // SKETCHWARE PRO: Smooth hide animation
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              // SKETCHWARE PRO STYLE: Slide up from bottom animation
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.0, 1.0), // Start below screen
+                  end: const Offset(0.0, 0.0), // End at normal position
+                ).animate(CurvedAnimation(
+                  parent: animation,
+                  curve: Curves
+                      .decelerate, // SKETCHWARE PRO: DecelerateInterpolator
+                )),
+                child: child,
+              );
+            },
+            child: isPropertyPanelVisible
+                ? _buildPropertyPanel(viewModel)
+                : const SizedBox.shrink(),
+          ),
+        ),
       ],
     );
   }
@@ -192,6 +214,8 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
               onWidgetMoved: (widget) => viewModel.moveWidget(widget),
               onWidgetAdded: (widget, {Size? containerSize}) =>
                   viewModel.addWidget(widget, containerSize: containerSize),
+              onBackgroundTapped: () => viewModel
+                  .clearSelection(), // SKETCHWARE PRO: Clear selection on background tap
             ),
           ),
         ),
@@ -249,8 +273,12 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
 
   Widget _buildPropertyPanel(DesignViewModel viewModel) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(
+          milliseconds: 300), // SKETCHWARE PRO: 300ms like AutoTransition
+      curve: Curves
+          .decelerate, // SKETCHWARE PRO: DecelerateInterpolator equivalent
       height: 170,
+      transform: Matrix4.identity(), // SKETCHWARE PRO: Ensure smooth transform
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
         border: Border(
@@ -258,6 +286,14 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
             color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
           ),
         ),
+        // SKETCHWARE PRO STYLE: Add subtle shadow like property panels
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: PropertyPanel(
         selectedWidget: viewModel.selectedWidget ??

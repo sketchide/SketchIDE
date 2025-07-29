@@ -9,6 +9,7 @@ import '../services/android_native_measurement_service.dart';
 import '../controllers/mobile_frame_touch_controller.dart';
 import '../services/selection_service.dart';
 import 'view_dummy.dart';
+import 'dart:math' as math;
 
 /// Flutter Device Frame (Center) - EXACTLY matches Sketchware Pro's ViewPane
 ///
@@ -29,17 +30,20 @@ import 'view_dummy.dart';
 class FlutterDeviceFrame extends StatefulWidget {
   final List<FlutterWidgetBean> widgets;
   final FlutterWidgetBean? selectedWidget;
-  final Function(FlutterWidgetBean) onWidgetSelected;
-  final Function(FlutterWidgetBean) onWidgetMoved;
-  final Function(FlutterWidgetBean, {Size? containerSize}) onWidgetAdded;
+  final Function(FlutterWidgetBean)? onWidgetSelected;
+  final Function(FlutterWidgetBean)? onWidgetMoved;
+  final Function(FlutterWidgetBean, {Size? containerSize})? onWidgetAdded;
+  final VoidCallback?
+      onBackgroundTapped; // SKETCHWARE PRO: Clear selection on background tap
 
   const FlutterDeviceFrame({
     super.key,
     required this.widgets,
     this.selectedWidget,
-    required this.onWidgetSelected,
-    required this.onWidgetMoved,
-    required this.onWidgetAdded,
+    this.onWidgetSelected,
+    this.onWidgetMoved,
+    this.onWidgetAdded,
+    this.onBackgroundTapped, // SKETCHWARE PRO: Callback for background taps
   });
 
   @override
@@ -155,7 +159,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     print('🎯 DRAG UPDATE: ${widget.id} at $position');
     // TODO: Implement drag update logic for existing widgets
     // Call the widget's onWidgetMoved callback
-    this.widget.onWidgetMoved(widget);
+    this.widget.onWidgetMoved?.call(widget);
   }
 
   /// SKETCHWARE PRO STYLE: Handle widget drag end
@@ -199,55 +203,72 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
   Widget _buildRectangularMobileFrame() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // ANDROID NATIVE: Use the exact Android scaling formula from ViewEditor.java:870-890
-        final androidScaling =
-            AndroidNativeMeasurementService.calculateViewEditorScaling(
-          context,
-          hasStatusBar: true,
-          hasToolbar: true,
-          hasAds: false, // Can be made configurable
+        // SKETCHWARE PRO EXACT: Fixed target device dimensions (like ViewEditor.java:894)
+        // These represent the TARGET ANDROID DEVICE (not host device)
+        const int targetDeviceWidth =
+            360; // Standard Android device width in dp
+        const int targetDeviceHeight =
+            640; // Standard Android device height in dp
+
+        // SKETCHWARE PRO STYLE: Convert target dp to pixels using density
+        final double density = MediaQuery.of(context).devicePixelRatio;
+        final double targetWidthPx = targetDeviceWidth * density;
+        final double targetHeightPx = targetDeviceHeight * density;
+
+        // SKETCHWARE PRO STYLE: Calculate scaling to fit available space (like ViewEditor.java:891-892)
+        final double availableWidth = constraints.maxWidth;
+        final double availableHeight = constraints.maxHeight;
+
+        // SKETCHWARE PRO FORMULA: Scale to fit while maintaining aspect ratio
+        final double scaleToFit = math.min(
+          availableWidth / targetWidthPx,
+          availableHeight / targetHeightPx,
         );
 
-        // ANDROID NATIVE: Apply user scale factor to the calculated scaling
-        final finalScale = _scale * androidScaling.contentScaleX;
+        // SKETCHWARE PRO STYLE: Apply user scale factor to the calculated scaling
+        final double finalScale = _scale * scaleToFit;
 
-        // ANDROID NATIVE: Calculate final content dimensions using exact Android formula
-        final contentWidth = androidScaling.displayWidth * finalScale;
-        final contentHeight = androidScaling.displayHeight * finalScale;
+        // SKETCHWARE PRO STYLE: Final frame dimensions (fixed aspect ratio)
+        final double frameWidth = targetWidthPx * finalScale;
+        final double frameHeight = targetHeightPx * finalScale;
 
         // SKETCHWARE PRO STYLE: Exact mobile frame like Sketchware Pro
-        return Container(
-          width: contentWidth,
-          height: contentHeight,
-          decoration: BoxDecoration(
-            // EXACT SKETCHWARE PRO: Clean rectangular border like ViewEditor
-            border: Border.all(
-              color:
-                  const Color(0xFFDDDDDD), // Lighter border like Sketchware Pro
-              width: 1 * finalScale,
+        return Align(
+          alignment: Alignment
+              .topCenter, // SKETCHWARE PRO: Fixed at top, centered horizontally
+          child: Container(
+            width: frameWidth,
+            height: frameHeight,
+            decoration: BoxDecoration(
+              // EXACT SKETCHWARE PRO: Clean rectangular border like ViewEditor
+              border: Border.all(
+                color: const Color(
+                    0xFFDDDDDD), // Lighter border like Sketchware Pro
+                width: 1 * finalScale,
+              ),
+              color: Colors.white, // Clean white background
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05), // Subtle shadow
+                  blurRadius: 2 * finalScale,
+                  offset: Offset(0, 1 * finalScale),
+                ),
+              ],
             ),
-            color: Colors.white, // Clean white background
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05), // Subtle shadow
-                blurRadius: 2 * finalScale,
-                offset: Offset(0, 1 * finalScale),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // Status Bar (like Sketchware Pro)
-              _buildStatusBar(finalScale),
+            child: Column(
+              children: [
+                // Status Bar (like Sketchware Pro)
+                _buildStatusBar(finalScale),
 
-              // Toolbar (like Sketchware Pro)
-              _buildToolbar(finalScale),
+                // Toolbar (like Sketchware Pro)
+                _buildToolbar(finalScale),
 
-              // Content Area
-              Expanded(
-                child: _buildContentArea(finalScale),
-              ),
-            ],
+                // Content Area (white background with grid)
+                Expanded(
+                  child: _buildContentArea(finalScale),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -349,7 +370,14 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
   Widget _buildContentArea(double scale) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final containerSize = Size(constraints.maxWidth, constraints.maxHeight);
+        // SKETCHWARE PRO EXACT: Fixed content area dimensions for target device
+        // Based on 360x640dp target device minus status bar (24dp) and toolbar (48dp)
+        const double targetContentWidth = 360.0; // Fixed content width in dp
+        const double targetContentHeight =
+            640.0 - 24.0 - 48.0; // 568dp content height
+
+        // SKETCHWARE PRO STYLE: Convert to actual container size (like ViewEditor.java:894)
+        final containerSize = Size(targetContentWidth, targetContentHeight);
 
         // SKETCHWARE PRO STYLE: Update ViewInfoService with container information
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -360,7 +388,8 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
           if (renderBox != null) {
             final containerOffset = renderBox.localToGlobal(Offset.zero);
             _safeViewInfoService.updateContainer(
-              size: containerSize,
+              size:
+                  containerSize, // SKETCHWARE PRO: Fixed target device content size
               offset: containerOffset,
             );
             _safeViewInfoService.updateScales(
@@ -370,26 +399,33 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
           }
         });
 
-        return Container(
-          color: Colors.white, // Pure white background (like Sketchware Pro)
-          child: Stack(
-            children: [
-              // Background grid (like Sketchware Pro)
-              CustomPaint(
-                painter: GridPainter(scale: scale),
-                size: Size.infinite,
-              ),
+        return GestureDetector(
+          // SKETCHWARE PRO STYLE: Handle background taps to clear selection (like ViewEditor.java:285-289)
+          onTap: () {
+            print('🎯 MOBILE FRAME BACKGROUND TAP: Clearing selection');
+            widget.onBackgroundTapped?.call();
+          },
+          child: Container(
+            color: Colors.white, // Pure white background (like Sketchware Pro)
+            child: Stack(
+              children: [
+                // Background grid (like Sketchware Pro)
+                CustomPaint(
+                  painter: GridPainter(scale: scale),
+                  size: Size.infinite,
+                ),
 
-              // SKETCHWARE PRO STYLE: Render all placed widgets
-              _buildSketchwareProWidgets(scale),
+                // SKETCHWARE PRO STYLE: Render all placed widgets
+                _buildSketchwareProWidgets(scale),
 
-              // SKETCHWARE PRO STYLE: Drag target for palette widgets
-              _buildDragTargetOverlay(),
+                // SKETCHWARE PRO STYLE: Drag target for palette widgets
+                _buildDragTargetOverlay(),
 
-              // SKETCHWARE PRO STYLE: Enhanced ViewDummy for drag feedback
-              if (_showViewDummy && _isViewDummyVisible)
-                _buildViewDummyOverlay(),
-            ],
+                // SKETCHWARE PRO STYLE: Enhanced ViewDummy for drag feedback
+                if (_showViewDummy && _isViewDummyVisible)
+                  _buildViewDummyOverlay(),
+              ],
+            ),
           ),
         );
       },
@@ -425,45 +461,52 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
           _hideViewDummy();
         },
 
-        // SKETCHWARE PRO STYLE: Build drag target with red highlight colors
+        // SKETCHWARE PRO FIX: Make drag target transparent when no active drag
+        // This allows dropped widgets to receive touch events (like Sketchware Pro)
         builder: (context, candidateData, rejectedData) {
-          return Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: candidateData.isNotEmpty
-                    ? const Color(0xffff5955) // Sketchware Pro red
+          final hasActiveDrag = candidateData.isNotEmpty;
+
+          return IgnorePointer(
+            ignoring:
+                !hasActiveDrag, // CRITICAL: Only consume touches during active drag
+            child: Container(
+              decoration: BoxDecoration(
+                border: hasActiveDrag
+                    ? Border.all(
+                        color: const Color(0xffff5955), // Sketchware Pro red
+                        width: 2,
+                      )
+                    : null,
+                color: hasActiveDrag
+                    ? const Color(
+                        0x82ff5955) // Sketchware Pro semi-transparent red
                     : Colors.transparent,
-                width: candidateData.isNotEmpty ? 2 : 0,
               ),
-              color: candidateData.isNotEmpty
-                  ? const Color(
-                      0x82ff5955) // Sketchware Pro semi-transparent red
-                  : Colors.transparent,
-            ),
-            child: Center(
-              child: candidateData.isNotEmpty
-                  ? Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        'Drop ${candidateData.first?.type ?? 'widget'} here',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+              child: Center(
+                child: hasActiveDrag
+                    ? Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ),
-                    )
-                  : null,
+                        child: Text(
+                          'Drop ${candidateData.first?.type ?? 'widget'} here',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
             ),
           );
         },

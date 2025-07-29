@@ -130,6 +130,16 @@ class DesignViewModel extends ChangeNotifier {
     print('🎯 NOTIFIED LISTENERS - UI should rebuild now');
   }
 
+  /// SKETCHWARE PRO STYLE: Clear widget selection (like ViewEditor.java:287)
+  void clearSelection() {
+    print('🎯 DESIGN VIEWMODEL: clearSelection called');
+    print('🎯 BEFORE: _selectedWidget = ${_selectedWidget?.id}');
+    _selectedWidget = null;
+    print('🎯 AFTER: _selectedWidget = null - Property panel should hide');
+    notifyListeners();
+    print('🎯 NOTIFIED LISTENERS - Property panel should hide now');
+  }
+
   /// SKETCHWARE PRO STYLE: Add widget with proper sizing
   Future<void> addWidget(FlutterWidgetBean widget,
       {Size? containerSize}) async {
@@ -143,7 +153,9 @@ class DesignViewModel extends ChangeNotifier {
     }
 
     // SKETCHWARE PRO STYLE: Apply proper sizing based on widget type
-    final availableSize = containerSize ?? const Size(360, 640);
+    // Use same fixed content area as mobile frame (360x568dp after status bar and toolbar)
+    final availableSize =
+        containerSize ?? const Size(360, 568); // Fixed content area dimensions
     final sizedWidget = _applyProperSizing(widgetWithProperId, availableSize);
 
     _widgets.add(sizedWidget);
