@@ -162,6 +162,9 @@ class DesignViewModel extends ChangeNotifier {
     _selectedWidget = sizedWidget;
     _saveToHistory();
 
+    // SKETCHWARE PRO STYLE: Notify UI immediately for instant property panel feedback
+    notifyListeners();
+
     // Save widget to storage and generate code in real-time
     if (_project != null) {
       await WidgetStorageService.saveWidget(

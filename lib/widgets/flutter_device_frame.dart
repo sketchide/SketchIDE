@@ -584,10 +584,8 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       widget.onWidgetAdded!(positionedWidget, containerSize: containerSize);
     }
 
-    // SKETCHWARE PRO STYLE: Select the newly added widget
-    if (widget.onWidgetSelected != null) {
-      widget.onWidgetSelected!(positionedWidget);
-    }
+    // SKETCHWARE PRO STYLE: Widget selection handled automatically by DesignViewModel.addWidget()
+    // No need for redundant onWidgetSelected call - DesignViewModel sets _selectedWidget when adding
 
     // SKETCHWARE PRO STYLE: Hide ViewDummy after successful drop
     _hideViewDummy();
