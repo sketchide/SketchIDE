@@ -183,12 +183,12 @@ class WidgetFactoryService {
           position: PositionBean(x: 0, y: 0, width: 50, height: 30),
           events: {},
           layout: LayoutBean(
-            width: -2, // WRAP_CONTENT
-            height: -2, // WRAP_CONTENT
-            paddingLeft: 8, // ✅ EXACT: 8dp like Sketchware Pro
-            paddingTop: 8, // ✅ EXACT: 8dp like Sketchware Pro
-            paddingRight: 8, // ✅ EXACT: 8dp like Sketchware Pro
-            paddingBottom: 8, // ✅ EXACT: 8dp like Sketchware Pro
+            width: -2, 
+            height: -2, 
+            paddingLeft: 8, 
+            paddingTop: 8, 
+            paddingRight: 8, 
+            paddingBottom: 8, 
           ),
         );
 
@@ -199,23 +199,23 @@ class WidgetFactoryService {
           type: type,
           properties: {
             'text': '',
-            'hint': 'EditText', // ✅ EXACT: Like Sketchware Pro's getName()
+            'hint': 'EditText', 
             'textSize': 14.0,
             'textColor': '#000000',
             'hintColor': '#757575',
-            'inputType': 1, // INPUT_TYPE_TEXT
-            'imeOption': 0, // IME_OPTION_NORMAL
+            'inputType': 1, 
+            'imeOption': 0, 
             'singleLine': 0,
             'line': 0,
             'textFont': 'default_font',
-            'textType': 0, // TEXT_TYPE_NORMAL
+              'textType': 0, 
           },
           children: [],
           position: PositionBean(x: 0, y: 0, width: 150, height: 40),
           events: {},
           layout: LayoutBean(
-            width: -1, // MATCH_PARENT
-            height: -2, // WRAP_CONTENT
+            width: -1, 
+            height: -2, 
             paddingLeft: 8,
             paddingTop: 4,
             paddingRight: 8,
@@ -230,7 +230,7 @@ class WidgetFactoryService {
           type: type,
           properties: {
             'iconName':
-                'image', // ✅ EXACT: Like Sketchware Pro's default image icon
+                'image', 
             'iconSize': 24.0,
             'iconColor': 0xFF000000,
             'semanticLabel': 'Icon',
@@ -239,8 +239,8 @@ class WidgetFactoryService {
           position: PositionBean(x: 0, y: 0, width: 50, height: 50),
           events: {},
           layout: LayoutBean(
-            width: -2, // WRAP_CONTENT
-            height: -2, // WRAP_CONTENT
+            width: -2, 
+            height: -2, 
             paddingLeft: 8,
             paddingTop: 8,
             paddingRight: 8,
@@ -249,7 +249,7 @@ class WidgetFactoryService {
         );
 
       case 'Row':
-        // EXACTLY matches Sketchware Pro's IconLinearHorizontal
+        
         return FlutterWidgetBean(
           id: widgetId,
           type: type,
@@ -264,26 +264,25 @@ class WidgetFactoryService {
               x: 0,
               y: 0,
               width: -1,
-              height: -2), // ✅ WRAP_CONTENT height like Sketchware Pro
+              height: -2), 
           events: {},
           layout: LayoutBean(
-            width: -1, // MATCH_PARENT (like Sketchware Pro)
-            height: -2, // WRAP_CONTENT (like Sketchware Pro)
-            paddingLeft: 8, // ✅ 8dp padding like Sketchware Pro
-            paddingTop: 8, // ✅ 8dp padding like Sketchware Pro
-            paddingRight: 8, // ✅ 8dp padding like Sketchware Pro
-            paddingBottom: 8, // ✅ 8dp padding like Sketchware Pro
-            orientation: 0, // HORIZONTAL (like Sketchware Pro)
+            width: -1, 
+            height: -2, 
+            paddingLeft: 8, 
+            paddingTop: 8, 
+            paddingRight: 8, 
+            paddingBottom: 8, 
+            orientation: 0, 
           ),
         );
 
       case 'Column':
-        // EXACTLY matches Sketchware Pro's IconLinearVertical
         return FlutterWidgetBean(
           id: widgetId,
           type: type,
           properties: {
-            'orientation': 1, // VERTICAL (like Sketchware Pro)
+            'orientation': 1, 
             'mainAxisAlignment': 'start',
             'crossAxisAlignment': 'center',
             'mainAxisSize': 'max',
@@ -294,16 +293,16 @@ class WidgetFactoryService {
               y: 0,
               width: -2,
               height:
-                  -1), // ✅ WRAP_CONTENT width, MATCH_PARENT height like Sketchware Pro
+                  -1), 
           events: {},
           layout: LayoutBean(
-            width: -2, // WRAP_CONTENT (like Sketchware Pro)
-            height: -1, // MATCH_PARENT (like Sketchware Pro)
-            paddingLeft: 8, // ✅ 8dp padding like Sketchware Pro
-            paddingTop: 8, // ✅ 8dp padding like Sketchware Pro
-            paddingRight: 8, // ✅ 8dp padding like Sketchware Pro
-            paddingBottom: 8, // ✅ 8dp padding like Sketchware Pro
-            orientation: 1, // VERTICAL (like Sketchware Pro)
+            width: -2, 
+            height: -1, 
+            paddingLeft: 8, 
+            paddingTop: 8, 
+            paddingRight: 8, 
+            paddingBottom: 8, 
+            orientation: 1, 
           ),
         );
 
@@ -317,12 +316,12 @@ class WidgetFactoryService {
           position: PositionBean(x: 0, y: 0, width: 100, height: 60),
           events: {},
           layout: LayoutBean(
-            width: -1, // MATCH_PARENT
-            height: -1, // MATCH_PARENT
-            paddingLeft: 8, // ✅ EXACT: 8dp like Sketchware Pro
-            paddingTop: 8, // ✅ EXACT: 8dp like Sketchware Pro
-            paddingRight: 8, // ✅ EXACT: 8dp like Sketchware Pro
-            paddingBottom: 8, // ✅ EXACT: 8dp like Sketchware Pro
+            width: -1, 
+            height: -1, 
+            paddingLeft: 8, 
+            paddingTop: 8, 
+            paddingRight: 8, 
+            paddingBottom: 8, 
           ),
         );
 
@@ -338,8 +337,8 @@ class WidgetFactoryService {
           position: PositionBean(x: 0, y: 0, width: 150, height: 80),
           events: {},
           layout: LayoutBean(
-            width: -2, // WRAP_CONTENT
-            height: -2, // WRAP_CONTENT
+            width: -2, 
+            height: -2, 
             paddingLeft: 16,
             paddingTop: 16,
             paddingRight: 16,
@@ -397,10 +396,9 @@ class WidgetFactoryService {
         return StackProperties.fromJson(widgetBean.properties);
 
       default:
-        // SKETCHWARE PRO STYLE: Enhanced error handling for unknown types
         print('⚠️ UNKNOWN WIDGET TYPE: ${widgetBean.type}');
         print('⚠️ WIDGET PROPERTIES: ${widgetBean.properties}');
-        return widgetBean.properties; // Fallback to dynamic map
+        return widgetBean.properties; 
     }
   }
 }

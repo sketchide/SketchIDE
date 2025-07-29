@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/flutter_widget_bean.dart';
 import '../models/view_info.dart';
 import '../services/view_info_service.dart' as view_service;
+import '../services/view_info_service.dart' show DropZoneInfo;
 import '../services/widget_sizing_service.dart';
 import '../services/mobile_frame_widget_factory_service.dart';
 import '../services/android_native_touch_service.dart';
@@ -63,6 +64,10 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
   bool _isViewDummyAllowed = false;
   Offset _viewDummyPosition = Offset.zero;
   FlutterWidgetBean? _viewDummyWidget;
+
+  // SKETCHWARE PRO STYLE: Visual feedback state management (like ViewPane.java)
+  bool _isVisualFeedbackVisible = false;
+  FlutterWidgetBean? _draggedWidgetData;
 
   // SKETCHWARE PRO STYLE: Mobile frame touch and selection controllers
   late MobileFrameTouchController _touchController;
@@ -446,6 +451,9 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
                 // SKETCHWARE PRO STYLE: Drag target for palette widgets
                 _buildDragTargetOverlay(),
 
+                // SKETCHWARE PRO STYLE: Visual feedback overlay for drag target
+                _buildVisualFeedbackOverlay(),
+
                 // SKETCHWARE PRO STYLE: Enhanced ViewDummy for drag feedback
                 if (_showViewDummy && _isViewDummyVisible)
                   _buildViewDummyOverlay(),
@@ -484,94 +492,74 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         onLeave: (data) {
           print('🎯 DRAG LEAVE: ${data?.type}'); // Debug output
           _hideViewDummy();
+          _hideVisualFeedback();
         },
 
-        // SKETCHWARE PRO STYLE: Drag target builder (only shown during active drag)
+        // SKETCHWARE PRO STYLE: Drag target builder (completely transparent)
         builder: (context, candidateData, rejectedData) {
-          final hasActiveDrag = candidateData.isNotEmpty;
-
-          // SKETCHWARE PRO STYLE: Return completely transparent container when not dragging
-          // This ensures dropped widgets can receive touch events
-          if (!hasActiveDrag) {
-            return const SizedBox.shrink();
-          }
-
-          return Container(
-            // SKETCHWARE PRO STYLE: Only show visual feedback during active drag
-            // This prevents the overlay from blocking touch events on dropped widgets
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: const Color(0xffff5955), // Sketchware Pro red
-                width: 2,
-              ),
-              color: const Color(
-                  0x82ff5955), // Sketchware Pro semi-transparent red
-            ),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  'Drop ${candidateData.first?.type ?? 'widget'} here',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-          );
+          return const SizedBox.shrink();
         },
+      ),
+    );
+  }
+
+  // SKETCHWARE PRO STYLE: Visual feedback overlay for drag target
+  Widget _buildVisualFeedbackOverlay() {
+    if (!_isVisualFeedbackVisible || _draggedWidgetData == null) {
+      return const SizedBox.shrink();
+    }
+
+    final dropZone = _safeViewInfoService.currentDropZone;
+    if (dropZone == null) {
+      return const SizedBox.shrink();
+    }
+
+    final containerSize = _safeViewInfoService.containerSize;
+    final defaultWidgetSize = WidgetSizingService.getWidgetSize(
+        _draggedWidgetData!.type, containerSize);
+
+    final dropPosition = dropZone.position;
+    final visualFeedbackPosition = Offset(
+      dropPosition.dx,
+      dropPosition.dy,
+    );
+
+    return Positioned(
+      left: visualFeedbackPosition.dx,
+      top: visualFeedbackPosition.dy,
+      child: Container(
+        width: defaultWidgetSize.width,
+        height: defaultWidgetSize.height,
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: const Color(0xffff5955),
+            width: 2,
+          ),
+          color: const Color(0x82ff5955),
+        ),
       ),
     );
   }
 
   /// SKETCHWARE PRO STYLE: Handle drag move with coordinate transformation
   void _handleDragMove(DragTargetDetails<FlutterWidgetBean> details) {
-    // SKETCHWARE PRO STYLE: Transform raw coordinates to scaled coordinates
     final transformedCoordinates =
         _safeViewInfoService.transformCoordinates(details.offset);
 
-    // SKETCHWARE PRO STYLE: Check if coordinates are within container
     if (!_safeViewInfoService.isWithinContainer(details.offset)) {
       _safeViewInfoService.resetViewHighlight();
       _updateViewDummy(false, details.offset, details.data);
+      _hideVisualFeedback();
       return;
     }
 
-    // SKETCHWARE PRO STYLE: Get widget size for positioning
     final widgetSize = _getWidgetSize(details.data);
 
-    // SKETCHWARE PRO STYLE: Update view highlight with transformed coordinates
     _safeViewInfoService.updateViewHighlight(
         transformedCoordinates, widgetSize);
 
-    // SKETCHWARE PRO STYLE: Store current drop position for precise positioning
-    _safeViewInfoService.setCurrentDropZone(view_service.DropZoneInfo(
-      viewInfo: ViewInfo(
-        rect: Rect.fromLTWH(transformedCoordinates.dx,
-            transformedCoordinates.dy, widgetSize.width, widgetSize.height),
-        view: Container(),
-        index: 0,
-        depth: 0,
-      ),
-      position: transformedCoordinates,
-      size: widgetSize,
-      isValid: true,
-    ));
-
-    // SKETCHWARE PRO STYLE: Update ViewDummy for visual feedback
     _updateViewDummy(true, details.offset, details.data);
+    _updateVisualFeedback(details.data, widgetSize);
   }
 
   /// SKETCHWARE PRO STYLE: Handle widget drop with proper sizing (like ViewEditor.java:327)
@@ -603,6 +591,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     }
 
     _hideViewDummy();
+    _hideVisualFeedback();
   }
 
   /// SKETCHWARE PRO STYLE: Calculate precise drop position with bounds checking
@@ -832,12 +821,19 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
   /// SKETCHWARE PRO STYLE: Update ViewDummy state for visual feedback
   void _updateViewDummy(
       bool isAllowed, Offset position, FlutterWidgetBean widget) {
-    setState(() {
-      _isViewDummyVisible = true;
-      _isViewDummyAllowed = isAllowed;
-      _viewDummyPosition = position;
-      _viewDummyWidget = widget;
-    });
+    final shouldUpdate = _isViewDummyVisible != true ||
+        _isViewDummyAllowed != isAllowed ||
+        _viewDummyPosition != position ||
+        _viewDummyWidget?.id != widget.id;
+
+    if (shouldUpdate) {
+      setState(() {
+        _isViewDummyVisible = true;
+        _isViewDummyAllowed = isAllowed;
+        _viewDummyPosition = position;
+        _viewDummyWidget = widget;
+      });
+    }
   }
 
   /// SKETCHWARE PRO STYLE: Hide ViewDummy
@@ -845,6 +841,29 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     setState(() {
       _isViewDummyVisible = false;
       _viewDummyWidget = null;
+    });
+  }
+
+  /// SKETCHWARE PRO STYLE: Update visual feedback (like ViewPane.java:747)
+  void _updateVisualFeedback(FlutterWidgetBean widget, Size widgetSize) {
+    final dropZone = _safeViewInfoService.currentDropZone;
+    final shouldShow = dropZone != null;
+    final shouldUpdate = _isVisualFeedbackVisible != shouldShow ||
+        _draggedWidgetData?.id != widget.id;
+
+    if (shouldUpdate) {
+      setState(() {
+        _isVisualFeedbackVisible = shouldShow;
+        _draggedWidgetData = shouldShow ? widget : null;
+      });
+    }
+  }
+
+  /// SKETCHWARE PRO STYLE: Hide visual feedback
+  void _hideVisualFeedback() {
+    setState(() {
+      _isVisualFeedbackVisible = false;
+      _draggedWidgetData = null;
     });
   }
 
@@ -877,7 +896,18 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
   // SKETCHWARE PRO STYLE WIDGET RENDERING
   Widget _buildSketchwareProWidgets(double scale) {
-    // SKETCHWARE PRO STYLE: Get root widgets for hierarchical rendering
+    _safeViewInfoService.clearViewInfos();
+
+    _safeViewInfoService.addViewInfo(
+      Rect.fromLTWH(0, 0, _safeViewInfoService.containerSize.width,
+          _safeViewInfoService.containerSize.height),
+      Container(),
+      0,
+      0,
+      parentId: 'root',
+      viewType: 'Container',
+    );
+
     final rootWidgets = _getRootWidgets();
 
     return Stack(
@@ -901,19 +931,26 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
   Widget _buildSketchwareProWidget(FlutterWidgetBean widgetBean) {
     final isSelected = widget.selectedWidget?.id == widgetBean.id;
     final widgetKey = GlobalKey();
-    final scale = 1.0; // SKETCHWARE PRO STYLE: Use 1.0 scale for mobile frame
+    final scale = 1.0;
 
-    // Calculate position like Sketchware Pro
     final position = _calculateWidgetPosition(widgetBean, scale);
 
-    // SKETCHWARE PRO STYLE: Handle MATCH_PARENT widgets differently for proper expansion
+    _safeViewInfoService.addViewInfo(
+      Rect.fromLTWH(
+          position.left, position.top, position.width, position.height),
+      Container(),
+      0,
+      0,
+      parentId: widgetBean.parent,
+      viewType: widgetBean.type,
+    );
+
     if (widgetBean.type == 'Row' &&
         widgetBean.layout.width == LayoutBean.MATCH_PARENT) {
-      // ✅ ROW with MATCH_PARENT: Force top-left-right alignment
       return Positioned(
-        left: 0, // ✅ Force left edge
-        top: 0, // ✅ Force top edge
-        right: 0, // ✅ Force right edge
+        left: 0,
+        top: 0,
+        right: 0,
         child: Container(
           height: position.height > 0 ? position.height : null,
           child: _buildRealWidgetWithScale(widgetBean, scale),
@@ -921,18 +958,16 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       );
     } else if (widgetBean.type == 'Column' &&
         widgetBean.layout.height == LayoutBean.MATCH_PARENT) {
-      // ✅ COLUMN with MATCH_PARENT: Force left-top-bottom alignment
       return Positioned(
-        left: 0, // ✅ Force left edge
-        top: 0, // ✅ Force top edge
-        bottom: 0, // ✅ Force bottom edge
+        left: 0,
+        top: 0,
+        bottom: 0,
         child: Container(
           width: position.width > 0 ? position.width : null,
           child: _buildRealWidgetWithScale(widgetBean, scale),
         ),
       );
     } else {
-      // Regular widgets with fixed positioning
       return Positioned(
         left: position.left,
         top: position.top,
