@@ -454,9 +454,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
                 // SKETCHWARE PRO STYLE: Visual feedback overlay for drag target
                 _buildVisualFeedbackOverlay(),
 
-                // SKETCHWARE PRO STYLE: Enhanced ViewDummy for drag feedback
-                if (_showViewDummy && _isViewDummyVisible)
-                  _buildViewDummyOverlay(),
+                // SKETCHWARE PRO STYLE: Removed cursor-following ViewDummy - keeping only fixed hierarchical feedback
               ],
             ),
           ),
@@ -488,10 +486,9 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
           _handleDragMove(details);
         },
 
-        // SKETCHWARE PRO STYLE: Hide ViewDummy when drag leaves
+        // SKETCHWARE PRO STYLE: Hide visual feedback when drag leaves
         onLeave: (data) {
           print('🎯 DRAG LEAVE: ${data?.type}'); // Debug output
-          _hideViewDummy();
           _hideVisualFeedback();
         },
 
@@ -519,26 +516,140 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         _draggedWidgetData!.type, containerSize);
 
     final dropPosition = dropZone.position;
-    final visualFeedbackPosition = Offset(
-      dropPosition.dx,
-      dropPosition.dy,
-    );
 
     return Positioned(
-      left: visualFeedbackPosition.dx,
-      top: visualFeedbackPosition.dy,
-      child: Container(
-        width: defaultWidgetSize.width,
-        height: defaultWidgetSize.height,
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: const Color(0xffff5955),
-            width: 2,
-          ),
-          color: const Color(0x82ff5955),
+      left: dropPosition.dx,
+      top: dropPosition.dy,
+      child: Opacity(
+        opacity: 0.5,
+        child: Container(
+          width: defaultWidgetSize.width,
+          height: defaultWidgetSize.height,
+          child: _buildWidgetTypePreview(_draggedWidgetData!),
         ),
       ),
     );
+  }
+
+  Widget _buildWidgetTypePreview(FlutterWidgetBean widgetBean) {
+    final type = widgetBean.type;
+    final properties = widgetBean.properties;
+
+    switch (type) {
+      case 'Text':
+        return Center(
+          child: Text(
+            properties['text'] ?? 'Text',
+            style: TextStyle(
+              fontSize:
+                  double.tryParse(properties['textSize']?.toString() ?? '14') ??
+                      14,
+              color: Colors.black,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: _parseTextAlign(properties['textAlign'] ?? 'left'),
+          ),
+        );
+      case 'TextField':
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: Colors.grey),
+          ),
+          child: Text(
+            properties['hint'] ?? 'Text Field',
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+        );
+      case 'Icon':
+        return Center(
+          child: Icon(
+            _getIconFromName(properties['iconName'] ?? 'star'),
+            color: Colors.black,
+            size: double.tryParse(properties['iconSize']?.toString() ?? '24') ??
+                24,
+          ),
+        );
+      case 'Row':
+      case 'Column':
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey, width: 1),
+            borderRadius: BorderRadius.circular(2),
+            color: Colors.white,
+          ),
+          child: Center(
+            child: Text(
+              type,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        );
+      case 'Container':
+        return Container(
+          decoration: BoxDecoration(
+            color: _parseColor(properties['backgroundColor']) ?? Colors.white,
+            borderRadius: BorderRadius.circular(
+              double.tryParse(properties['borderRadius']?.toString() ?? '0') ??
+                  0,
+            ),
+            border: Border.all(
+              color: _parseColor(properties['borderColor']) ?? Colors.grey,
+              width: double.tryParse(
+                      properties['borderWidth']?.toString() ?? '1') ??
+                  1,
+            ),
+          ),
+          child: const Center(
+            child: Text(
+              'Container',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.black,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        );
+      case 'Stack':
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey, width: 1),
+            borderRadius: BorderRadius.circular(2),
+            color: Colors.white,
+          ),
+          child: const Center(
+            child: Text(
+              'Stack',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.black,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        );
+      default:
+        return Center(
+          child: Text(
+            type,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.black,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        );
+    }
   }
 
   /// SKETCHWARE PRO STYLE: Handle drag move with coordinate transformation
@@ -548,7 +659,6 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
     if (!_safeViewInfoService.isWithinContainer(details.offset)) {
       _safeViewInfoService.resetViewHighlight();
-      _updateViewDummy(false, details.offset, details.data);
       _hideVisualFeedback();
       return;
     }
@@ -558,7 +668,6 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
     _safeViewInfoService.updateViewHighlight(
         transformedCoordinates, widgetSize);
 
-    _updateViewDummy(true, details.offset, details.data);
     _updateVisualFeedback(details.data, widgetSize);
   }
 
@@ -590,7 +699,6 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       widget.onWidgetAdded!(positionedWidget, containerSize: containerSize);
     }
 
-    _hideViewDummy();
     _hideVisualFeedback();
   }
 
@@ -677,7 +785,13 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         break;
     }
 
+    // Apply default properties if they don't exist
+    final defaultProperties = _getDefaultProperties(widgetData.type);
+    final mergedProperties = Map<String, dynamic>.from(defaultProperties);
+    mergedProperties.addAll(widgetData.properties);
+
     return widgetData.copyWith(
+      properties: mergedProperties,
       layout: layout,
       position: PositionBean(
         x: position.dx,
@@ -1658,7 +1772,9 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
           child: Text(
             widget.properties['text'] ?? 'Text',
             style: TextStyle(
-              fontSize: (widget.properties['textSize'] ?? 14.0).toDouble(),
+              fontSize: double.tryParse(
+                      widget.properties['textSize']?.toString() ?? '14') ??
+                  14.0,
               color: Colors.black,
             ),
           ),
@@ -1786,6 +1902,49 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         children: _buildChildWidgetsWithScale(widgetBean, scale),
       ),
     );
+  }
+
+  IconData _getIconFromName(String iconName) {
+    switch (iconName.toLowerCase()) {
+      case 'star':
+        return Icons.star;
+      case 'home':
+        return Icons.home;
+      case 'settings':
+        return Icons.settings;
+      case 'person':
+        return Icons.person;
+      case 'favorite':
+        return Icons.favorite;
+      case 'search':
+        return Icons.search;
+      case 'add':
+        return Icons.add;
+      case 'edit':
+        return Icons.edit;
+      case 'delete':
+        return Icons.delete;
+      case 'close':
+        return Icons.close;
+      case 'menu':
+        return Icons.menu;
+      case 'more_vert':
+        return Icons.more_vert;
+      case 'arrow_back':
+        return Icons.arrow_back;
+      case 'arrow_forward':
+        return Icons.arrow_forward;
+      case 'check':
+        return Icons.check;
+      case 'info':
+        return Icons.info;
+      case 'warning':
+        return Icons.warning;
+      case 'error':
+        return Icons.error;
+      default:
+        return Icons.star;
+    }
   }
 }
 

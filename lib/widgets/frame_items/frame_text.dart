@@ -174,10 +174,17 @@ class _FrameTextContent extends StatelessWidget {
 
   /// SKETCHWARE PRO STYLE: Get text content (matches ItemTextView)
   String _getText() {
-    final text = widgetBean.properties['text']?.toString() ?? '';
+    final textValue = widgetBean.properties['text'];
 
-    // SKETCHWARE PRO STYLE: If text is empty, show default content like ItemTextView
-    if (text.isEmpty) {
+    // Handle null values properly
+    if (textValue == null) {
+      return 'TextView';
+    }
+
+    final text = textValue.toString();
+
+    // SKETCHWARE PRO STYLE: If text is empty or "null", show default content like ItemTextView
+    if (text.isEmpty || text == 'null') {
       return 'TextView'; // SKETCHWARE PRO STYLE: Default text like IconTextView.getBean()
     }
 
