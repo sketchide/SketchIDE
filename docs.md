@@ -95,21 +95,21 @@ graph TB
 </td>
 <td>
 
-**Local Database**
-- Hive DB (Metadata)
-- SQLite (Relational Data)
-- JSON (Import/Export)
+**Local Storage**
+- JSON Files (All Data)
+- File System (Organization)
+- Archive Package (Export/Import)
 
 **Data Management**
-- Project Storage
-- Widget Persistence
-- Code Generation Cache
-- Version Control
+- Project Metadata (JSON)
+- Widget Persistence (JSON)
+- Layout Storage (JSON)
+- Code Generation Cache (Files)
 
 **Performance**
-- Fast Access Cache
-- Lightweight Operations
-- No Native Dependencies
+- Fast File I/O
+- Lightweight JSON Parsing
+- No Database Overhead
 
 </td>
 <td>
@@ -265,7 +265,16 @@ sequenceDiagram
 
 ---
 
-## 📊 Data Storage Architecture
+## 📊 Pure JSON Storage Architecture
+
+> **Storage Philosophy**: SketchIDE uses a **pure JSON file-based storage system** for simplicity, portability, and developer transparency. No databases are used - all data is stored in human-readable JSON files.
+
+### **Why JSON-Only Storage?**
+- ✅ **Human Readable**: Easy to debug and inspect project data
+- ✅ **Version Control Friendly**: Git-friendly text files
+- ✅ **Cross-Platform**: Works on any device without database drivers
+- ✅ **Simple**: No schema migrations or database overhead
+- ✅ **Portable**: Projects can be easily moved between devices
 
 ```mermaid
 graph LR
@@ -282,27 +291,27 @@ graph LR
             GRADLE[Gradle Tools]
         end
         
-        subgraph "💾 Cache"
-            HIVE[Hive DB]
-            SQLITE[SQLite DB]
-            TEMP[Temp Files]
+        subgraph "💾 Storage"
+            JSON[JSON Files]
+            LAYOUTS[Layout Files]
+            METADATA[Project Metadata]
         end
     end
     
     subgraph "🔄 External"
         SAF[Storage Access Framework]
-        EXPORT[Export/Import]
+        EXPORT[Export/Import (.ide)]
     end
     
-    P1 --> HIVE
-    P2 --> SQLITE
-    PN --> TEMP
+    P1 --> JSON
+    P2 --> LAYOUTS
+    PN --> METADATA
     
-    HIVE --> SAF
-    SQLITE --> EXPORT
+    JSON --> SAF
+    LAYOUTS --> EXPORT
     
     style P1 fill:#e3f2fd
-    style HIVE fill:#f3e5f5
+    style JSON fill:#f3e5f5
     style SAF fill:#e8f5e8
 ```
 
@@ -316,28 +325,28 @@ graph LR
 <th width="25%">Benefits</th>
 </tr>
 <tr>
-<td><strong>🚀 Fast Access</strong></td>
-<td>Hive DB</td>
-<td>Project metadata, app settings, cache</td>
-<td>No native dependencies, lightning fast</td>
-</tr>
-<tr>
-<td><strong>🔗 Relational</strong></td>
-<td>SQLite</td>
-<td>UI hierarchy, logic flows, complex data</td>
-<td>ACID compliance, powerful queries</td>
-</tr>
-<tr>
-<td><strong>📤 Portable</strong></td>
+<td><strong>📱 Project Data</strong></td>
 <td>JSON Files</td>
-<td>Import/export, backups, templates</td>
-<td>Human-readable, cross-platform</td>
+<td>Project metadata, settings, configuration</td>
+<td>Human-readable, easy debugging, portable</td>
 </tr>
 <tr>
-<td><strong>🏗️ Build Assets</strong></td>
+<td><strong>🎨 Widget Storage</strong></td>
+<td>JSON Files</td>
+<td>Layout definitions, widget hierarchies</td>
+<td>Version control friendly, simple parsing</td>
+</tr>
+<tr>
+<td><strong>📁 File Organization</strong></td>
 <td>File System</td>
-<td>Generated code, resources, binaries</td>
-<td>Standard Flutter structure</td>
+<td>Project folders, assets, generated code</td>
+<td>Native OS performance, standard structure</td>
+</tr>
+<tr>
+<td><strong>📦 Export/Import</strong></td>
+<td>Archive (.ide)</td>
+<td>Project backup, sharing, distribution</td>
+<td>Compressed, complete project bundles</td>
 </tr>
 </table>
 
@@ -703,4 +712,54 @@ flutter build apk --release
 <p align="center">
   <strong>📖 Technical documentation for building the future of visual app development</strong>
 </p>
+
+### **JSON Storage Organization**
+
+```
+📁 /.sketchide/data/mysc/
+├── 📁 project_001/
+│   ├── 📄 project.json          # Project metadata
+│   ├── 📁 layouts/
+│   │   ├── 📄 main.json         # Main layout widgets
+│   │   └── 📄 activity_page.json # Additional layouts
+│   ├── 📁 lib/
+│   │   ├── 📄 main.dart         # Generated Flutter code
+│   │   └── 📄 custom_page.dart  # Additional Dart files
+│   └── 📁 assets/
+│       └── 📄 images/           # Project assets
+```
+
+### **Example JSON Structures**
+
+**Project Metadata (`project.json`)**:
+```json
+{
+  "appName": "MySketchApp",
+  "packageName": "com.example.myapp",
+  "version": "1.0.0",
+  "widgets": ["text", "button", "container"],
+  "created": "2024-01-15T10:30:00Z"
+}
+```
+
+**Widget Layout (`main.json`)**:
+```json
+{
+  "layoutName": "main",
+  "widgets": [
+    {
+      "id": "text1",
+      "type": "Text",
+      "properties": {
+        "text": "Hello World",
+        "fontSize": 16.0
+      },
+      "position": {"x": 10, "y": 20, "width": 200, "height": 50}
+    }
+  ],
+  "timestamp": "2024-01-15T15:45:00Z"
+}
+```
+
+---
 
