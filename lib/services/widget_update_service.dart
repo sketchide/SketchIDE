@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/flutter_widget_bean.dart';
+import 'text_property_service.dart';
 
 /// Widget Update Service - EXACTLY matches Sketchware Pro's updateItemView functionality
 /// Handles widget-specific property updates for real-time changes
@@ -58,19 +59,17 @@ class WidgetUpdateService {
   Widget updateTextWidget(Widget widget, FlutterWidgetBean widgetBean) {
     if (widget is! Text) return widget;
 
-    final text = widgetBean.properties['text'] ?? 'Text';
-    final textSize = widgetBean.properties['textSize'] ?? 14.0;
-    final textColor = widgetBean.properties['textColor'] ?? Colors.black;
-    final textType = widgetBean.properties['textType'] ?? 'normal';
+    final text = TextPropertyService.getText(widgetBean.properties);
     final lines = widgetBean.properties['lines'] ?? 1;
     final singleLine = widgetBean.properties['singleLine'] ?? false;
 
     return Text(
       text,
       style: TextStyle(
-        fontSize: _parseDouble(textSize),
-        color: _parseColor(textColor),
-        fontWeight: _getFontWeight(textType),
+        fontSize: _parseDouble(widgetBean.properties['textSize'] ?? 14.0),
+        color: _parseColor(widgetBean.properties['textColor'] ?? '#000000'),
+        fontWeight:
+            _getFontWeight(widgetBean.properties['textType'] ?? 'normal'),
       ),
       maxLines: singleLine ? 1 : _parseInt(lines),
       overflow: singleLine ? TextOverflow.ellipsis : null,

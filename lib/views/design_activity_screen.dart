@@ -7,6 +7,7 @@ import '../widgets/property_panel.dart';
 import '../widgets/design_drawer.dart';
 import '../controllers/drag_controller.dart';
 import '../models/flutter_widget_bean.dart';
+import 'source_code_viewer_screen.dart';
 
 /// Design Activity Screen - Main visual editor screen
 class DesignActivityScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
   late PageController _pageController;
   late DesignViewModel _viewModel;
   late DragController _sharedDragController;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -76,6 +78,7 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
       child: Consumer<DesignViewModel>(
         builder: (context, viewModel, child) {
           return Scaffold(
+            key: _scaffoldKey,
             appBar: _buildAppBar(viewModel),
             body: _buildBody(viewModel),
             endDrawer: _buildRightDrawer(),
@@ -126,7 +129,7 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
         IconButton(
           icon: const Icon(Icons.more_vert),
           onPressed: () {
-            Scaffold.of(context).openEndDrawer();
+            _scaffoldKey.currentState?.openEndDrawer();
           },
         ),
       ],
@@ -374,9 +377,18 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
   Widget _buildRightDrawer() {
     return DesignDrawer(
       onItemSelected: (item) {
-        // Handle drawer item selection
-        Scaffold.of(context).closeEndDrawer();
-        // TODO: Navigate to appropriate screen
+        _scaffoldKey.currentState?.closeEndDrawer();
+        if (item == DesignDrawerItem.sourceCode) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SourceCodeViewerScreen(
+                projectId: widget.projectId,
+              ),
+            ),
+          );
+        }
+        // TODO: Handle other drawer items
       },
     );
   }
@@ -410,6 +422,7 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           Icons.screen_rotation,
@@ -417,17 +430,14 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'main',
-                            style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                        Text(
+                          'main',
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
+                        const SizedBox(width: 4),
                         Icon(
                           Icons.arrow_drop_down,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -441,7 +451,7 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
           ),
           // Run button
           Container(
-            margin: const EdgeInsets.only(right: 4),
+            margin: const EdgeInsets.only(right: 8),
             child: ElevatedButton.icon(
               onPressed: () {
                 // TODO: Build and run project
@@ -454,15 +464,15 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
               ),
             ),
           ),
-          // Options button
+          // Settings button
           Container(
             margin: const EdgeInsets.only(right: 8),
             child: IconButton(
               onPressed: () {
-                // TODO: Show options menu
+                // TODO: Show settings menu
               },
-              icon: const Icon(Icons.tune),
-              tooltip: 'Options',
+              icon: const Icon(Icons.settings),
+              tooltip: 'Settings',
             ),
           ),
         ],

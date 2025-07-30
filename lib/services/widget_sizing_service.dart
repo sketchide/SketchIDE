@@ -161,8 +161,8 @@ class WidgetSizingService {
             32.0, availableSize.height); // ✅ EXACT: 32dp like ItemLinearLayout
 
       case 'Container':
-        // SKETCHWARE PRO STYLE: Containers use MATCH_PARENT width, WRAP_CONTENT height like CardView
-        return Size(availableSize.width, 100.0); // Default height like CardView
+        // FLUTTER CONTAINER STYLE: Containers use MATCH_PARENT width, WRAP_CONTENT height like Row
+        return Size(availableSize.width, 50.0); // Default height like Row
 
       case 'Text':
       case 'TextView':

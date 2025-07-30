@@ -178,8 +178,8 @@ class DesignDrawer extends StatelessWidget {
                     context,
                     DesignDrawerItem.sourceCode,
                     Icons.source,
-                    'Source Code',
-                    'View generated source code',
+                    'Show Source Code',
+                    'View built-in Dart',
                   ),
                   _buildDrawerItem(
                     context,

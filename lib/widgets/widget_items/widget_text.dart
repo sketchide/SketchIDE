@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/flutter_widget_bean.dart';
+import '../../services/text_property_service.dart';
 
 /// WidgetText - Simple palette widget for Text (matches Sketchware Pro's IconTextView)
 /// Display-only widget for palette, no interactive features
@@ -38,7 +39,7 @@ class WidgetText extends StatelessWidget {
   }
 
   String _getText() {
-    return widgetBean.properties['text'] ?? 'Text';
+    return TextPropertyService.getText(widgetBean.properties);
   }
 
   /// Create a FlutterWidgetBean for Text (matches Sketchware Pro's getBean())

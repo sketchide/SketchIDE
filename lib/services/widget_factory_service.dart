@@ -7,6 +7,7 @@ import '../models/icon_properties.dart';
 import '../models/layout_properties.dart';
 import '../models/stack_properties.dart';
 import '../models/button_properties.dart';
+import '../services/text_property_service.dart';
 import '../widgets/widget_items/widget_text.dart';
 import '../widgets/widget_items/widget_container.dart';
 import '../widgets/widget_items/widget_text_field.dart';
@@ -124,13 +125,7 @@ class WidgetFactoryService {
         return FlutterWidgetBean(
           id: widgetId,
           type: type,
-          properties: {
-            'text': 'TextView', // ✅ EXACT: Like Sketchware Pro's getName()
-            'textSize': 14.0,
-            'textColor': '#000000',
-            'textStyle': 'normal',
-            'gravity': 'left',
-          },
+          properties: TextPropertyService.getDefaultProperties(),
           children: [],
           position: PositionBean(x: 0, y: 0, width: 50, height: 30),
           events: {},
@@ -183,12 +178,12 @@ class WidgetFactoryService {
           position: PositionBean(x: 0, y: 0, width: 50, height: 30),
           events: {},
           layout: LayoutBean(
-            width: -2, 
-            height: -2, 
-            paddingLeft: 8, 
-            paddingTop: 8, 
-            paddingRight: 8, 
-            paddingBottom: 8, 
+            width: -2,
+            height: -2,
+            paddingLeft: 8,
+            paddingTop: 8,
+            paddingRight: 8,
+            paddingBottom: 8,
           ),
         );
 
@@ -199,23 +194,23 @@ class WidgetFactoryService {
           type: type,
           properties: {
             'text': '',
-            'hint': 'EditText', 
+            'hint': 'EditText',
             'textSize': 14.0,
             'textColor': '#000000',
             'hintColor': '#757575',
-            'inputType': 1, 
-            'imeOption': 0, 
+            'inputType': 1,
+            'imeOption': 0,
             'singleLine': 0,
             'line': 0,
             'textFont': 'default_font',
-              'textType': 0, 
+            'textType': 0,
           },
           children: [],
           position: PositionBean(x: 0, y: 0, width: 150, height: 40),
           events: {},
           layout: LayoutBean(
-            width: -1, 
-            height: -2, 
+            width: -1,
+            height: -2,
             paddingLeft: 8,
             paddingTop: 4,
             paddingRight: 8,
@@ -229,8 +224,7 @@ class WidgetFactoryService {
           id: widgetId,
           type: type,
           properties: {
-            'iconName':
-                'image', 
+            'iconName': 'image',
             'iconSize': 24.0,
             'iconColor': 0xFF000000,
             'semanticLabel': 'Icon',
@@ -239,8 +233,8 @@ class WidgetFactoryService {
           position: PositionBean(x: 0, y: 0, width: 50, height: 50),
           events: {},
           layout: LayoutBean(
-            width: -2, 
-            height: -2, 
+            width: -2,
+            height: -2,
             paddingLeft: 8,
             paddingTop: 8,
             paddingRight: 8,
@@ -249,7 +243,6 @@ class WidgetFactoryService {
         );
 
       case 'Row':
-        
         return FlutterWidgetBean(
           id: widgetId,
           type: type,
@@ -260,20 +253,16 @@ class WidgetFactoryService {
             'mainAxisSize': 'max',
           },
           children: [],
-          position: PositionBean(
-              x: 0,
-              y: 0,
-              width: -1,
-              height: -2), 
+          position: PositionBean(x: 0, y: 0, width: -1, height: -2),
           events: {},
           layout: LayoutBean(
-            width: -1, 
-            height: -2, 
-            paddingLeft: 8, 
-            paddingTop: 8, 
-            paddingRight: 8, 
-            paddingBottom: 8, 
-            orientation: 0, 
+            width: -1,
+            height: -2,
+            paddingLeft: 8,
+            paddingTop: 8,
+            paddingRight: 8,
+            paddingBottom: 8,
+            orientation: 0,
           ),
         );
 
@@ -282,27 +271,22 @@ class WidgetFactoryService {
           id: widgetId,
           type: type,
           properties: {
-            'orientation': 1, 
+            'orientation': 1,
             'mainAxisAlignment': 'start',
             'crossAxisAlignment': 'center',
             'mainAxisSize': 'max',
           },
           children: [],
-          position: PositionBean(
-              x: 0,
-              y: 0,
-              width: -2,
-              height:
-                  -1), 
+          position: PositionBean(x: 0, y: 0, width: -2, height: -1),
           events: {},
           layout: LayoutBean(
-            width: -2, 
-            height: -1, 
-            paddingLeft: 8, 
-            paddingTop: 8, 
-            paddingRight: 8, 
-            paddingBottom: 8, 
-            orientation: 1, 
+            width: -2,
+            height: -1,
+            paddingLeft: 8,
+            paddingTop: 8,
+            paddingRight: 8,
+            paddingBottom: 8,
+            orientation: 1,
           ),
         );
 
@@ -316,12 +300,12 @@ class WidgetFactoryService {
           position: PositionBean(x: 0, y: 0, width: 100, height: 60),
           events: {},
           layout: LayoutBean(
-            width: -1, 
-            height: -1, 
-            paddingLeft: 8, 
-            paddingTop: 8, 
-            paddingRight: 8, 
-            paddingBottom: 8, 
+            width: -1,
+            height: -1,
+            paddingLeft: 8,
+            paddingTop: 8,
+            paddingRight: 8,
+            paddingBottom: 8,
           ),
         );
 
@@ -337,8 +321,8 @@ class WidgetFactoryService {
           position: PositionBean(x: 0, y: 0, width: 150, height: 80),
           events: {},
           layout: LayoutBean(
-            width: -2, 
-            height: -2, 
+            width: -2,
+            height: -2,
             paddingLeft: 16,
             paddingTop: 16,
             paddingRight: 16,
@@ -398,7 +382,7 @@ class WidgetFactoryService {
       default:
         print('⚠️ UNKNOWN WIDGET TYPE: ${widgetBean.type}');
         print('⚠️ WIDGET PROPERTIES: ${widgetBean.properties}');
-        return widgetBean.properties; 
+        return widgetBean.properties;
     }
   }
 }

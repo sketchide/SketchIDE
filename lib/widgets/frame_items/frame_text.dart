@@ -3,6 +3,7 @@ import '../../models/flutter_widget_bean.dart';
 import '../../controllers/mobile_frame_touch_controller.dart';
 import '../../services/selection_service.dart';
 import '../../services/widget_sizing_service.dart';
+import '../../services/text_property_service.dart';
 import 'base_frame_item.dart';
 
 /// SKETCHWARE PRO STYLE: Frame Text Widget that matches ItemTextView exactly
@@ -156,14 +157,7 @@ class _FrameTextContent extends StatelessWidget {
         border: isSelected
             ? Border.all(color: const Color(0x9599d5d0), width: 2.0 * scale)
             : Border.all(color: Colors.transparent, width: 1.0 * scale),
-        // EXACT SKETCHWARE PRO: Subtle shadow like Android TextView
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 1.0 * scale,
-            offset: Offset(0, 1.0 * scale),
-          ),
-        ],
+        // SKETCHWARE PRO STYLE: No shadow - clean appearance like TextView
       ),
       child: Text(
         _getText(),
@@ -172,23 +166,9 @@ class _FrameTextContent extends StatelessWidget {
     );
   }
 
-  /// SKETCHWARE PRO STYLE: Get text content (matches ItemTextView)
+  /// SKETCHWARE PRO STYLE: Get text content (matches ItemTextView exactly)
   String _getText() {
-    final textValue = widgetBean.properties['text'];
-
-    // Handle null values properly
-    if (textValue == null) {
-      return 'TextView';
-    }
-
-    final text = textValue.toString();
-
-    // SKETCHWARE PRO STYLE: If text is empty or "null", show default content like ItemTextView
-    if (text.isEmpty || text == 'null') {
-      return 'TextView'; // SKETCHWARE PRO STYLE: Default text like IconTextView.getBean()
-    }
-
-    return text;
+    return TextPropertyService.getText(widgetBean.properties);
   }
 
   /// SKETCHWARE PRO STYLE: Get text style (matches ItemTextView)

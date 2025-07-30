@@ -9,6 +9,7 @@ import '../services/android_native_touch_service.dart';
 import '../services/android_native_measurement_service.dart';
 import '../controllers/mobile_frame_touch_controller.dart';
 import '../services/selection_service.dart';
+import '../services/text_property_service.dart';
 import 'view_dummy.dart';
 import 'dart:math' as math;
 
@@ -521,14 +522,8 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       case 'Text':
         return Center(
           child: Text(
-            properties['text'] ?? 'Text',
-            style: TextStyle(
-              fontSize:
-                  double.tryParse(properties['textSize']?.toString() ?? '14') ??
-                      14,
-              color: Colors.black,
-              fontWeight: FontWeight.w500,
-            ),
+            TextPropertyService.getText(properties),
+            style: TextPropertyService.getTextStyle(context, properties, 1.0),
             textAlign: _parseTextAlign(properties['textAlign'] ?? 'left'),
           ),
         );
@@ -804,15 +799,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
   Map<String, dynamic> _getDefaultProperties(String widgetType) {
     switch (widgetType) {
       case 'Text':
-        return {
-          'text': 'Text',
-          'textSize': '14.0',
-          'textColor': '#000000',
-          'backgroundColor': '#FFFFFF',
-          'textType': 'normal',
-          'lines': '1',
-          'singleLine': 'false',
-        };
+        return TextPropertyService.getDefaultProperties();
       case 'TextField':
         return {
           'text': '',
@@ -827,9 +814,11 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
         };
       case 'Container':
         return {
-          'backgroundColor': '#FFFFFF',
-          'borderRadius': '20.0', // CardView default corner radius
-          'elevation': '10.0', // CardView default elevation
+          'backgroundColor': '#FFFFFF', // Match Row widget - white background
+          'borderColor':
+              '#60000000', // Match Row widget - semi-transparent black border
+          'borderWidth': '1.0',
+          'borderRadius': '0.0',
           'alignment': 'center',
         };
       case 'Icon':
@@ -1055,7 +1044,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       viewType: widgetBean.type,
     );
 
-    if (widgetBean.type == 'Row' &&
+    if ((widgetBean.type == 'Row' || widgetBean.type == 'Container') &&
         widgetBean.layout.width == LayoutBean.MATCH_PARENT) {
       return Positioned(
         left: 0,

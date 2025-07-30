@@ -207,7 +207,7 @@ class _FrameRowState extends State<FrameRow> {
               crossAxisAlignment: crossAxisAlignment,
               children: childWidgets,
             )
-          : _buildEmptyRowPlaceholder(),
+          : Container(), // Clean empty container - no placeholder text or icon
     );
   }
 

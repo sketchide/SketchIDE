@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/flutter_widget_bean.dart';
+import '../services/text_property_service.dart';
 
 /// ViewDummy - EXACTLY matches Sketchware Pro's ViewDummy functionality
 ///
@@ -82,14 +83,9 @@ class _ViewDummyState extends State<ViewDummy> {
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
-              widget.widgetBean!.properties['text'] ?? 'Text',
-              style: TextStyle(
-                fontSize: (widget.widgetBean!.properties['textSize'] ?? 14.0)
-                    .toDouble(),
-                color:
-                    _parseColor(widget.widgetBean!.properties['textColor']) ??
-                        Colors.black,
-              ),
+              TextPropertyService.getText(widget.widgetBean!.properties),
+              style: TextPropertyService.getTextStyle(
+                  context, widget.widgetBean!.properties, 1.0),
             ),
           );
         case 'Button':
@@ -231,11 +227,9 @@ class _ViewDummyState extends State<ViewDummy> {
       case 'Text':
         return Center(
           child: Text(
-            properties['text'] ?? 'Text',
-            style: TextStyle(
-              fontSize:
-                  double.tryParse(properties['fontSize']?.toString() ?? '14') ??
-                      14,
+            TextPropertyService.getText(properties),
+            style: TextPropertyService.getTextStyle(context, properties, 1.0)
+                .copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w500,
             ),
