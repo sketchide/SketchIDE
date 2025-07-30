@@ -123,6 +123,12 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
           icon: const Icon(Icons.save),
           onPressed: viewModel.saveProject,
         ),
+        IconButton(
+          icon: const Icon(Icons.more_vert),
+          onPressed: () {
+            Scaffold.of(context).openEndDrawer();
+          },
+        ),
       ],
       bottom: TabBar(
         controller: _tabController,

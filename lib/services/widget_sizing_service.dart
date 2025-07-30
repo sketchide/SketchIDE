@@ -161,9 +161,8 @@ class WidgetSizingService {
             32.0, availableSize.height); // ✅ EXACT: 32dp like ItemLinearLayout
 
       case 'Container':
-        // SKETCHWARE PRO STYLE: Containers use default size
-        return Size(
-            DEFAULT_WIDGET_WIDTH.toDouble(), DEFAULT_WIDGET_HEIGHT.toDouble());
+        // SKETCHWARE PRO STYLE: Containers use MATCH_PARENT width, WRAP_CONTENT height like CardView
+        return Size(availableSize.width, 100.0); // Default height like CardView
 
       case 'Text':
       case 'TextView':
@@ -219,9 +218,9 @@ class WidgetSizingService {
         break;
 
       case 'Container':
-        // SKETCHWARE PRO STYLE: Default size
-        width = DEFAULT_WIDGET_WIDTH;
-        height = DEFAULT_WIDGET_HEIGHT;
+        // SKETCHWARE PRO STYLE: MATCH_PARENT width, WRAP_CONTENT height like CardView
+        width = MATCH_PARENT;
+        height = WRAP_CONTENT;
         break;
 
       case 'Text':

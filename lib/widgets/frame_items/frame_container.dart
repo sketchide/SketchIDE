@@ -128,12 +128,21 @@ class _FrameContainerState extends State<FrameContainer> {
         child: Container(
           key: _widgetKey,
           // SKETCHWARE PRO STYLE: Use exact width/height like ItemCardView
-          width: width > 0 ? width : null,
-          height: height > 0 ? height : null,
+          width: width != null && width! > 0
+              ? width
+              : null, // ✅ Handle nullable width
+          height: height != null && height! > 0
+              ? height
+              : null, // ✅ Handle nullable height
           // SKETCHWARE PRO STYLE: Minimum size like ItemCardView (32dp)
           constraints: BoxConstraints(
-            minWidth: 32 * density * widget.scale,
-            minHeight: 32 * density * widget.scale,
+            minWidth: width == null
+                ? 0
+                : 32 *
+                    density *
+                    widget.scale, // ✅ No minWidth when using parent constraints
+            minHeight:
+                32 * density * widget.scale, // ✅ EXACT: 32dp like ItemCardView
           ),
           child: _buildContainerContent(),
         ),
@@ -155,20 +164,40 @@ class _FrameContainerState extends State<FrameContainer> {
     final scaledBorderRadius = borderRadius * density * widget.scale;
     final scaledFontSize = 12 * density * widget.scale;
 
+    // SKETCHWARE PRO STYLE: Apply padding from layout bean like ItemRelativeLayout
+    final padding = EdgeInsets.fromLTRB(
+      widget.widgetBean.layout.paddingLeft * density * widget.scale,
+      widget.widgetBean.layout.paddingTop * density * widget.scale,
+      widget.widgetBean.layout.paddingRight * density * widget.scale,
+      widget.widgetBean.layout.paddingBottom * density * widget.scale,
+    );
+
     return Container(
-      // SKETCHWARE PRO STYLE: Minimum size like ItemCardView
-      constraints: BoxConstraints(
-        minWidth: 32 * density * widget.scale,
-        minHeight: 32 * density * widget.scale,
-      ),
+      // SKETCHWARE PRO STYLE: CardView style container like ItemCardView
+      width: double.infinity, // ✅ FORCE FULL WIDTH - no right edge padding
+      // SKETCHWARE PRO STYLE: No height constraint - let content determine height
+      padding: padding, // ✅ Apply 8dp padding like Sketchware Pro
       decoration: BoxDecoration(
-        // SKETCHWARE PRO STYLE: Background color handling like ItemCardView
         color: backgroundColor,
-        border: Border.all(
-          color: borderColor,
-          width: scaledBorderWidth,
-        ),
+        // EXACT SKETCHWARE PRO: CardView style like ItemCardView.onDraw()
         borderRadius: BorderRadius.circular(scaledBorderRadius),
+        // EXACT SKETCHWARE PRO: CardView elevation (10dp like IconCardView)
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10.0 * widget.scale,
+            spreadRadius: 0,
+            offset: Offset(0, 2.0 * widget.scale),
+          ),
+          // EXACT SKETCHWARE PRO: Selection highlight
+          if (widget.selectionService?.selectedWidget?.id ==
+              widget.widgetBean.id)
+            BoxShadow(
+              color: const Color(0x9599d5d0), // Sketchware Pro selection color
+              blurRadius: 0,
+              spreadRadius: 2.0 * widget.scale,
+            ),
+        ],
       ),
       child: childWidgets.isNotEmpty
           ? Stack(children: childWidgets)
