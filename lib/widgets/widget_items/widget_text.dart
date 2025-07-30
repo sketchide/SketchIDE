@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../../models/flutter_widget_bean.dart';
 import '../../services/text_property_service.dart';
 
-/// WidgetText - Simple palette widget for Text (matches Sketchware Pro's IconTextView)
-/// Display-only widget for palette, no interactive features
 class WidgetText extends StatelessWidget {
   final FlutterWidgetBean widgetBean;
   final double scale;
@@ -42,7 +40,6 @@ class WidgetText extends StatelessWidget {
     return TextPropertyService.getText(widgetBean.properties);
   }
 
-  /// Create a FlutterWidgetBean for Text (matches Sketchware Pro's getBean())
   static FlutterWidgetBean createBean({
     String? id,
     Map<String, dynamic>? properties,
@@ -65,8 +62,8 @@ class WidgetText extends StatelessWidget {
       ),
       events: {},
       layout: LayoutBean(
-        width: -2, // WRAP_CONTENT
-        height: -2, // WRAP_CONTENT
+        width: -2,
+        height: -2,
         marginLeft: 0,
         marginTop: 0,
         marginRight: 0,

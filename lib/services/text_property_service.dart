@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'color_utils.dart';
 
 class TextPropertyService {
   static const String _tag = 'TextPropertyService';
@@ -45,7 +46,7 @@ class TextPropertyService {
             properties['textSize']?.toString() ?? defaultTextSize) ??
         14.0;
     final textColor =
-        _parseColor(properties['textColor'] ?? defaultTextColor) ??
+        ColorUtils.parseColor(properties['textColor'] ?? defaultTextColor) ??
             Colors.black;
     final textType = properties['textType'] ?? defaultTextType;
 
@@ -54,28 +55,6 @@ class TextPropertyService {
       color: textColor,
       fontWeight: _getFontWeight(textType),
     );
-  }
-
-  static Color? _parseColor(dynamic colorValue) {
-    if (colorValue == null) return null;
-
-    if (colorValue is Color) return colorValue;
-
-    if (colorValue is String) {
-      if (colorValue.startsWith('#')) {
-        try {
-          return Color(int.parse(colorValue.replaceFirst('#', '0xFF')));
-        } catch (e) {
-          return null;
-        }
-      }
-    }
-
-    if (colorValue is int) {
-      return Color(colorValue);
-    }
-
-    return null;
   }
 
   static FontWeight _getFontWeight(String textType) {

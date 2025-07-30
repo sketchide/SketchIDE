@@ -4,6 +4,7 @@ import '../../controllers/mobile_frame_touch_controller.dart';
 import '../../services/selection_service.dart';
 import '../../services/widget_sizing_service.dart';
 import '../../services/text_property_service.dart';
+import '../../services/color_utils.dart';
 import 'base_frame_item.dart';
 
 /// SKETCHWARE PRO STYLE: Frame Text Widget that matches ItemTextView exactly
@@ -174,8 +175,9 @@ class _FrameTextContent extends StatelessWidget {
   /// SKETCHWARE PRO STYLE: Get text style (matches ItemTextView)
   TextStyle _getTextStyle(BuildContext context) {
     final fontSize = _parseDouble(widgetBean.properties['textSize']) ?? 14.0;
-    final textColor =
-        _parseColor(widgetBean.properties['textColor'] ?? '#000000');
+    final textColor = ColorUtils.parseColor(
+            widgetBean.properties['textColor'] ?? '#000000') ??
+        Colors.black;
     final textStyle = widgetBean.properties['textStyle'] ?? 'normal';
 
     // EXACT SKETCHWARE PRO: Convert sp to pixels like Android
@@ -226,7 +228,7 @@ class _FrameTextContent extends StatelessWidget {
           .transparent; // SKETCHWARE PRO STYLE: Transparent for white background
     }
 
-    return _parseColor(backgroundColor);
+    return ColorUtils.parseColor(backgroundColor) ?? Colors.transparent;
   }
 
   /// EXACT SKETCHWARE PRO: Get padding (matches ItemTextView.setPadding exactly)
@@ -271,19 +273,5 @@ class _FrameTextContent extends StatelessWidget {
       return double.tryParse(value);
     }
     return null;
-  }
-
-  /// SKETCHWARE PRO STYLE: Parse color from string
-  Color _parseColor(String colorString) {
-    if (colorString.startsWith('#')) {
-      try {
-        final colorInt =
-            int.parse(colorString.substring(1), radix: 16) + 0xFF000000;
-        return Color(colorInt);
-      } catch (e) {
-        return Colors.transparent;
-      }
-    }
-    return Colors.transparent;
   }
 }

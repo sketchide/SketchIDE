@@ -335,11 +335,6 @@ class WidgetFactoryService {
   /// Get strongly typed properties from FlutterWidgetBean
   /// This provides type-safe access to widget properties
   static dynamic getTypedProperties(FlutterWidgetBean widgetBean) {
-    // SKETCHWARE PRO STYLE: Debug logging for property type resolution
-    print('🔧 GETTING TYPED PROPERTIES: ${widgetBean.id}');
-    print('🔧 PROPERTIES: ${widgetBean.properties}');
-
-    // SKETCHWARE PRO STYLE: Auto-detect widget type from properties if type is wrong
     String actualType = widgetBean.type;
     if (widgetBean.properties.containsKey('orientation') &&
         widgetBean.properties.containsKey('mainAxisAlignment') &&
@@ -349,10 +344,6 @@ class WidgetFactoryService {
         actualType = 'Column';
       } else if (orientation == 0) {
         actualType = 'Row';
-      }
-      if (actualType != widgetBean.type) {
-        print(
-            '🔄 AUTO-CORRECTING PROPERTY TYPE: ${widgetBean.type} -> $actualType');
       }
     }
 
@@ -380,9 +371,197 @@ class WidgetFactoryService {
         return StackProperties.fromJson(widgetBean.properties);
 
       default:
-        print('⚠️ UNKNOWN WIDGET TYPE: ${widgetBean.type}');
-        print('⚠️ WIDGET PROPERTIES: ${widgetBean.properties}');
         return widgetBean.properties;
+    }
+  }
+
+  /// Get default properties for widget type (centralized)
+  static Map<String, dynamic> getDefaultProperties(String widgetType) {
+    switch (widgetType) {
+      case 'Text':
+        return TextPropertyService.getDefaultProperties();
+      case 'TextField':
+        return {
+          'text': '',
+          'hint': 'Enter text',
+          'inputType': 'text',
+          'singleLine': 'true',
+          'lines': '1',
+          'textSize': '14.0',
+          'textColor': '#000000',
+          'hintColor': '#757575',
+          'backgroundColor': '#FFFFFF',
+        };
+      case 'Container':
+        return {
+          'backgroundColor': '#FFFFFF',
+          'borderColor': '#60000000',
+          'borderWidth': '1.0',
+          'borderRadius': '0.0',
+          'alignment': 'center',
+        };
+      case 'Icon':
+        return {
+          'iconName': 'star',
+          'iconSize': 24.0,
+          'iconColor': '#000000',
+          'backgroundColor': '#FFFFFF',
+        };
+      case 'Row':
+        return {
+          'mainAxisAlignment': 'start',
+          'crossAxisAlignment': 'center',
+          'mainAxisSize': 'max',
+          'backgroundColor': '#FFFFFF',
+        };
+      case 'Column':
+        return {
+          'mainAxisAlignment': 'start',
+          'crossAxisAlignment': 'center',
+          'mainAxisSize': 'max',
+          'backgroundColor': '#FFFFFF',
+        };
+      case 'Stack':
+        return {
+          'alignment': 'topLeft',
+          'fit': 'loose',
+          'backgroundColor': '#FFFFFF',
+        };
+      case 'Button':
+        return {
+          'text': 'Button',
+          'textSize': 14.0,
+          'textColor': '#FFFFFF',
+          'backgroundColor': '#2196F3',
+          'cornerRadius': 8.0,
+        };
+      default:
+        return {
+          'backgroundColor': '#FFFFFF',
+        };
+    }
+  }
+
+  /// Get default layout for widget type (centralized)
+  static LayoutBean getDefaultLayout(String widgetType) {
+    switch (widgetType) {
+      case 'Text':
+        return LayoutBean(
+          width: -2,
+          height: -2,
+          marginLeft: 0,
+          marginTop: 0,
+          marginRight: 0,
+          marginBottom: 0,
+          paddingLeft: 8,
+          paddingTop: 4,
+          paddingRight: 8,
+          paddingBottom: 4,
+        );
+      case 'Button':
+        return LayoutBean(
+          width: -2,
+          height: -2,
+          marginLeft: 0,
+          marginTop: 0,
+          marginRight: 0,
+          marginBottom: 0,
+          paddingLeft: 16,
+          paddingTop: 12,
+          paddingRight: 16,
+          paddingBottom: 12,
+        );
+      case 'Container':
+        return LayoutBean(
+          width: -2,
+          height: -2,
+          marginLeft: 0,
+          marginTop: 0,
+          marginRight: 0,
+          marginBottom: 0,
+          paddingLeft: 0,
+          paddingTop: 0,
+          paddingRight: 0,
+          paddingBottom: 0,
+        );
+      case 'TextField':
+        return LayoutBean(
+          width: -1,
+          height: -2,
+          marginLeft: 0,
+          marginTop: 0,
+          marginRight: 0,
+          marginBottom: 0,
+          paddingLeft: 8,
+          paddingTop: 4,
+          paddingRight: 8,
+          paddingBottom: 4,
+        );
+      case 'Icon':
+        return LayoutBean(
+          width: -2,
+          height: -2,
+          marginLeft: 0,
+          marginTop: 0,
+          marginRight: 0,
+          marginBottom: 0,
+          paddingLeft: 8,
+          paddingTop: 8,
+          paddingRight: 8,
+          paddingBottom: 8,
+        );
+      case 'Row':
+        return LayoutBean(
+          width: -1,
+          height: -2,
+          marginLeft: 0,
+          marginTop: 0,
+          marginRight: 0,
+          marginBottom: 0,
+          paddingLeft: 0,
+          paddingTop: 0,
+          paddingRight: 0,
+          paddingBottom: 0,
+        );
+      case 'Column':
+        return LayoutBean(
+          width: -2,
+          height: -1,
+          marginLeft: 0,
+          marginTop: 0,
+          marginRight: 0,
+          marginBottom: 0,
+          paddingLeft: 0,
+          paddingTop: 0,
+          paddingRight: 0,
+          paddingBottom: 0,
+        );
+      case 'Stack':
+        return LayoutBean(
+          width: -2,
+          height: -2,
+          marginLeft: 0,
+          marginTop: 0,
+          marginRight: 0,
+          marginBottom: 0,
+          paddingLeft: 0,
+          paddingTop: 0,
+          paddingRight: 0,
+          paddingBottom: 0,
+        );
+      default:
+        return LayoutBean(
+          width: -2,
+          height: -2,
+          marginLeft: 0,
+          marginTop: 0,
+          marginRight: 0,
+          marginBottom: 0,
+          paddingLeft: 8,
+          paddingTop: 8,
+          paddingRight: 8,
+          paddingBottom: 8,
+        );
     }
   }
 }

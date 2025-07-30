@@ -10,6 +10,8 @@ import '../services/android_native_measurement_service.dart';
 import '../controllers/mobile_frame_touch_controller.dart';
 import '../services/selection_service.dart';
 import '../services/text_property_service.dart';
+import '../services/color_utils.dart';
+import '../services/icon_utils.dart';
 import 'view_dummy.dart';
 import 'dart:math' as math;
 
@@ -546,7 +548,7 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       case 'Icon':
         return Center(
           child: Icon(
-            _getIconFromName(properties['iconName'] ?? 'star'),
+            IconUtils.getIconFromName(properties['iconName'] ?? 'star'),
             color: Colors.black,
             size: double.tryParse(properties['iconSize']?.toString() ?? '24') ??
                 24,
@@ -574,13 +576,15 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
       case 'Container':
         return Container(
           decoration: BoxDecoration(
-            color: _parseColor(properties['backgroundColor']) ?? Colors.white,
+            color: ColorUtils.parseColor(properties['backgroundColor']) ??
+                Colors.white,
             borderRadius: BorderRadius.circular(
               double.tryParse(properties['borderRadius']?.toString() ?? '0') ??
                   0,
             ),
             border: Border.all(
-              color: _parseColor(properties['borderColor']) ?? Colors.grey,
+              color: ColorUtils.parseColor(properties['borderColor']) ??
+                  Colors.grey,
               width: double.tryParse(
                       properties['borderWidth']?.toString() ?? '1') ??
                   1,
@@ -1178,18 +1182,6 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
   }
 
   // Utility methods for parsing properties
-  Color _parseColor(String? colorString) {
-    if (colorString == null || colorString.isEmpty) return Colors.transparent;
-    if (colorString.startsWith('#')) {
-      try {
-        return Color(
-            int.parse(colorString.substring(1), radix: 16) + 0xFF000000);
-      } catch (e) {
-        return Colors.transparent;
-      }
-    }
-    return Colors.transparent;
-  }
 
   FontWeight _parseFontWeight(String weight) {
     switch (weight.toLowerCase()) {
@@ -1347,49 +1339,6 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
             ),
           ),
         );
-    }
-  }
-
-  IconData _getIconFromName(String iconName) {
-    switch (iconName.toLowerCase()) {
-      case 'star':
-        return Icons.star;
-      case 'home':
-        return Icons.home;
-      case 'settings':
-        return Icons.settings;
-      case 'person':
-        return Icons.person;
-      case 'favorite':
-        return Icons.favorite;
-      case 'search':
-        return Icons.search;
-      case 'add':
-        return Icons.add;
-      case 'edit':
-        return Icons.edit;
-      case 'delete':
-        return Icons.delete;
-      case 'close':
-        return Icons.close;
-      case 'menu':
-        return Icons.menu;
-      case 'more_vert':
-        return Icons.more_vert;
-      case 'arrow_back':
-        return Icons.arrow_back;
-      case 'arrow_forward':
-        return Icons.arrow_forward;
-      case 'check':
-        return Icons.check;
-      case 'info':
-        return Icons.info;
-      case 'warning':
-        return Icons.warning;
-      case 'error':
-        return Icons.error;
-      default:
-        return Icons.star;
     }
   }
 }
