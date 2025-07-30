@@ -116,6 +116,54 @@ class ProjectService {
     return logicDir;
   }
 
+  // Get project widgets cache directory (like Sketchware Pro's widget cache)
+  Future<String> getProjectWidgetsDirectory(String projectId) async {
+    final filesDir = await getProjectFilesDirectory(projectId);
+    final widgetsDir = path.join(filesDir, 'widgets');
+    await Directory(widgetsDir).create(recursive: true);
+    return widgetsDir;
+  }
+
+  // Get global libraries directory (like Sketchware Pro's libs)
+  Future<String> getGlobalLibsDirectory() async {
+    final rootDir = await getSketchideRootDirectory();
+    final libsDir = path.join(rootDir, _libsDir);
+    await Directory(libsDir).create(recursive: true);
+    return libsDir;
+  }
+
+  // Get global resources directory (like Sketchware Pro's resources)
+  Future<String> getGlobalResourcesDirectory() async {
+    final rootDir = await getSketchideRootDirectory();
+    final resourcesDir = path.join(rootDir, _resourcesDir);
+    await Directory(resourcesDir).create(recursive: true);
+    return resourcesDir;
+  }
+
+  // Get temporary files directory (like Sketchware Pro's temp)
+  Future<String> getTempDirectory() async {
+    final rootDir = await getSketchideRootDirectory();
+    final tempDir = path.join(rootDir, _tempDir);
+    await Directory(tempDir).create(recursive: true);
+    return tempDir;
+  }
+
+  // Get backup directory (like Sketchware Pro's bak)
+  Future<String> getBackupDirectory() async {
+    final rootDir = await getSketchideRootDirectory();
+    final bakDir = path.join(rootDir, _bakDir);
+    await Directory(bakDir).create(recursive: true);
+    return bakDir;
+  }
+
+  // Get download directory (like Sketchware Pro's download)
+  Future<String> getDownloadDirectory() async {
+    final rootDir = await getSketchideRootDirectory();
+    final downloadDir = path.join(rootDir, _downloadDir);
+    await Directory(downloadDir).create(recursive: true);
+    return downloadDir;
+  }
+
   // Request storage permissions (only when explicitly called)
   Future<void> _requestStoragePermissions() async {
     if (Platform.isAndroid) {
@@ -217,14 +265,23 @@ class ProjectService {
     // Create files subdirectory
     final filesDir = await getProjectFilesDirectory(projectId);
 
-    // Create subdirectories
+    // Create project subdirectories
     await getProjectLibDirectory(projectId);
     await getProjectAssetsDirectory(projectId);
     await getProjectResourcesDirectory(projectId);
     await getProjectUIDirectory(projectId);
     await getProjectLogicDirectory(projectId);
+    await getProjectWidgetsDirectory(projectId);
 
-    print('Created project directory structure: $projectDir');
+    // Create global system directories (like Sketchware Pro)
+    await getGlobalLibsDirectory();
+    await getGlobalResourcesDirectory();
+    await getTempDirectory();
+    await getBackupDirectory();
+    await getDownloadDirectory();
+
+    print(
+        'Created complete Sketchware Pro-style directory structure: $projectDir');
   }
 
   // Save project metadata (like Sketchware Pro's project.json)

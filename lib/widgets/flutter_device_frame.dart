@@ -95,7 +95,6 @@ class _FlutterDeviceFrameState extends State<FlutterDeviceFrame> {
 
   @override
   void dispose() {
-    _viewInfoService?.dispose();
     super.dispose();
   }
 

@@ -522,11 +522,13 @@ class ViewInfoService extends ChangeNotifier {
 
   @override
   void dispose() {
-    _disposed = true;
-    _viewInfos.clear();
-    _registeredWidgets.clear();
-    _registeredWidgetBeans.clear();
-    super.dispose();
+    if (!_disposed) {
+      _disposed = true;
+      _viewInfos.clear();
+      _registeredWidgets.clear();
+      _registeredWidgetBeans.clear();
+      super.dispose();
+    }
   }
 }
 
