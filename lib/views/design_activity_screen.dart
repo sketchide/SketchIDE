@@ -8,6 +8,8 @@ import '../widgets/design_drawer.dart';
 import '../controllers/drag_controller.dart';
 import '../models/flutter_widget_bean.dart';
 import 'source_code_viewer_screen.dart';
+import 'pubspec_configuration_screen.dart';
+import 'dependencies_screen.dart';
 
 /// Design Activity Screen - Main visual editor screen
 class DesignActivityScreen extends StatefulWidget {
@@ -383,6 +385,24 @@ class _DesignActivityScreenState extends State<DesignActivityScreen>
             context,
             MaterialPageRoute(
               builder: (context) => SourceCodeViewerScreen(
+                projectId: widget.projectId,
+              ),
+            ),
+          );
+        } else if (item == DesignDrawerItem.manifestManager) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PubspecConfigurationScreen(
+                projectId: widget.projectId,
+              ),
+            ),
+          );
+        } else if (item == DesignDrawerItem.libraryManager) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DependenciesScreen(
                 projectId: widget.projectId,
               ),
             ),
